@@ -1,1 +1,5 @@
 [AngleShooter](https://t2k2pp.github.io/AIXA/games/angle-shooter-game.html)
+[](https://github.com/t2k2pp/AIXA/blob/main/games/periodic-table-game-minimal.html)
+[](https://github.com/t2k2pp/AIXA/blob/main/games/sentence-game.html)
+[](https://github.com/t2k2pp/AIXA/blob/main/games/star-catcher-game.html)
+[](https://github.com/t2k2pp/AIXA/blob/main/games/yojijukugo-game.html)
