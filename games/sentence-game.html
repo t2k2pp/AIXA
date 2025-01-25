@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文並び替えゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f0f8ff;
+        }
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .japanese-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .word-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .word-button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .word-button:hover {
+            background-color: #45a049;
+        }
+        .answer-container {
+            min-height: 50px;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .selected-word {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+        }
+        .timer {
+            font-size: 2em;
+            color: #ff4444;
+            margin: 20px 0;
+        }
+        .score {
+            font-size: 1.5em;
+            color: #4444ff;
+            margin: 10px 0;
+        }
+        .game-over {
+            color: #ff4444;
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+        .start-button {
+            padding: 15px 30px;
+            font-size: 1.3em;
+            background-color: #4444ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .correct-answer {
+            color: #4CAF50;
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>英文並び替えゲーム</h1>
+    <div class="game-container">
+        <div id="highScore">ハイスコア: 0問</div>
+        <div id="timer" class="timer">60</div>
+        <div id="score" class="score">スコア: 0問</div>
+        <button id="startButton" class="start-button">ゲームスタート</button>
+        <div id="questionContainer" style="display: none;">
+            <div id="japaneseText" class="japanese-text"></div>
+            <div id="wordContainer" class="word-container"></div>
+            <div id="answerContainer" class="answer-container"></div>
+        </div>
+        <div id="gameOver" class="game-over" style="display: none;"></div>
+        <div id="correctAnswer" class="correct-answer"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                japanese: "私は毎日学校に行きます。",
+                english: ["I", "go", "to", "school", "every", "day"],
+                answer: "I go to school every day"
+            },
+            {
+                japanese: "彼は野球が好きです。",
+                english: ["He", "likes", "baseball"],
+                answer: "He likes baseball"
+            },
+            {
+                japanese: "私の妹は音楽を聴きます。",
+                english: ["My", "sister", "listens", "to", "music"],
+                answer: "My sister listens to music"
+            },
+            {
+                japanese: "あなたは英語を話せますか？",
+                english: ["Can", "you", "speak", "English"],
+                answer: "Can you speak English"
+            },
+            {
+                japanese: "この本は面白いです。",
+                english: ["This", "book", "is", "interesting"],
+                answer: "This book is interesting"
+            }
+        ];
+
+        let currentQuestionIndex;
+        let selectedWords = [];
+        let timer;
+        let timeLeft;
+        let score = 0;
+        let highScore = 0;
+        let gameActive = false;
+        let usedQuestions = [];
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function getNextQuestion() {
+            if (usedQuestions.length === questions.length) {
+                usedQuestions = [];
+            }
+            
+            let availableQuestions = questions.filter(
+                (_, index) => !usedQuestions.includes(index)
+            );
+            
+            let randomIndex = Math.floor(Math.random() * availableQuestions.length);
+            currentQuestionIndex = questions.indexOf(availableQuestions[randomIndex]);
+            usedQuestions.push(currentQuestionIndex);
+            
+            return questions[currentQuestionIndex];
+        }
+
+        function displayQuestion() {
+            const question = getNextQuestion();
+            document.getElementById('japaneseText').textContent = question.japanese;
+            
+            const wordContainer = document.getElementById('wordContainer');
+            wordContainer.innerHTML = '';
+            
+            const shuffledWords = shuffle([...question.english]);
+            shuffledWords.forEach(word => {
+                const button = document.createElement('button');
+                button.textContent = word;
+                button.className = 'word-button';
+                button.onclick = () => selectWord(word);
+                wordContainer.appendChild(button);
+            });
+            
+            selectedWords = [];
+            updateAnswer();
+        }
+
+        function selectWord(word) {
+            if (!gameActive) return;
+            
+            const buttons = document.getElementsByClassName('word-button');
+            for (let button of buttons) {
+                if (button.textContent === word && !button.disabled) {
+                    button.disabled = true;
+                    selectedWords.push(word);
+                    updateAnswer();
+                    checkAnswer();
+                    break;
+                }
+            }
+        }
+
+        function updateAnswer() {
+            const answerContainer = document.getElementById('answerContainer');
+            answerContainer.innerHTML = '';
+            selectedWords.forEach(word => {
+                const span = document.createElement('span');
+                span.className = 'selected-word';
+                span.textContent = word;
+                answerContainer.appendChild(span);
+            });
+        }
+
+        function checkAnswer() {
+            const currentQuestion = questions[currentQuestionIndex];
+            if (selectedWords.length === currentQuestion.english.length) {
+                if (selectedWords.join(' ') === currentQuestion.answer) {
+                    score++;
+                    document.getElementById('score').textContent = `スコア: ${score}問`;
+                    displayQuestion();
+                } else {
+                    endGame('不正解！');
+                }
+            }
+        }
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            usedQuestions = [];
+            document.getElementById('score').textContent = 'スコア: 0問';
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('correctAnswer').textContent = '';
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('startButton').style.display = 'none';
+            
+            timeLeft = 60;
+            updateTimer();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) {
+                    endGame('時間切れ！');
+                }
+            }, 1000);
+            
+            displayQuestion();
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = timeLeft;
+        }
+
+        function endGame(message) {
+            gameActive = false;
+            clearInterval(timer);
+            
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('highScore').textContent = `ハイスコア: ${highScore}問`;
+            }
+            
+            const currentQuestion = questions[currentQuestionIndex];
+            document.getElementById('gameOver').textContent = message;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('correctAnswer').textContent = 
+                `正解: ${currentQuestion.answer}`;
+            document.getElementById('startButton').style.display = 'block';
+            document.getElementById('questionContainer').style.display = 'none';
+        }
+
+        document.getElementById('startButton').onclick = startGame;
+    </script>
+</body>
+</html>

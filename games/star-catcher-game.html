@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Shooter Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            background: #000033;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: yellow;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .missile {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: #ff4444;
+            border-radius: 2px;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+            z-index: 10;
+        }
+
+        #timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 24px;
+            z-index: 10;
+        }
+
+        #highScore {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            color: gold;
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        #startScreen, #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+
+        .screen-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .start-btn {
+            padding: 15px 30px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .final-score {
+            font-size: 24px;
+            margin: 10px 0;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="score">Score: 0</div>
+        <div id="highScore">High Score: 0</div>
+        <div id="timer">60</div>
+        
+        <div id="startScreen">
+            <h1 class="screen-title">Star Shooter</h1>
+            <button class="start-btn">START GAME</button>
+        </div>
+        
+        <div id="gameOverScreen" style="display: none;">
+            <h1 class="screen-title">GAME OVER</h1>
+            <div class="final-score">Score: 0</div>
+            <button class="start-btn">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const timerElement = document.getElementById('timer');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startButtons = document.querySelectorAll('.start-btn');
+
+        let score = 0;
+        let highScore = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let timerInterval;
+        let isGameRunning = false;
+        let missiles = [];
+        let stars = [];
+
+        function createStar() {
+            if (!isGameRunning) return;
+            
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * (gameContainer.offsetWidth - 30) + 'px';
+            star.style.top = '-30px';
+            gameContainer.appendChild(star);
+
+            const starObj = {
+                element: star,
+                x: parseFloat(star.style.left),
+                y: parseFloat(star.style.top),
+                speed: 1 + Math.random() * 2
+            };
+            stars.push(starObj);
+        }
+
+        function createMissile(x) {
+            if (missiles.length >= 3) return; // 最大3発まで
+
+            const missile = document.createElement('div');
+            missile.className = 'missile';
+            missile.style.left = (x - 2) + 'px'; // ミサイルの幅の半分を引く
+            missile.style.bottom = '0px';
+            gameContainer.appendChild(missile);
+
+            missiles.push({
+                element: missile,
+                x: x,
+                y: 0
+            });
+        }
+
+        function updateGame() {
+            if (!isGameRunning) return;
+
+            // ミサイルの更新
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                missile.y += 5; // ミサイルの速度
+                missile.element.style.bottom = missile.y + 'px';
+
+                // 画面外に出たミサイルを削除
+                if (missile.y > gameContainer.offsetHeight) {
+                    missile.element.remove();
+                    missiles.splice(i, 1);
+                }
+            }
+
+            // 星の更新
+            for (let i = stars.length - 1; i >= 0; i--) {
+                const star = stars[i];
+                star.y += star.speed;
+                star.element.style.top = star.y + 'px';
+
+                // 衝突判定
+                for (let j = missiles.length - 1; j >= 0; j--) {
+                    const missile = missiles[j];
+                    const missileTop = gameContainer.offsetHeight - missile.y;
+                    
+                    if (Math.abs(star.x - missile.x) < 30 && // 横方向の衝突判定
+                        Math.abs(star.y - missileTop) < 30) { // 縦方向の衝突判定
+                        // ヒット
+                        score += 10;
+                        scoreElement.textContent = `Score: ${score}`;
+                        
+                        // 星とミサイルを削除
+                        star.element.remove();
+                        missile.element.remove();
+                        stars.splice(i, 1);
+                        missiles.splice(j, 1);
+                        break;
+                    }
+                }
+
+                // 画面下部に到達したらゲームオーバー
+                if (star.y > gameContainer.offsetHeight - 30) {
+                    endGame();
+                    return;
+                }
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            isGameRunning = true;
+            missiles = [];
+            stars = [];
+            
+            // Clear any existing elements
+            const elements = document.querySelectorAll('.star, .missile');
+            elements.forEach(element => element.remove());
+            
+            scoreElement.textContent = `Score: ${score}`;
+            timerElement.textContent = timeLeft;
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+
+            // Create stars at random intervals
+            gameInterval = setInterval(createStar, 1000);
+
+            // Start timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Start game loop
+            updateGame();
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = `High Score: ${highScore}`;
+            }
+
+            gameOverScreen.querySelector('.final-score').textContent = `Score: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // Event Listeners
+        function handleShoot(clientX, rect) {
+            if (!isGameRunning) return;
+            const x = clientX - rect.left;
+            createMissile(x);
+        }
+
+        // マウスクリック用のイベントリスナー
+        gameContainer.addEventListener('click', (e) => {
+            // スタート画面やゲームオーバー画面のボタンクリック時は発射しない
+            if (e.target.classList.contains('start-btn')) {
+                return;
+            }
+            const rect = gameContainer.getBoundingClientRect();
+            handleShoot(e.clientX, rect);
+        });
+
+        startButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation(); // イベントの伝播を停止
+                startGame();
+            });
+        });
+
+        // Prevent scrolling on touch devices
+        document.body.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // タッチデバイス用のイベントリスナー
+        gameContainer.addEventListener('touchstart', (e) => {
+            // スタート画面やゲームオーバー画面のボタンタッチ時は発射しない
+            if (e.target.classList.contains('start-btn')) {
+                return;
+            }
+            e.preventDefault(); // タッチイベントによる追加のクリックイベント発火を防止
+            const rect = gameContainer.getBoundingClientRect();
+            handleShoot(e.touches[0].clientX, rect);
+        });
+    </script>
+</body>
+</html>

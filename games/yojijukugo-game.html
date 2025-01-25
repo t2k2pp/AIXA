@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4字熟語学習ゲーム</title>
+    <style>
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        .screen {
+            padding: 20px;
+            flex-grow: 1;
+        }
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .yojijukugo {
+            font-size: 48px;
+            margin: 20px 0;
+            letter-spacing: 10px;
+        }
+        .input-container {
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            width: 100px;
+            height: 50px;
+            font-size: 24px;
+            text-align: center;
+            margin: 0 5px;
+            padding: 0 5px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .score {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .explanation {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #666;
+        }
+        #final-score {
+            font-size: 32px;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        #correct-answer {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #d32f2f;
+            line-height: 1.6;
+        }
+        h2 {
+            color: #333;
+            margin: 20px 0;
+        }
+        .game-description {
+            margin: 20px 0;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- スタート画面 -->
+        <div id="start-screen" class="screen">
+            <h2>4字熟語学習ゲーム</h2>
+            <div class="game-description">
+                <p>4字熟語の穴埋め問題に挑戦しましょう！</p>
+                <p>不正解になるまでチャレンジできます。<br>どこまでスコアを伸ばせるか挑戦してみましょう！</p>
+            </div>
+            <div class="mode-selector">
+                <button onclick="setGameMode('simple')">簡単モード（1文字）</button>
+                <button onclick="setGameMode('complex')">複雑モード（2文字）</button>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen" style="display: none;">
+            <div class="score">スコア: <span id="score">0</span></div>
+            <div class="question">
+                <div class="explanation" id="explanation"></div>
+                <div class="yojijukugo" id="yojijukugo"></div>
+            </div>
+            <div class="input-container" id="input-container"></div>
+            <button onclick="checkAnswer()">回答する</button>
+        </div>
+
+        <!-- ゲームオーバー画面 -->
+        <div id="gameover-screen" class="screen" style="display: none;">
+            <h2>ゲームオーバー</h2>
+            <div id="final-score"></div>
+            <div id="correct-answer"></div>
+            <button onclick="showStartScreen()">もう一度挑戦する</button>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数の定義
+        let currentMode = 'simple';
+        let currentQuestion = null;
+        let score = 0;
+        let missingIndices = [];
+        let remainingQuestions = [];
+
+        // 4字熟語データベース
+        const yojijukugoData = [
+            { word: "一期一会", explanation: "一度きりの出会いを大切にする心" },
+            { word: "温故知新", explanation: "古いことを学び、新しい知識を得ること" },
+            { word: "言語道断", explanation: "あまりにもひどくて、言葉では表現できないこと" },
+            { word: "時期尚早", explanation: "まだその時期になっていないこと" },
+            { word: "自画自賛", explanation: "自分の行いを自分でほめること" },
+            { word: "四苦八苦", explanation: "あれこれと苦労すること" },
+            { word: "十人十色", explanation: "人の考えや好みは人それぞれ違うこと" },
+            { word: "千載一遇", explanation: "めったにない良い機会" },
+            { word: "大同小異", explanation: "大きな違いはなく、細かい点が少し違うこと" },
+            { word: "適材適所", explanation: "その人の能力に合った場所で働かせること" },
+            { word: "波乱万丈", explanation: "人生でいろいろな困難や変化があること" },
+            { word: "百発百中", explanation: "すべての試みが成功すること" },
+            { word: "付和雷同", explanation: "自分の考えを持たず、他人に従うこと" },
+            { word: "本末転倒", explanation: "物事の順序が逆になっていること" },
+            { word: "魑魅魍魎", explanation: "いろいろな妖怪の総称" },
+            { word: "電光石火", explanation: "物事が非常に素早いこと" },
+            { word: "半信半疑", explanation: "信じるか信じないか迷っている状態" },
+            { word: "優柔不断", explanation: "決断力がなく、迷いやすいこと" },
+            { word: "異口同音", explanation: "みんなが同じことを言うこと" },
+            { word: "我田引水", explanation: "自分の都合の良いように物事を運ぶこと" },
+            { word: "一挙一動", explanation: "一つ一つの動作や行動" },
+            { word: "一心不乱", explanation: "他のことに心を奪われず、一つのことに専念すること" },
+            { word: "一触即発", explanation: "ちょっとしたきっかけで重大な事態が起こりそうな状態" },
+            { word: "一朝一夕", explanation: "短い期間" },
+            { word: "一念発起", explanation: "固い決心をして新しいことを始めること" },
+            { word: "一蓮托生", explanation: "運命を共にすること" },
+            { word: "右往左往", explanation: "どうしていいかわからず、うろうろすること" },
+            { word: "温良恭倹", explanation: "性格が温和で礼儀正しく、つつましいこと" },
+            { word: "快刀乱麻", explanation: "複雑な問題を手際よく解決すること" },
+            { word: "開口一番", explanation: "話し始めてすぐの言葉" },
+            { word: "馬耳東風", explanation: "人の言うことを全く気にかけないこと" },
+            { word: "外柔内剛", explanation: "外見は柔和だが、内面は強い意志を持っていること" },
+            { word: "各個撃破", explanation: "敵を一つずつ倒していくこと" },
+            { word: "確信犯的", explanation: "結果を分かった上で意図的に行うこと" },
+            { word: "花鳥風月", explanation: "自然の美しい景色" },
+            { word: "画竜点睛", explanation: "仕上げとして最も大切な部分を加えること" },
+            { word: "危機一髪", explanation: "危険な場面からかろうじて逃れること" },
+            { word: "起死回生", explanation: "絶体絶命の状況から立ち直ること" },
+            { word: "気宇壮大", explanation: "心が広く大きいこと" },
+            { word: "機械油断", explanation: "油断や気の緩みがないこと" },
+            { word: "疑心暗鬼", explanation: "疑い深くなって、何もないところに不安を感じること" },
+            { word: "義理人情", explanation: "人としての道理と思いやりの心" },
+            { word: "九死一生", explanation: "死ぬような危険な目に遭いながら生き残ること" },
+            { word: "牛歩進行", explanation: "非常にゆっくりとした進み方" },
+            { word: "狂言綺語", explanation: "飾り立てた美しいことば" },
+            { word: "驚天動地", explanation: "天地を驚かすほどの大きな出来事" },
+            { word: "継続反復", explanation: "同じことを繰り返し続けること" },
+            { word: "血気盛衰", explanation: "活力の盛んなことと衰えること" },
+            { word: "結論先行", explanation: "結論を先に決めてしまうこと" },
+            { word: "見識高遠", explanation: "見識が高く、視野が広いこと" },
+            { word: "言外之意", explanation: "言葉には表れていない意味" },
+            { word: "乾坤一擲", explanation: "一か八かの大勝負" },
+            { word: "見聞広大", explanation: "見聞が広く、知識が豊富なこと" },
+            { word: "五里霧中", explanation: "先が見通せない状態" },
+            { word: "後生大事", explanation: "大切に守り伝えること" },
+            { word: "五臓六腑", explanation: "体の内臓全体" },
+            { word: "言文一致", explanation: "話し言葉と書き言葉が一致すること" },
+            { word: "才気煥発", explanation: "才能が輝くように現れること" },
+            { word: "罪業深重", explanation: "罪が重いこと" },
+            { word: "細大漏洩", explanation: "小さなことも大きなことも全て" },
+            { word: "酒池肉林", explanation: "飲み食いに耽る贅沢な様子" },
+            { word: "三寒四温", explanation: "寒い日と暖かい日が交互に続くこと" },
+            { word: "散花流水", explanation: "あっという間に過ぎ去ること" },
+            { word: "時代錯誤", explanation: "時代に合わない考えや行動" },
+            { word: "自暴自棄", explanation: "自分を投げ出して乱暴な行動をとること" },
+            { word: "七転八倒", explanation: "苦しみもがくこと" },
+            { word: "質実剛健", explanation: "質素で実直、たくましいこと" },
+            { word: "弱肉強食", explanation: "強いものが弱いものを支配すること" },
+            { word: "春風駘蕩", explanation: "のんびりとして楽しい様子" },
+            { word: "純真無垢", explanation: "純粋で汚れのない心" },
+            { word: "諸行無常", explanation: "全てのものは常に変化し続けること" },
+            { word: "心機一転", explanation: "気持ちを新たにすること" },
+            { word: "森羅万象", explanation: "この世の全ての事物" },
+            { word: "人心一新", explanation: "人々の心が新しくなること" },
+            { word: "水火不容", explanation: "互いに相容れないこと" },
+            { word: "寸刻千金", explanation: "時間が非常に貴重なこと" },
+            { word: "正真正銘", explanation: "まぎれもない本物であること" },
+            { word: "世事多難", explanation: "世の中には困難なことが多いこと" },
+            { word: "青天白日", explanation: "明るく晴れ渡った空" },
+            { word: "千変万化", explanation: "様々に変化すること" },
+            { word: "前代未聞", explanation: "これまでに聞いたことがないこと" },
+            { word: "前途洋々", explanation: "将来に大きな希望があること" },
+            { word: "措置無砢", explanation: "なすすべがないこと" },
+            { word: "大器晩成", explanation: "優れた人物は時間をかけて成長すること" },
+            { word: "大胆不敵", explanation: "非常に大胆で恐れを知らないこと" },
+            { word: "天衣無縫", explanation: "自然で飾り気のないこと" },
+            { word: "天真爛漫", explanation: "あけっぴろげで純真なこと" },
+            { word: "独断専行", explanation: "自分一人で決めて実行すること" },
+            { word: "内憂外患", explanation: "内外からの心配事" },
+            { word: "二束三文", explanation: "値打ちのないこと" },
+            { word: "任意随意", explanation: "思いのままに自由なこと" },
+            { word: "年功序列", explanation: "年数や年齢による順序" },
+            { word: "能書詐欺", explanation: "うまい言葉で人をだますこと" },
+            { word: "破天荒的", explanation: "これまでにない新しいこと" },
+            { word: "八面玲瓏", explanation: "どんな場面でも臨機応変に対応できること" },
+            { word: "反面教師", explanation: "反対の見本として学ぶこと" },
+            { word: "百戦錬磨", explanation: "多くの経験を積んで鍛えられていること" },
+            { word: "不偏不党", explanation: "どちらにも偏らない公平な態度" },
+            { word: "不眠不休", explanation: "休まず続けること" },
+            { word: "文明開化", explanation: "文明が進歩して開けること" },
+            { word: "平和安全", explanation: "平穏で安全なこと" },
+            { word: "暮色蒼然", explanation: "夕暮れの寂しい様子" },
+            { word: "放縦不羈", explanation: "わがままで束縛を嫌うこと" },
+            { word: "茫然自失", explanation: "ぼうっとして我を失うこと" }
+        ];
+
+        // 画面の切り替え
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.style.display = 'none';
+            });
+            document.getElementById(screenId).style.display = 'block';
+        }
+
+        // スタート画面表示
+        function showStartScreen() {
+            showScreen('start-screen');
+            score = 0;
+            document.getElementById('score').textContent = score;
+        }
+
+        // ゲームモード設定と開始
+        function setGameMode(mode) {
+            currentMode = mode;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            remainingQuestions = [...yojijukugoData];
+            showScreen('game-screen');
+            generateQuestion();
+        }
+
+        // ゲームオーバー画面表示
+        function showGameOver(lastQuestion) {
+            showScreen('gameover-screen');
+            document.getElementById('final-score').textContent = `最終スコア: ${score}問正解`;
+            
+            let mistakeInfo = `正解は「${lastQuestion.word}」でした。`;
+            mistakeInfo += `\n「${lastQuestion.explanation}」`;
+            document.getElementById('correct-answer').innerHTML = mistakeInfo.replace(/\n/g, '<br>');
+        }
+
+        // 新しい問題を生成する関数
+        function generateQuestion() {
+            if (remainingQuestions.length === 0) {
+                remainingQuestions = [...yojijukugoData];
+            }
+            
+            const randomIndex = Math.floor(Math.random() * remainingQuestions.length);
+            currentQuestion = remainingQuestions[randomIndex];
+            remainingQuestions.splice(randomIndex, 1);
+            
+            missingIndices = [];
+            while (missingIndices.length < (currentMode === 'simple' ? 1 : 2)) {
+                const randomPos = Math.floor(Math.random() * 4);
+                if (!missingIndices.includes(randomPos)) {
+                    missingIndices.push(randomPos);
+                }
+            }
+            
+            displayQuestion();
+        }
+
+        // 問題を画面に表示する関数
+        function displayQuestion() {
+            const explanation = document.getElementById('explanation');
+            const yojijukugo = document.getElementById('yojijukugo');
+            const inputContainer = document.getElementById('input-container');
+            
+            explanation.textContent = currentQuestion.explanation;
+            
+            let displayText = '';
+            const word = currentQuestion.word;
+            for (let i = 0; i < 4; i++) {
+                if (missingIndices.includes(i)) {
+                    displayText += '〇';
+                } else {
+                    displayText += word[i];
+                }
+            }
+            yojijukugo.textContent = displayText;
+            
+            inputContainer.innerHTML = '';
+            missingIndices.forEach((index) => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.style.width = '100px';
+                input.dataset.position = index;
+                inputContainer.appendChild(input);
+            });
+        }
+
+        // 回答をチェックする関数
+        function checkAnswer() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            let correct = true;
+            
+            inputs.forEach((input) => {
+                const position = parseInt(input.dataset.position);
+                if (!input.value.includes(currentQuestion.word[position])) {
+                    correct = false;
+                }
+            });
+            
+            if (correct) {
+                score++;
+                document.getElementById('score').textContent = score;
+                alert('正解！');
+                generateQuestion();
+            } else {
+                showGameOver(currentQuestion);
+            }
+        }
+
+        // ページ読み込み時にスタート画面を表示
+        window.addEventListener('DOMContentLoaded', function() {
+            showStartScreen();
+        });
+    </script>
+</body>
+</html>
