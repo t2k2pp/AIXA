@@ -17,6 +17,8 @@
  1. [アングリーバードもどき](https://t2k2pp.github.io/AIXA/games/angry-birds-clone.html)
  2. [ハットリスもどき](https://t2k2pp.github.io/AIXA/games/hat-puzzle-complete.html)
 
+
+
 ## 解説
 ### プロンプト
 半分ぐらいはプロンプトは下記を使いまわして作成しています。あとはなんとなく話しかけて作れてしまいました。
@@ -162,3 +164,26 @@ Uncaught Error: Uncaught SecurityError: Failed to read the 'localStorage' proper
 **工事中**
 ### 2. [ハットリスもどき](https://t2k2pp.github.io/AIXA/games/hat-puzzle-complete.html)
 **工事中**
+
+
+
+## 番外編
+**[番外編]**
+
+Claudeに下記プロンプトをあたえ、すごい！すばらしい！とか言いながらほかのも見せてと言い続けて作成できてしまったアプリたちです。
+```Prompt
+HTMLとJavaScriptを使い1ファイルで作成するアプリ、あなたは今までどういうものをつくでてきましたか？
+```
+
+1. [算数忍者](https://t2k2pp.github.io/AIXA/games/math-game_2.html)
+2. [ビートメーカー](https://t2k2pp.github.io/AIXA/games/beat-maker.html)
+3. [通貨換算アプリ](https://t2k2pp.github.io/AIXA/games/currency-converter.html)
+4. [画像フィルターアプリ](https://t2k2pp.github.io/AIXA/games/image-filter-app.html)
+5. [シンプルTodoアプリ](https://t2k2pp.github.io/AIXA/games/todo-app.html)
+6. [SVG図形エディター](https://t2k2pp.github.io/AIXA/games/shape-editor.html)
+7. [冒険タイピングゲーム](https://t2k2pp.github.io/AIXA/games/typing-game.html)
+8. [英単語宇宙探検](https://t2k2pp.github.io/AIXA/games/space-english.html)
+9. [プログラミング入門パズル](https://t2k2pp.github.io/AIXA/games/programming-puzzle.html)
+10. [地理探検クエスト](https://t2k2pp.github.io/AIXA/games/geography-quest.html)
+11. [地理探検クエスト 改良版](https://t2k2pp.github.io/AIXA/games/geography-quest-v2.html)
+12. [科学実験シミュレーター](https://t2k2pp.github.io/AIXA/games/science-lab.html)
