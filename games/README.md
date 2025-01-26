@@ -1,6 +1,8 @@
 # 生成AIで作成したゲーム
 ## 生成したゲーム一覧
 
+ブラウザであれば、下記動作します。AndroidのGitHubアプリ上では動作しませんでした。
+
 **[成功パターン]**
  1. [StarShooter](https://t2k2pp.github.io/AIXA/games/star-catcher-game.html)
  2. [AngleShooter](https://t2k2pp.github.io/AIXA/games/angle-shooter-game.html)
@@ -8,7 +10,7 @@
  4. [英文並び替えゲーム](https://t2k2pp.github.io/AIXA/games/sentence-game.html)
  5. [四字熟語学習ゲーム](https://t2k2pp.github.io/AIXA/games/yojijukugo-game.html)
  6. [わり算の余りゲーム](https://t2k2pp.github.io/AIXA/games/division-remainder-game-with-easy.html)
- 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.tsx)
+ 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.html)
  8. [ドット絵エディタ](https://t2k2pp.github.io/AIXA/games/dot-paint.html)
 
 **[失敗パターン]**
@@ -150,7 +152,7 @@ Uncaught Error: Uncaught SecurityError: Failed to read the 'localStorage' proper
 間違わない限り、ゲームが終わりません。時間（60秒）が来る、もしくは最大20問出したら終わる（間違えても即終了にしない）形にしてください。不正解の場合は不正解と表示し、入力欄をクリアして、正解するまでつぎの問題に行けないようにしてください。
 '''
 
-### 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.tsx)
+### 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.html)
 **工事中**
 ### 8. [ドット絵エディタ](https://t2k2pp.github.io/AIXA/games/dot-paint.html)
 **工事中**
