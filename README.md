@@ -29,4 +29,4 @@ AIXAは、生成AIの能力を最大限に活用し、その対話を通じて�
 この紹介文は、GitHub Copilotの支援を受けて作成されました。Copilotが提供するAIサポートにより、文書の作成がスムーズに行われました。
 This description was created with the assistance of GitHub Copilot. The AI support provided by Copilot has helped streamline the creation of this document.
 
-（AIによる自画自賛が入ってるｗ。）
+（本人談：AIによる自画自賛が入ってるｗ。貢献とか上に書かれてますが、とりあえずしばらくは一人でもくもくとやった結果をプロットしていきます。）
