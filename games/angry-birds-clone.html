@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Angry Birds Clone</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+        }
+        #gameCanvas {
+            width: 100vw;
+            height: 100vh;
+        }
+        .gameInfo {
+            position: fixed;
+            font-family: Arial, sans-serif;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            color: #333;
+        }
+        #scoreDisplay {
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+        }
+        #objective {
+            top: 70px;
+            left: 20px;
+            font-size: 18px;
+        }
+        #gameStatus {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        #nextButton {
+            display: none;
+            position: fixed;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #nextButton:hover {
+            background: #45a049;
+        }
+        #resetButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #resetButton:hover {
+            background: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreDisplay" class="gameInfo">スコア: 0</div>
+    <div id="objective" class="gameInfo">目標: 緑の的をすべて破壊しよう！</div>
+    <div id="gameStatus"></div>
+    <button id="nextButton">次のステージへ</button>
+    <button id="resetButton">リセット</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>
+        const {
+            Engine,
+            Render,
+            World,
+            Bodies,
+            Constraint,
+            Mouse,
+            MouseConstraint,
+            Vector,
+            Body,
+            Events
+        } = Matter;
+
+        // ゲーム状態管理
+        const gameState = {
+            engine: null,
+            render: null,
+            world: null,
+            bird: null,
+            slingshot: null,
+            ground: null,
+            score: 0,
+            isLaunched: false,
+            slingshotPoint: { x: 200, y: 400 },
+            remainingTargets: 3,
+            currentStage: 1,
+            maxStages: 3,
+            isGameOver: false
+        };
+
+        // ゲームの初期化
+        function initGame() {
+            // エンジンの作成
+            gameState.engine = Engine.create({
+                enableSleeping: true,
+                gravity: { x: 0, y: 1, scale: 0.001 }
+            });
+            gameState.world = gameState.engine.world;
+
+            // レンダラーの作成
+            gameState.render = Render.create({
+                canvas: document.getElementById('gameCanvas'),
+                engine: gameState.engine,
+                options: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    wireframes: false,
+                    background: 'transparent'
+                }
+            });
+
+            gameState.slingshotPoint.y = window.innerHeight - 200;
+
+            setupGameObjects();
+            setupMouseControl();
+            setupCollisionHandling();
+
+            Engine.run(gameState.engine);
+            Render.run(gameState.render);
+        }
+
+        // ゲームオブジェクトのセットアップ
+        function setupGameObjects() {
+            // 地面
+            gameState.ground = Bodies.rectangle(
+                window.innerWidth / 2,
+                window.innerHeight - 30,
+                window.innerWidth,
+                60,
+                {
+                    isStatic: true,
+                    render: { fillStyle: '#3C2A1A' }
+                }
+            );
+
+            // 鳥
+            gameState.bird = Bodies.circle(
+                gameState.slingshotPoint.x,
+                gameState.slingshotPoint.y,
+                20,
+                {
+                    density: 0.005,
+                    friction: 0.001,
+                    restitution: 0.5,
+                    render: { fillStyle: '#ff0000' }
+                }
+            );
+
+            // スリングショット
+            gameState.slingshot = Constraint.create({
+                pointA: { 
+                    x: gameState.slingshotPoint.x,
+                    y: gameState.slingshotPoint.y
+                },
+                bodyB: gameState.bird,
+                stiffness: 0.01,
+                damping: 0.001,
+                length: 1,
+                render: { 
+                    strokeStyle: '#3A270A',
+                    lineWidth: 3
+                }
+            });
+
+            // 基点（視覚的な要素）
+            const base = Bodies.rectangle(
+                gameState.slingshotPoint.x,
+                gameState.slingshotPoint.y + 20,
+                20,
+                100,
+                {
+                    isStatic: true,
+                    isSensor: true,
+                    render: { fillStyle: '#5C3A1A' }
+                }
+            );
+
+            // ターゲットとブロック
+            const targets = [
+                createTarget(700, window.innerHeight - 80),
+                createTarget(800, window.innerHeight - 80),
+                createTarget(900, window.innerHeight - 80)
+            ];
+
+            const obstacles = [
+                createObstacle(700, window.innerHeight - 160),
+                createObstacle(800, window.innerHeight - 160),
+                createObstacle(900, window.innerHeight - 160)
+            ];
+
+            World.add(gameState.world, [
+                gameState.ground,
+                base,
+                gameState.bird,
+                gameState.slingshot,
+                ...targets,
+                ...obstacles
+            ]);
+        }
+
+        // マウスコントロールのセットアップ
+        function setupMouseControl() {
+            const mouse = Mouse.create(gameState.render.canvas);
+            const mouseConstraint = MouseConstraint.create(gameState.engine, {
+                mouse: mouse,
+                constraint: {
+                    stiffness: 0.05,
+                    render: { visible: false }
+                }
+            });
+
+            let isDragging = false;
+            let startDragPos = null;
+
+            Events.on(mouseConstraint, 'mousedown', function(event) {
+                if (gameState.isLaunched || gameState.isGameOver) return;
+                
+                const mousePosition = event.mouse.position;
+                const birdPosition = gameState.bird.position;
+                const distance = Vector.magnitude(
+                    Vector.sub(mousePosition, birdPosition)
+                );
+
+                if (distance < 30) {
+                    isDragging = true;
+                    startDragPos = Vector.clone(birdPosition);
+                    Body.setStatic(gameState.bird, false);
+                }
+            });
+
+            Events.on(mouseConstraint, 'mousemove', function(event) {
+                if (isDragging && !gameState.isLaunched) {
+                    const mousePosition = event.mouse.position;
+                    const maxDistance = 100;
+                    const offset = Vector.sub(mousePosition, gameState.slingshotPoint);
+                    const distance = Vector.magnitude(offset);
+
+                    if (distance > maxDistance) {
+                        const normalizedOffset = Vector.mult(
+                            Vector.normalise(offset),
+                            maxDistance
+                        );
+                        Body.setPosition(gameState.bird, {
+                            x: gameState.slingshotPoint.x + normalizedOffset.x,
+                            y: gameState.slingshotPoint.y + normalizedOffset.y
+                        });
+                    } else {
+                        Body.setPosition(gameState.bird, mousePosition);
+                    }
+                    
+                    Body.setVelocity(gameState.bird, { x: 0, y: 0 });
+                }
+            });
+
+            Events.on(mouseConstraint, 'mouseup', function() {
+                if (isDragging && !gameState.isLaunched) {
+                    isDragging = false;
+                    gameState.isLaunched = true;
+
+                    const birdPos = gameState.bird.position;
+                    const force = Vector.mult(
+                        Vector.normalise(
+                            Vector.sub(gameState.slingshotPoint, birdPos)
+                        ),
+                        Vector.magnitude(
+                            Vector.sub(gameState.slingshotPoint, birdPos)
+                        ) * 0.15
+                    );
+
+                    World.remove(gameState.world, gameState.slingshot);
+                    Body.setStatic(gameState.bird, false);
+                    Body.setVelocity(gameState.bird, force);
+                    
+                    setTimeout(createNewBird, 2000);
+                }
+            });
+
+            World.add(gameState.world, mouseConstraint);
+            gameState.render.mouse = mouse;
+        }
+
+        // 衝突処理のセットアップ
+        function setupCollisionHandling() {
+            Events.on(gameState.engine, 'collisionStart', function(event) {
+                event.pairs.forEach((pair) => {
+                    if (pair.bodyA.label === 'target' || pair.bodyB.label === 'target') {
+                        const target = pair.bodyA.label === 'target' ? pair.bodyA : pair.bodyB;
+                        const velocity = Math.abs(target.velocity.x) + Math.abs(target.velocity.y);
+                        
+                        if (velocity > 5) {
+                            World.remove(gameState.world, target);
+                            gameState.score += 100;
+                            gameState.remainingTargets--;
+                            document.getElementById('scoreDisplay').textContent = 
+                                `スコア: ${gameState.score}`;
+                            
+                            // ステージクリア判定
+                            if (gameState.remainingTargets <= 0) {
+                                const gameStatus = document.getElementById('gameStatus');
+                                const nextButton = document.getElementById('nextButton');
+                                
+                                if (gameState.currentStage < gameState.maxStages) {
+                                    gameStatus.style.display = 'block';
+                                    gameStatus.textContent = 'ステージクリア！';
+                                    nextButton.style.display = 'block';
+                                    gameState.isGameOver = true;
+                                } else {
+                                    gameStatus.style.display = 'block';
+                                    gameStatus.textContent = 'ゲームクリア！おめでとう！';
+                                    gameState.isGameOver = true;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // ターゲットの作成
+        function createTarget(x, y) {
+            return Bodies.rectangle(x, y, 50, 50, {
+                render: { fillStyle: '#4CAF50' },
+                label: 'target'
+            });
+        }
+
+        // 障害物の作成
+        function createObstacle(x, y) {
+            return Bodies.rectangle(x, y, 30, 100, {
+                render: { fillStyle: '#795548' }
+            });
+        }
+
+        // 新しい鳥の作成
+        function createNewBird() {
+            gameState.isLaunched = false;
+            gameState.bird = Bodies.circle(
+                gameState.slingshotPoint.x,
+                gameState.slingshotPoint.y,
+                20,
+                {
+                    density: 0.005,
+                    friction: 0.001,
+                    restitution: 0.5,
+                    render: { fillStyle: '#ff0000' }
+                }
+            );
+
+            gameState.slingshot = Constraint.create({
+                pointA: gameState.slingshotPoint,
+                bodyB: gameState.bird,
+                stiffness: 0.01,
+                damping: 0.001,
+                length: 1,
+                render: { 
+                    strokeStyle: '#3A270A',
+                    lineWidth: 3
+                }
+            });
+
+            World.add(gameState.world, [gameState.bird, gameState.slingshot]);
+        }
+
+        // 次のステージへ進むボタンの処理
+        document.getElementById('nextButton').addEventListener('click', function() {
+            const gameStatus = document.getElementById('gameStatus');
+            const nextButton = document.getElementById('nextButton');
+            
+            gameState.currentStage++;
+            gameState.remainingTargets = 3;
+            gameState.isGameOver = false;
+            
+            gameStatus.style.display = 'none';
+            nextButton.style.display = 'none';
+            
+            // 現在のワールドをクリアして新しいステージを開始
+            World.clear(gameState.world);
+            setupGameObjects();
+            
+            // ステージ数に応じて難易度を調整（例：的の位置や障害物を変更）
+            adjustDifficulty();
+        });
+
+        // リセット処理
+        document.getElementById('resetButton').addEventListener('click', function() {
+            World.clear(gameState.world);
+            Engine.clear(gameState.engine);
+            Render.stop(gameState.render);
+            
+            if (gameState.render.canvas) {
+                gameState.render.canvas.remove();
+            }
+            
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'gameCanvas';
+            document.body.insertBefore(newCanvas, document.getElementById('scoreDisplay'));
+
+            gameState.score = 0;
+            gameState.isLaunched = false;
+            gameState.currentStage = 1;
+            gameState.remainingTargets = 3;
+            gameState.isGameOver = false;
+            
+            const gameStatus = document.getElementById('gameStatus');
+            const nextButton = document.getElementById('nextButton');
+            gameStatus.style.display = 'none';
+            nextButton.style.display = 'none';
+            document.getElementById('scoreDisplay').textContent = `スコア: ${gameState.score}`;
+
+            initGame();
+        });
+
+        // ウィンドウリサイズ処理
+        window.addEventListener('resize', function() {
+            if (gameState.render) {
+                gameState.render.canvas.width = window.innerWidth;
+                gameState.render.canvas.height = window.innerHeight;
+                gameState.slingshotPoint.y = window.innerHeight - 200;
+                
+                if (gameState.ground) {
+                    Body.setPosition(gameState.ground, {
+                        x: window.innerWidth / 2,
+                        y: window.innerHeight - 30
+                    });
+                }
+            }
+        });
+
+        // ゲーム開始
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>帽子積みパズル</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-area {
+            position: relative;
+            margin-right: 100px;
+        }
+        #game-container {
+            width: 400px;
+            height: 600px;
+            background: #fff;
+            position: relative;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+        #score {
+            font-size: 20px;
+            margin: 10px;
+        }
+        .hat {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            width: 40px;
+            pointer-events: none;
+            transition: left 0.1s, top 0.2s;
+            z-index: 1;
+        }
+        .silk-hat {
+            height: 60px;
+        }
+        .silk-hat-top {
+            height: 50px;
+            background: #333;
+        }
+        .silk-hat-brim {
+            height: 10px;
+            background: #666;
+        }
+        .bowler {
+            height: 30px;
+        }
+        .bowler-top {
+            height: 20px;
+            background: #444;
+            border-radius: 20px 20px 0 0;
+        }
+        .bowler-brim {
+            height: 10px;
+            background: #666;
+        }
+        .red-hat {
+            height: 30px;
+        }
+        .red-hat-top {
+            height: 20px;
+            background: #ff4444;
+            border-radius: 20px 20px 0 0;
+        }
+        .red-hat-brim {
+            height: 10px;
+            background: #cc0000;
+        }
+        .crown {
+            height: 30px;
+            background: linear-gradient(to bottom,
+                #ffd700 0%, #ffd700 60%,
+                #daa520 60%, #daa520 100%);
+            clip-path: polygon(0% 100%, 100% 100%, 100% 60%, 80% 30%, 60% 60%, 40% 30%, 20% 60%, 0% 30%);
+        }
+        .next-pair {
+            position: absolute;
+            top: 10px;
+            right: -100px;
+            width: 90px;
+            height: 120px;
+            border: 1px solid #999;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px;
+            z-index: 2;
+        }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            z-index: 1000;
+        }
+        .next-label {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">スコア: 0</div>
+    <div id="game-area">
+        <div id="game-container">
+            <div class="game-over">
+                <h2>ゲームオーバー</h2>
+                <p>スコア: <span class="final-score">0</span></p>
+                <button onclick="location.reload()">リトライ</button>
+            </div>
+        </div>
+        <div class="next-pair">
+            <div class="next-label">NEXT</div>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 40;
+        const COLS = 10;
+        const ROWS = 15;
+        const MATCH_COUNT = 4;
+        const HAT_TYPES = ['silk-hat', 'bowler', 'red-hat', 'crown'];
+        const HAT_SCORES = {
+            'bowler': 100,
+            'red-hat': 100,
+            'silk-hat': 200,
+            'crown': 300
+        };
+
+        // 帽子の物理特性
+        const HAT_PHYSICS = {
+            'silk-hat': { baseHeight: 60, stackHeight: 10 },  // シルクハット: 効率的な重なり
+            'bowler': { baseHeight: 30, stackHeight: 30 },    // ボーラー帽: 通常の重なり
+            'red-hat': { baseHeight: 30, stackHeight: 30 },   // 赤い帽子: 通常の重なり
+            'crown': { baseHeight: 30, stackHeight: 999 }     // 王冠: 重ならない
+        };
+
+        let score = 0;
+        let currentPair = null;
+        let nextPair = null;
+        let gameBoard = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+        let fallingSpeed = 500;
+        let currentX = 4;
+        let currentY = 0;
+        let gameOver = false;
+        let fallingHats = [];
+
+        function createHatElement(type) {
+            const hat = document.createElement('div');
+            hat.className = `hat ${type}`;
+
+            if (type === 'silk-hat') {
+                const top = document.createElement('div');
+                top.className = 'silk-hat-top';
+                const brim = document.createElement('div');
+                brim.className = 'silk-hat-brim';
+                hat.appendChild(top);
+                hat.appendChild(brim);
+            } else if (type === 'bowler' || type === 'red-hat') {
+                const top = document.createElement('div');
+                top.className = `${type}-top`;
+                const brim = document.createElement('div');
+                brim.className = `${type}-brim`;
+                hat.appendChild(top);
+                hat.appendChild(brim);
+            }
+
+            gameContainer.appendChild(hat);
+            return hat;
+        }
+
+        class HatPair {
+            constructor(type1, type2) {
+                this.hats = [
+                    { type: type1, element: createHatElement(type1) },
+                    { type: type2, element: createHatElement(type2) }
+                ];
+            }
+
+            draw(x, y) {
+                if (x < 0 || x >= COLS - 1 || y < 0 || y >= ROWS) return;
+
+                this.hats[0].element.style.left = (x * GRID_SIZE) + 'px';
+                this.hats[0].element.style.top = y * GRID_SIZE + 'px';
+                this.hats[1].element.style.left = ((x + 1) * GRID_SIZE) + 'px';
+                this.hats[1].element.style.top = y * GRID_SIZE + 'px';
+            }
+
+            swap() {
+                [this.hats[0], this.hats[1]] = [this.hats[1], this.hats[0]];
+                this.draw(currentX, currentY);
+            }
+        }
+
+        function canStack(topType, bottomType) {
+            if (!bottomType) return true;
+            if (topType === bottomType && topType !== 'crown') return true;
+            return false;
+        }
+
+        function findStackHeight(x, y) {
+            let height = 0;
+            for (let i = ROWS - 1; i > y; i--) {
+                if (gameBoard[i][x]) {
+                    const hatType = gameBoard[i][x].type;
+                    height += HAT_PHYSICS[hatType].stackHeight;
+                }
+            }
+            return height;
+        }
+
+        function findDropPosition(x, hatType) {
+            for (let y = ROWS - 1; y >= 0; y--) {
+                if (!gameBoard[y][x]) {
+                    // 下の帽子とスタック可能かチェック
+                    if (y === ROWS - 1 || canStack(hatType, gameBoard[y + 1][x]?.type)) {
+                        return y;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        function moveLeft() {
+            if (!currentPair || fallingHats.length > 0) return;
+            if (currentX > 0 && canMove(currentX - 1, currentY)) {
+                currentX--;
+                currentPair.draw(currentX, currentY);
+            }
+        }
+
+        function moveRight() {
+            if (!currentPair || fallingHats.length > 0) return;
+            if (currentX < COLS - 2 && canMove(currentX + 1, currentY)) {
+                currentX++;
+                currentPair.draw(currentX, currentY);
+            }
+        }
+
+        function canMove(newX, newY) {
+            if (newX < 0 || newX >= COLS - 1 || newY < 0 || newY >= ROWS) return false;
+            return !gameBoard[newY][newX] && !gameBoard[newY][newX + 1];
+        }
+
+        function dropHat() {
+            if (!currentPair || fallingHats.length > 0) return;
+
+            if (canMove(currentX, currentY + 1)) {
+                currentY++;
+                currentPair.draw(currentX, currentY);
+            } else {
+                const hat1Y = findDropPosition(currentX, currentPair.hats[0].type);
+                const hat2Y = findDropPosition(currentX + 1, currentPair.hats[1].type);
+
+                if (hat1Y >= 0 && hat2Y >= 0) {
+                    fallingHats.push({
+                        hat: currentPair.hats[0],
+                        targetY: hat1Y,
+                        x: currentX
+                    });
+                    fallingHats.push({
+                        hat: currentPair.hats[1],
+                        targetY: hat2Y,
+                        x: currentX + 1
+                    });
+                }
+                currentPair = null;
+            }
+        }
+
+        function updateFallingHats() {
+            if (fallingHats.length === 0) {
+                if (!currentPair) {
+                    checkMatches();
+                    spawnNewPair();
+                }
+                return;
+            }
+
+            fallingHats = fallingHats.filter(falling => {
+                const targetY = falling.targetY * GRID_SIZE;
+                const currentY = parseInt(falling.hat.element.style.top);
+
+                if (currentY < targetY) {
+                    falling.hat.element.style.top = 
+                        Math.min(targetY, currentY + GRID_SIZE / 4) + 'px';
+                    return true;
+                } else {
+                    gameBoard[falling.targetY][falling.x] = falling.hat;
+                    return false;
+                }
+            });
+        }
+
+        function checkMatches() {
+            let matched = false;
+            for (let x = 0; x < COLS; x++) {
+                let count = 0;
+                let lastType = null;
+                let matchStart = -1;
+
+                for (let y = ROWS - 1; y >= 0; y--) {
+                    const hat = gameBoard[y][x];
+                    if (hat && hat.type === lastType) {
+                        count++;
+                        if (count === MATCH_COUNT) {
+                            matched = true;
+                            // 帽子を消す
+                            for (let i = 0; i <= matchStart - y; i++) {
+                                const targetHat = gameBoard[y + i][x];
+                                score += HAT_SCORES[targetHat.type];
+                                targetHat.element.remove();
+                                gameBoard[y + i][x] = null;
+                            }
+                            count = 0;
+                            lastType = null;
+                        }
+                    } else {
+                        count = 1;
+                        lastType = hat?.type;
+                        matchStart = y;
+                    }
+                }
+            }
+
+            if (matched) {
+                document.getElementById('score').textContent = `スコア: ${score}`;
+                // 帽子を落とす
+                for (let x = 0; x < COLS; x++) {
+                    let bottom = ROWS - 1;
+                    for (let y = ROWS - 1; y >= 0; y--) {
+                        if (gameBoard[y][x]) {
+                            if (bottom !== y) {
+                                gameBoard[bottom][x] = gameBoard[y][x];
+                                gameBoard[y][x] = null;
+                                const stackHeight = findStackHeight(x, bottom);
+                                gameBoard[bottom][x].element.style.top = 
+                                    (bottom * GRID_SIZE - stackHeight) + 'px';
+                            }
+                            bottom--;
+                        }
+                    }
+                }
+            }
+        }
+
+        function createNewPair() {
+            const type1 = HAT_TYPES[Math.floor(Math.random() * HAT_TYPES.length)];
+            const type2 = HAT_TYPES[Math.floor(Math.random() * HAT_TYPES.length)];
+            return new HatPair(type1, type2);
+        }
+
+        function showNextPair() {
+            const nextPairContainer = document.querySelector('.next-pair');
+            nextPairContainer.innerHTML = '<div class="next-label">NEXT</div>';
+            const preview1 = createHatElement(nextPair.hats[0].type);
+            const preview2 = createHatElement(nextPair.hats[1].type);
+            preview1.style.position = 'static';
+            preview2.style.position = 'static';
+            preview1.style.margin = '5px';
+            preview2.style.margin = '5px';
+            nextPairContainer.appendChild(preview1);
+            nextPairContainer.appendChild(preview2);
+        }
+
+        function spawnNewPair() {
+            if (gameBoard[0][4] || gameBoard[0][5]) {
+                gameOver = true;
+                document.querySelector('.game-over').style.display = 'block';
+                document.querySelector('.final-score').textContent = score;
+                return;
+            }
+
+            currentPair = nextPair;
+            nextPair = createNewPair();
+            showNextPair();
+
+            currentX = 4;
+            currentY = 0;
+
+            if (currentPair) {
+                currentPair.draw(currentX, currentY);
+            }
+        }
+
+        const gameContainer = document.getElementById('game-container');
+
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                    moveLeft();
+                    break;
+                case 'ArrowRight':
+                    moveRight();
+                    break;
+                case 'ArrowDown':
+                    dropHat();
+                    break;
+                case 'ArrowUp':
+                    if (currentPair && !fallingHats.length) {
+                        currentPair.swap();
+                    }
+                    break;
+            }
+        });
+
+        // ゲーム開始
+        nextPair = createNewPair();
+        spawnNewPair();
+        
+        // メインゲームループ
+        setInterval(() => {
+            if (!gameOver) {
+                if (currentPair) {
+                    dropHat();
+                }
+                updateFallingHats();
+            }
+        }, fallingSpeed);
+    </script>
+</body>
+</html>

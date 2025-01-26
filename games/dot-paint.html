@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ドット絵エディタ</title>
+    <style>
+        body {
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        #preview {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #canvas-area {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        #canvas-container {
+            position: relative;
+            display: inline-block;
+        }
+        #mainCanvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+        }
+        #gridCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        #tools {
+            background: white;
+            padding: 10px;
+        }
+        #palette {
+            display: grid;
+            grid-template-columns: repeat(13, 30px);
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .color {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .selected {
+            border: 3px solid #000;
+        }
+        button, select {
+            margin: 5px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="preview">
+        プレビュー：<canvas id="previewCanvas"></canvas>
+    </div>
+
+    <div id="canvas-area">
+        <div id="canvas-container">
+            <canvas id="mainCanvas"></canvas>
+            <canvas id="gridCanvas"></canvas>
+        </div>
+    </div>
+
+    <div id="tools">
+        <select id="size">
+            <option value="16">16×16</option>
+            <option value="24">24×24</option>
+            <option value="32">32×32</option>
+            <option value="48">48×48</option>
+            <option value="64">64×64</option>
+        </select>
+        <button id="undo">戻る</button>
+        <button id="clear">クリア</button>
+        <button id="save">保存</button>
+        <div id="palette"></div>
+    </div>
+
+    <script>
+        const ZOOM = 20;
+        const COLORS = [
+            '#FF0000', '#FF6B00', '#FFF700', '#59FF00', '#00FF5E', '#00FFE5', 
+            '#0094FF', '#0026FF', '#B200FF', '#FF00DC', '#FF006E', '#7F0000',
+            '#7F3300', '#7F7B00', '#2C7F00', '#007F2E', '#007F71', '#004A7F',
+            '#001B7F', '#590080', '#7F006E', '#7F0037', '#000000', '#404040',
+            '#808080', '#FFFFFF'
+        ];
+
+        const main = document.getElementById('mainCanvas');
+        const grid = document.getElementById('gridCanvas');
+        const preview = document.getElementById('previewCanvas');
+        const ctx = main.getContext('2d');
+        const gridCtx = grid.getContext('2d');
+        const previewCtx = preview.getContext('2d');
+
+        let currentColor = COLORS[0];
+        let canvasSize = parseInt(document.getElementById('size').value);
+        let isDrawing = false;
+        let undoArray = [];
+        let lastPos = null;
+
+        function initCanvas() {
+            main.width = canvasSize * ZOOM;
+            main.height = canvasSize * ZOOM;
+            grid.width = canvasSize * ZOOM;
+            grid.height = canvasSize * ZOOM;
+            preview.width = canvasSize;
+            preview.height = canvasSize;
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, main.width, main.height);
+            drawGrid();
+            saveState();
+        }
+
+        function drawGrid() {
+            gridCtx.strokeStyle = '#cccccc';
+            gridCtx.lineWidth = 0.5;
+            
+            for (let i = 0; i <= canvasSize; i++) {
+                const pos = i * ZOOM;
+                gridCtx.beginPath();
+                gridCtx.moveTo(pos, 0);
+                gridCtx.lineTo(pos, canvasSize * ZOOM);
+                gridCtx.stroke();
+                
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, pos);
+                gridCtx.lineTo(canvasSize * ZOOM, pos);
+                gridCtx.stroke();
+            }
+        }
+
+        function updatePreview() {
+            const imageData = ctx.getImageData(0, 0, main.width, main.height);
+            const previewData = previewCtx.createImageData(canvasSize, canvasSize);
+
+            for (let y = 0; y < canvasSize; y++) {
+                for (let x = 0; x < canvasSize; x++) {
+                    const sourcePos = (y * ZOOM * main.width + x * ZOOM) * 4;
+                    const targetPos = (y * canvasSize + x) * 4;
+                    previewData.data[targetPos] = imageData.data[sourcePos];
+                    previewData.data[targetPos + 1] = imageData.data[sourcePos + 1];
+                    previewData.data[targetPos + 2] = imageData.data[sourcePos + 2];
+                    previewData.data[targetPos + 3] = imageData.data[sourcePos + 3];
+                }
+            }
+            
+            previewCtx.putImageData(previewData, 0, 0);
+        }
+
+        function saveState() {
+            const state = ctx.getImageData(0, 0, main.width, main.height);
+            undoArray.push(state);
+            document.getElementById('undo').disabled = false;
+        }
+
+        function draw(x, y) {
+            const pixelX = Math.floor(x / ZOOM) * ZOOM;
+            const pixelY = Math.floor(y / ZOOM) * ZOOM;
+            
+            if (lastPos) {
+                const lastX = Math.floor(lastPos.x / ZOOM);
+                const lastY = Math.floor(lastPos.y / ZOOM);
+                const currentX = Math.floor(x / ZOOM);
+                const currentY = Math.floor(y / ZOOM);
+                
+                const dx = Math.abs(currentX - lastX);
+                const dy = Math.abs(currentY - lastY);
+                const steps = Math.max(dx, dy);
+                
+                if (steps > 0) {
+                    for (let i = 0; i <= steps; i++) {
+                        const t = i / steps;
+                        const fillX = Math.round(lastX + (currentX - lastX) * t) * ZOOM;
+                        const fillY = Math.round(lastY + (currentY - lastY) * t) * ZOOM;
+                        ctx.fillStyle = currentColor;
+                        ctx.fillRect(fillX, fillY, ZOOM, ZOOM);
+                    }
+                }
+            } else {
+                ctx.fillStyle = currentColor;
+                ctx.fillRect(pixelX, pixelY, ZOOM, ZOOM);
+            }
+            
+            lastPos = { x, y };
+            updatePreview();
+        }
+
+        // パレット作成
+        const palette = document.getElementById('palette');
+        COLORS.forEach((color, i) => {
+            const div = document.createElement('div');
+            div.className = 'color' + (i === 0 ? ' selected' : '');
+            div.style.backgroundColor = color;
+            div.onclick = () => {
+                document.querySelector('.selected').classList.remove('selected');
+                div.classList.add('selected');
+                currentColor = color;
+            };
+            palette.appendChild(div);
+        });
+
+        // イベントリスナー
+        main.addEventListener('mousedown', e => {
+            isDrawing = true;
+            const rect = main.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (main.width / rect.width);
+            const y = (e.clientY - rect.top) * (main.height / rect.height);
+            lastPos = null;
+            draw(x, y);
+        });
+
+        main.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            const rect = main.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (main.width / rect.width);
+            const y = (e.clientY - rect.top) * (main.height / rect.height);
+            draw(x, y);
+        });
+
+        main.addEventListener('mouseup', () => {
+            if (isDrawing) {
+                saveState();
+            }
+            isDrawing = false;
+            lastPos = null;
+        });
+
+        document.getElementById('size').onchange = () => {
+            canvasSize = parseInt(document.getElementById('size').value);
+            initCanvas();
+        };
+
+        document.getElementById('undo').onclick = () => {
+            if (undoArray.length > 1) {
+                undoArray.pop();
+                const prevState = undoArray[undoArray.length - 1];
+                ctx.putImageData(prevState, 0, 0);
+                updatePreview();
+                if (undoArray.length <= 1) {
+                    document.getElementById('undo').disabled = true;
+                }
+            }
+        };
+
+        document.getElementById('clear').onclick = () => {
+            saveState();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, main.width, main.height);
+            updatePreview();
+        };
+
+        document.getElementById('save').onclick = () => {
+            const a = document.createElement('a');
+            a.href = preview.toDataURL('image/png');
+            a.download = 'dot-art.png';
+            a.click();
+        };
+
+        initCanvas();
+    </script>
+</body>
+</html>
