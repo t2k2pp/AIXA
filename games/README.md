@@ -1,6 +1,8 @@
 # 生成AIで作成したゲーム
 ## 生成したゲーム一覧
 
+ブラウザであれば、下記動作します。AndroidのGitHubアプリ上では動作しませんでした。
+
 **[成功パターン]**
  1. [StarShooter](https://t2k2pp.github.io/AIXA/games/star-catcher-game.html)
  2. [AngleShooter](https://t2k2pp.github.io/AIXA/games/angle-shooter-game.html)
