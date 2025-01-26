@@ -28,7 +28,8 @@ HTML+CSS+JavaScriptを1ファイルで作成する[ゲームの種類]ゲーム�
 
 ## 使用環境
 [Claude.ai](https://claude.ai)
-*Claude 3.5 Sonnet (2025年1月)
+* Claude 3.5 Sonnet (2025年1月)
+
 今回のゲームぐらいであれば、無償の範囲で作れることが多いです。
 
 ## プロンプト詳細
@@ -58,7 +59,6 @@ HTML+CSS+JavaScriptを1ファイルで作成するアクションゲームを作
 
 
 ### 3. [周期表学習ゲーム](https://t2k2pp.github.io/AIXA/games/periodic-table-game-minimal.html)
-以下のプロンプトをベースに生成AIが返してきた内容と動作を見ながらやり取りして完成させました。
 **工事中**
 
 ### 4. [英文並び替えゲーム](https://t2k2pp.github.io/AIXA/games/sentence-game.html)
@@ -98,7 +98,7 @@ HTML+CSS+JavaScriptを1ファイルで作成する4字熟語学習ゲームを�
 小学生を対象とした問題をランダムに出し、スコアを競えるゲームにしてください。
 ```
 
-#### 1回目
+#### 対話1回目
 気が付いたことを思った順に書いただけです。
 とりあえず、それっぽく動くのが1回目でできて驚き。
 ```
