@@ -2,20 +2,22 @@
 ## 生成したゲーム一覧
 
 **[成功パターン]**
-### 1. [StarShooter](https://t2k2pp.github.io/AIXA/games/star-catcher-game.html)
-### 2. [AngleShooter](https://t2k2pp.github.io/AIXA/games/angle-shooter-game.html)
-### 3. [周期表学習ゲーム](https://t2k2pp.github.io/AIXA/games/periodic-table-game-minimal.html)
-### 4. [英文並び替えゲーム](https://t2k2pp.github.io/AIXA/games/sentence-game.html)
-### 5. [四字熟語学習ゲーム](https://t2k2pp.github.io/AIXA/games/yojijukugo-game.html)
-### 6. [わり算の余りゲーム](https://t2k2pp.github.io/AIXA/games/division-remainder-game-with-easy.html)
+ 1. [StarShooter](https://t2k2pp.github.io/AIXA/games/star-catcher-game.html)
+ 2. [AngleShooter](https://t2k2pp.github.io/AIXA/games/angle-shooter-game.html)
+ 3. [周期表学習ゲーム](https://t2k2pp.github.io/AIXA/games/periodic-table-game-minimal.html)
+ 4. [英文並び替えゲーム](https://t2k2pp.github.io/AIXA/games/sentence-game.html)
+ 5. [四字熟語学習ゲーム](https://t2k2pp.github.io/AIXA/games/yojijukugo-game.html)
+ 6. [わり算の余りゲーム](https://t2k2pp.github.io/AIXA/games/division-remainder-game-with-easy.html)
+ 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.tsx)
+ 8. [ドット絵エディタ](https://t2k2pp.github.io/AIXA/games/dot-paint.html)
 
 **[失敗パターン]**
-## 1. [アングリーバードもどき](https://t2k2pp.github.io/AIXA/games/angry-birds-clone.html)
-## 2. [ハットリスもどき](https://t2k2pp.github.io/AIXA/games/hat-puzzle-complete.html)
+ 1. [アングリーバードもどき](https://t2k2pp.github.io/AIXA/games/angry-birds-clone.html)
+ 2. [ハットリスもどき](https://t2k2pp.github.io/AIXA/games/hat-puzzle-complete.html)
 
 ## 解説
 ### プロンプト
-基本となるプロンプトは下記を使いまわして作成しています。
+半分ぐらいはプロンプトは下記を使いまわして作成しています。あとはなんとなく話しかけて作れてしまいました。
 ```Prompt
 HTML+CSS+JavaScriptを1ファイルで作成する[ゲームの種類]ゲームを作りましょう。
 条件
@@ -56,10 +58,11 @@ HTML+CSS+JavaScriptを1ファイルで作成するアクションゲームを作
 
 
 ### 3. [周期表学習ゲーム](https://t2k2pp.github.io/AIXA/games/periodic-table-game-minimal.html)
-```
-```
+以下のプロンプトをベースに生成AIが返してきた内容と動作を見ながらやり取りして完成させました。
+**工事中**
 
 ### 4. [英文並び替えゲーム](https://t2k2pp.github.io/AIXA/games/sentence-game.html)
+以下のプロンプトをベースに生成AIが返してきた内容と動作を見ながらやり取りして完成させました。
 ```
 HTML+CSS+JavaScriptを1ファイルで作成する学習ゲームを作りましょう。
 条件
@@ -72,6 +75,7 @@ HTML+CSS+JavaScriptを1ファイルで作成する学習ゲームを作りまし
 ```
 
 ### 5. [四字熟語学習ゲーム](https://t2k2pp.github.io/AIXA/games/yojijukugo-game.html)
+以下のプロンプトをベースに生成AIが返してきた内容と動作を見ながらやり取りして完成させました。
 ```
 HTML+CSS+JavaScriptを1ファイルで作成する4字熟語学習ゲームを作りましょう。
 条件
@@ -86,6 +90,8 @@ HTML+CSS+JavaScriptを1ファイルで作成する4字熟語学習ゲームを�
 
 
 ### 6. [わり算の余りゲーム](https://t2k2pp.github.io/AIXA/games/division-remainder-game-with-easy.html)
+以下のプロンプトをベースに生成AIが返してきた内容と動作を見ながらやり取りして完成させました。
+この日は文章を整えず、会話的な文章で作成してみました。
 ```
 算数ゲームをHTMLと、JavaScript、CSSで作成してください。1ファイルとしてくださいね。
 ゲームの内容としてはランダムで割り算の問題を出し、余りを答えるゲームです。
@@ -93,6 +99,8 @@ HTML+CSS+JavaScriptを1ファイルで作成する4字熟語学習ゲームを�
 ```
 
 #### 1回目
+気が付いたことを思った順に書いただけです。
+とりあえず、それっぽく動くのが1回目でできて驚き。
 ```
 残り時間がすぎても回答ができてしまいます。
 こたえあわせだと、すぐ採点されるように感じるので、つぎのもんだい、としましょう。
@@ -101,36 +109,54 @@ HTML+CSS+JavaScriptを1ファイルで作成する4字熟語学習ゲームを�
 ```
 
 #### 2回目
+あー、注文つけたら動かなくなったとおもい。
 ```
 はじめるを押してもゲームが始まりません
 ```
 
 #### 3回目
+もう戻れないかな？とか思いつつ、自分が試している環境も言ってみる。
 ```
 はじめるでやっぱり始まりません。AndroidアプリのClaudeから利用してることが影響してますか？
 ```
 
 #### 4回目
+1回目の指摘に対する処理を確認。でも動作的にいまいちだったので、クレーム（？）をつけてみる。
 ```
 残り時間がゼロになった時、回答はできなく改善されてますが、ゲーム終了も認識できないし、中断で最初の画面に戻ることもできず、ゲームが継続できません。
 ```
 
 #### 5回目
+ClaudeのAndroidアプリを使っていたので、ローカルストレージにアクセスできないっていうエラーがでてました。
+それについて、質問をしたプロンプトです。
 ```
 下記が出るけど、これは改善できないよね？
 Uncaught Error: Uncaught SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.
 ```
 
 #### 6回目
+できたけど、ちょっとリアル小学生（3年生）には難しいということで簡単モードを作成してもらう
 ```
 掛け算九九のを範囲を超えない、イージーモードも追加してください（除数と商が9以下）。
 ```
+### 7. [算数ゲーム]
+わり算余りゲームのソースを貼り付け用と思って、つけ忘れたのにゲームができてしまいました（驚き）。
+```
+以下は割り算の余りを求めるゲームです。この内容を参考に、1.足し算、2.引き算、3.掛け算、4.割り算、5.割り算の余りを求めるゲームにしてください。かんたんモードふつうモードについては、新たに追加するものについては、計算に使う数字（答えではない）が、10以上の数字が出現するかしないかで、難易度を分けてください。ハイスコアはゲームモードごとに出してください。
+```
 
+上記のあと、次のプロンプトで完成してしまいました。
+'''
+間違わない限り、ゲームが終わりません。時間（60秒）が来る、もしくは最大20問出したら終わる（間違えても即終了にしない）形にしてください。不正解の場合は不正解と表示し、入力欄をクリアして、正解するまでつぎの問題に行けないようにしてください。
+'''
+
+### 7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.tsx)
+**工事中**
+### 8. [ドット絵エディタ](https://t2k2pp.github.io/AIXA/games/dot-paint.html)
+**工事中**
 
 
 ### 1. [アングリーバードもどき](https://t2k2pp.github.io/AIXA/games/angry-birds-clone.html)
-```
-```
+**工事中**
 ### 2. [ハットリスもどき](https://t2k2pp.github.io/AIXA/games/hat-puzzle-complete.html)
-```
-```
+**工事中**
