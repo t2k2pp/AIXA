@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>科学実験シミュレーター</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', 'メイリオ', sans-serif;
+            background: #f0f2f5;
+        }
+        #lab-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #experiment-area {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .beaker {
+            position: absolute;
+            width: 100px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #666;
+            border-radius: 0 0 10px 10px;
+            cursor: move;
+        }
+        .liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .chemical {
+            position: absolute;
+            width: 60px;
+            height: 100px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .chemical img {
+            width: 100%;
+            height: auto;
+        }
+        #tools {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .tool {
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #notes-panel {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .note {
+            background: #fff9c4;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .reaction {
+            position: absolute;
+            pointer-events: none;
+            animation: reaction 1s ease-out;
+        }
+        @keyframes reaction {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        #quiz-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+        }
+        .quiz-option {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        #message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        #safety-info {
+            background: #ffebee;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div id="lab-container">
+        <div class="panel">
+            <h2>実験エリア 🧪</h2>
+            <div id="safety-info">
+                これは教育用シミュレーターです。実際の実験は必ず先生の指導のもとで行ってください。
+            </div>
+            <div id="tools">
+                <div class="tool" onclick="selectTool('beaker')">🧪 ビーカー</div>
+                <div class="tool" onclick="selectTool('thermometer')">🌡️ 温度計</div>
+                <div class="tool" onclick="selectTool('stirrer')">🔄 かき混ぜ棒</div>
+            </div>
+            <div id="experiment-area">
+                <!-- 実験エリア - JavaScriptで動的に生成 -->
+            </div>
+            <div id="chemical-selector">
+                <button onclick="addChemical('acid')">酸</button>
+                <button onclick="addChemical('base')">塩基</button>
+                <button onclick="addChemical('water')">水</button>
+                <button onclick="addChemical('salt')">塩</button>
+            </div>
+        </div>
+
+        <div class="panel" id="notes-panel">
+            <h2>実験ノート 📝</h2>
+            <button onclick="startQuiz()">クイズモード</button>
+            <button onclick="saveNote()">記録を取る</button>
+            <div id="notes-container">
+                <!-- ノートはJavaScriptで動的に追加 -->
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-modal">
+        <h3>科学クイズ</h3>
+        <div id="quiz-content"></div>
+        <button onclick="checkAnswer()">回答する</button>
+        <button onclick="closeQuiz()">閉じる</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        const chemicals = {
+            acid: { name: '酸', color: '#ffcdd2', reactions: { base: '中和反応' } },
+            base: { name: '塩基', color: '#b2ebf2', reactions: { acid: '中和反応' } },
+            water: { name: '水', color: '#e3f2fd', reactions: { salt: '溶解' } },
+            salt: { name: '塩', color: '#f5f5f5', reactions: { water: '溶解' } }
+        };
+
+        const quizzes = [
+            {
+                question: '酸と塩基を混ぜると何が起こる？',
+                options: ['中和反応', '爆発', '何も起こらない', '凍結'],
+                correct: 0,
+                explanation: '酸と塩基が反応すると中和反応が起こり、塩と水が生成されます。'
+            },
+            {
+                question: 'pH7の溶液は何？',
+                options: ['中性', '強酸性', '強アルカリ性', '不安定'],
+                correct: 0,
+                explanation: 'pH7は中性を示し、純水のpHがこれにあたります。'
+            }
+        ];
+
+        let selectedTool = null;
+        let experimentLog = [];
+        let draggedElement = null;
+
+        // ドラッグ＆ドロップの設定
+        function enableDragAndDrop() {
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('beaker')) {
+                    draggedElement = e.target;
+                }
+            });
+
+            document.addEventListener('dragend', () => {
+                draggedElement = null;
+            });
+
+            document.getElementById('experiment-area').addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            document.getElementById('experiment-area').addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (draggedElement) {
+                    const rect = e.target.getBoundingClientRect();
+                    draggedElement.style.left = e.clientX - rect.left + 'px';
+                    draggedElement.style.top = e.clientY - rect.top + 'px';
+                }
+            });
+        }
+
+        // 化学物質の追加
+        function addChemical(type) {
+            const chemical = chemicals[type];
+            const beaker = document.createElement('div');
+            beaker.className = 'beaker';
+            beaker.draggable = true;
+            beaker.dataset.type = type;
+
+            const liquid = document.createElement('div');
+            liquid.className = 'liquid';
+            liquid.style.height = '80%';
+            liquid.style.backgroundColor = chemical.color;
+
+            beaker.appendChild(liquid);
+            document.getElementById('experiment-area').appendChild(beaker);
+            
+            beaker.addEventListener('click', () => {
+                if (selectedTool === 'stirrer') {
+                    stir(beaker);
+                }
+            });
+        }
+
+        // かき混ぜ機能
+        function stir(beaker) {
+            const nearbyBeakers = findNearbyBeakers(beaker);
+            if (nearbyBeakers.length > 0) {
+                const reaction = checkReaction(beaker, nearbyBeakers[0]);
+                if (reaction) {
+                    showReaction(beaker, reaction);
+                    logExperiment(reaction);
+                }
+            }
+        }
+
+        // 近くのビーカーを探す
+        function findNearbyBeakers(beaker) {
+            const beakers = Array.from(document.getElementsByClassName('beaker'));
+            return beakers.filter(other => {
+                if (other === beaker) return false;
+                const rect1 = beaker.getBoundingClientRect();
+                const rect2 = other.getBoundingClientRect();
+                const distance = Math.hypot(
+                    rect1.left - rect2.left,
+                    rect1.top - rect2.top
+                );
+                return distance < 100;
+            });
+        }
+
+        // 反応のチェック
+        function checkReaction(beaker1, beaker2) {
+            const type1 = beaker1.dataset.type;
+            const type2 = beaker2.dataset.type;
+            return chemicals[type1].reactions[type2];
+        }
+
+        // 反応のアニメーション
+        function showReaction(beaker, reactionType) {
+            const reaction = document.createElement('div');
+            reaction.className = 'reaction';
+            reaction.textContent = '⚡';
+            reaction.style.left = beaker.offsetLeft + 'px';
+            reaction.style.top = beaker.offsetTop + 'px';
+            document.getElementById('experiment-area').appendChild(reaction);
+
+            showMessage(`${reactionType}が起きました！`);
+
+            setTimeout(() => reaction.remove(), 1000);
+        }
+
+        // 実験の記録
+        function logExperiment(reaction) {
+            experimentLog.push({
+                time: new Date(),
+                reaction: reaction,
+                result: '成功'
+            });
+            updateNotes();
+        }
+
+        // ノートの更新
+        function updateNotes() {
+            const container = document.getElementById('notes-container');
+            container.innerHTML = experimentLog.map(log => `
+                <div class="note">
+                    <strong>${log.time.toLocaleTimeString()}</strong>
+                    <p>実験：${log.reaction}</p>
+                    <p>結果：${log.result}</p>
+                </div>
+            `).join('');
+        }
+
+        // クイズモード
+        function startQuiz() {
+            const quiz = quizzes[Math.floor(Math.random() * quizzes.length)];
+            const quizContent = document.getElementById('quiz-content');
+            
+            quizContent.innerHTML = `
+                <p>${quiz.question}</p>
+                ${quiz.options.map((option, index) => `
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="${index}">
+                        ${option}
+                    </label>
+                `).join('')}
+            `;
+
+            document.getElementById('quiz-modal').style.display = 'block';
+        }
+
+        // クイズの回答チェック
+        function checkAnswer() {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) return;
+
+            const quiz = quizzes[0]; // 簡単のため最初のクイズを使用
+            
+            if (parseInt(selected.value) === quiz.correct) {
+                showMessage('正解！' + quiz.explanation);
+            } else {
+                showMessage('残念！正解は「' + quiz.options[quiz.correct] + '」でした。');
+            }
+
+            closeQuiz();
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+
+        // メッセージ表示
+        function showMessage(text) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // ツールの選択
+        function selectTool(tool) {
+            selectedTool = tool;
+            document.querySelectorAll('.tool').forEach(t => 
+                t.style.background = t.textContent.includes(tool) ? '#bbdefb' : '#e3f2fd'
+            );
+        }
+
+        // 初期化
+        enableDragAndDrop();
+    </script>
+</body>
+</html>

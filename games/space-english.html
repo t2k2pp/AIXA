@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>英単語宇宙探検</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'メイリオ', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #000000, #0b3d91);
+            color: white;
+            min-height: 100vh;
+        }
+        #game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        #space-scene {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .spaceship {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            font-size: 40px;
+            transition: all 0.3s ease;
+            user-select: none;
+            cursor: pointer;
+        }
+        .word-meteor {
+            position: absolute;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            animation: fall linear;
+            cursor: pointer;
+        }
+        @keyframes fall {
+            from { top: -50px; }
+            to { top: 450px; }
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        .completed {
+            background: #4CAF50;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #word-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .current-word {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 1.1em;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .mini-game {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+        }
+        #level-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>英単語宇宙探検 🚀</h1>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <h3>スコア</h3>
+                <div id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <h3>学習単語数</h3>
+                <div id="words-learned">0</div>
+            </div>
+            <div class="stat-box">
+                <h3>連続学習日数</h3>
+                <div id="streak">0</div>
+            </div>
+        </div>
+
+        <div id="space-scene">
+            <div id="level-indicator">レベル 1</div>
+            <div class="spaceship" id="player-ship">🚀</div>
+        </div>
+
+        <div id="word-panel">
+            <div class="current-word">
+                <span id="current-word-text">Ready?</span>
+                <button onclick="speak()" id="speak-button">🔊</button>
+            </div>
+            <div id="word-meaning"></div>
+        </div>
+
+        <div class="calendar">
+            <!-- JavaScript で動的に生成 -->
+        </div>
+
+        <div class="mini-game" id="mini-game">
+            <h2>ミニゲーム：単語マッチング</h2>
+            <div id="mini-game-content"></div>
+            <button onclick="closeMiniGame()">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        const vocabulary = [
+            { word: 'space', meaning: '宇宙', level: 1 },
+            { word: 'star', meaning: '星', level: 1 },
+            { word: 'planet', meaning: '惑星', level: 1 },
+            { word: 'rocket', meaning: 'ロケット', level: 1 },
+            { word: 'astronaut', meaning: '宇宙飛行士', level: 2 },
+            { word: 'galaxy', meaning: '銀河', level: 2 },
+            { word: 'cosmos', meaning: '宇宙', level: 2 },
+            { word: 'meteor', meaning: '流星', level: 2 },
+            { word: 'constellation', meaning: '星座', level: 3 },
+            { word: 'spacecraft', meaning: '宇宙船', level: 3 },
+            { word: 'nebula', meaning: '星雲', level: 3 },
+            { word: 'satellite', meaning: '衛星', level: 3 }
+        ];
+
+        let currentLevel = 1;
+        let score = 0;
+        let wordsLearned = 0;
+        let streak = 0;
+        let gameStarted = false;
+
+        // 星の生成
+        function createStars() {
+            const scene = document.getElementById('space-scene');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.opacity = Math.random();
+                scene.appendChild(star);
+            }
+        }
+
+        // 単語の流星を生成
+        function createWordMeteor() {
+            if (!gameStarted) return;
+            
+            const scene = document.getElementById('space-scene');
+            const meteor = document.createElement('div');
+            const word = vocabulary.filter(v => v.level <= currentLevel)[
+                Math.floor(Math.random() * vocabulary.filter(v => v.level <= currentLevel).length)
+            ];
+
+            meteor.className = 'word-meteor';
+            meteor.textContent = word.word;
+            meteor.style.left = Math.random() * (scene.offsetWidth - 100) + 'px';
+            meteor.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            
+            meteor.onclick = () => collectWord(meteor, word);
+            
+            scene.appendChild(meteor);
+            
+            meteor.addEventListener('animationend', () => {
+                scene.removeChild(meteor);
+            });
+        }
+
+        // 単語を収集
+        function collectWord(meteor, word) {
+            const scene = document.getElementById('space-scene');
+            scene.removeChild(meteor);
+            
+            document.getElementById('current-word-text').textContent = word.word;
+            document.getElementById('word-meaning').textContent = word.meaning;
+            
+            score += 10;
+            wordsLearned++;
+            
+            updateStats();
+            checkLevelUp();
+            
+            if (Math.random() < 0.2) { // 20%の確率でミニゲーム発生
+                startMiniGame();
+            }
+        }
+
+        // 発音機能
+        function speak() {
+            const word = document.getElementById('current-word-text').textContent;
+            if (word && word !== 'Ready?') {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ミニゲーム
+        function startMiniGame() {
+            const miniGame = document.getElementById('mini-game');
+            const content = document.getElementById('mini-game-content');
+            
+            // 簡単な単語マッチングゲーム
+            const words = vocabulary.filter(v => v.level <= currentLevel)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+            
+            content.innerHTML = `
+                <p>正しい意味をクリックしてください：</p>
+                <h3>${words[0].word}</h3>
+                ${words.map(w => `
+                    <button onclick="checkMiniGameAnswer('${words[0].word}', '${w.meaning}')">
+                        ${w.meaning}
+                    </button>
+                `).sort(() => Math.random() - 0.5).join('')}
+            `;
+            
+            miniGame.style.display = 'block';
+        }
+
+        function checkMiniGameAnswer(word, selectedMeaning) {
+            const correctMeaning = vocabulary.find(v => v.word === word).meaning;
+            if (selectedMeaning === correctMeaning) {
+                score += 50;
+                updateStats();
+                alert('正解！ボーナスポイント獲得！');
+            } else {
+                alert('残念！正解は「' + correctMeaning + '」でした。');
+            }
+            closeMiniGame();
+        }
+
+        function closeMiniGame() {
+            document.getElementById('mini-game').style.display = 'none';
+        }
+
+        // カレンダーの更新
+        function updateCalendar() {
+            const calendar = document.querySelector('.calendar');
+            calendar.innerHTML = '';
+            
+            for (let i = 0; i < 30; i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day';
+                day.textContent = i + 1;
+                if (i < streak) {
+                    day.classList.add('completed');
+                }
+                calendar.appendChild(day);
+            }
+        }
+
+        // 統計の更新
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('words-learned').textContent = wordsLearned;
+            document.getElementById('streak').textContent = streak;
+        }
+
+        // レベルアップチェック
+        function checkLevelUp() {
+            if (score >= currentLevel * 100) {
+                currentLevel++;
+                document.getElementById('level-indicator').textContent = `レベル ${currentLevel}`;
+                alert(`レベル ${currentLevel} にアップしました！`);
+            }
+        }
+
+        // 宇宙船の移動
+        document.addEventListener('mousemove', (e) => {
+            if (!gameStarted) return;
+            
+            const ship = document.getElementById('player-ship');
+            const scene = document.getElementById('space-scene');
+            const rect = scene.getBoundingClientRect();
+            
+            const x = Math.max(0, Math.min(e.clientX - rect.left - 30, scene.offsetWidth - 60));
+            const y = Math.max(0, Math.min(e.clientY - rect.top - 30, scene.offsetHeight - 60));
+            
+            ship.style.left = x + 'px';
+            ship.style.top = y + 'px';
+        });
+
+        // ゲーム開始
+        function startGame() {
+            gameStarted = true;
+            createStars();
+            setInterval(createWordMeteor, 2000);
+            
+            // 初期データのロード（実際はローカルストレージなどから）
+            streak = 1;
+            updateCalendar();
+            updateStats();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

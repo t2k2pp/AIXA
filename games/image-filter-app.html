@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像フィルターアプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .filter-group {
+            margin: 10px 0;
+        }
+        .filter-group label {
+            display: inline-block;
+            width: 120px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        canvas {
+            max-width: 100%;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="range"] {
+            width: 200px;
+            vertical-align: middle;
+        }
+        .file-input {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>画像フィルターアプリ</h1>
+    
+    <div class="file-input">
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <label>明るさ:</label>
+            <input type="range" id="brightness" min="-100" max="100" value="0">
+            <span id="brightnessValue">0</span>
+        </div>
+        <div class="filter-group">
+            <label>コントラスト:</label>
+            <input type="range" id="contrast" min="-100" max="100" value="0">
+            <span id="contrastValue">0</span>
+        </div>
+        <div class="filter-group">
+            <label>彩度:</label>
+            <input type="range" id="saturation" min="-100" max="100" value="0">
+            <span id="saturationValue">0</span>
+        </div>
+        <div class="filter-group">
+            <label>ぼかし:</label>
+            <input type="range" id="blur" min="0" max="10" value="0" step="0.5">
+            <span id="blurValue">0</span>
+        </div>
+    </div>
+
+    <button onclick="resetFilters()">リセット</button>
+    <button onclick="downloadImage()">画像を保存</button>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let originalImage = null;
+
+        // 画像読み込み処理
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // キャンバスのサイズを画像に合わせる
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        originalImage = img;
+                        applyFilters();
+                    }
+                    img.src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // フィルター値の変更を監視
+        ['brightness', 'contrast', 'saturation', 'blur'].forEach(filter => {
+            document.getElementById(filter).addEventListener('input', function(e) {
+                document.getElementById(filter + 'Value').textContent = e.target.value;
+                applyFilters();
+            });
+        });
+
+        // フィルターをリセット
+        function resetFilters() {
+            ['brightness', 'contrast', 'saturation', 'blur'].forEach(filter => {
+                document.getElementById(filter).value = filter === 'blur' ? 0 : 0;
+                document.getElementById(filter + 'Value').textContent = '0';
+            });
+            applyFilters();
+        }
+
+        // フィルターを適用
+        function applyFilters() {
+            if (!originalImage) return;
+
+            ctx.filter = `
+                brightness(${100 + parseInt(document.getElementById('brightness').value)}%)
+                contrast(${100 + parseInt(document.getElementById('contrast').value)}%)
+                saturate(${100 + parseInt(document.getElementById('saturation').value)}%)
+                blur(${document.getElementById('blur').value}px)
+            `;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, 0, 0);
+        }
+
+        // 画像をダウンロード
+        function downloadImage() {
+            if (!originalImage) return;
+            
+            const link = document.createElement('a');
+            link.download = 'filtered-image.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // プレースホルダー画像を表示
+        function drawPlaceholder() {
+            canvas.width = 400;
+            canvas.height = 300;
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#666';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('画像をアップロードしてください', canvas.width/2, canvas.height/2);
+        }
+
+        drawPlaceholder();
+    </script>
+</body>
+</html>

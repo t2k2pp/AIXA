@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算数忍者</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: #4B79A1;
+            background: linear-gradient(45deg, #4B79A1, #283E51);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .ninja-character {
+            font-size: 80px;
+            margin: 20px;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        .problem {
+            font-size: 48px;
+            margin: 20px;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px;
+        }
+
+        .option {
+            padding: 20px;
+            font-size: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .option:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .score {
+            font-size: 24px;
+            margin: 20px;
+            color: #FFD700;
+        }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px;
+        }
+
+        .star {
+            font-size: 40px;
+            color: #FFD700;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+
+        .star.active {
+            opacity: 1;
+            animation: starPulse 0.3s;
+        }
+
+        @keyframes starPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .feedback {
+            font-size: 36px;
+            margin: 20px;
+            min-height: 50px;
+        }
+
+        .celebration {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 50%;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px;
+        }
+
+        .level {
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .level.active {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .ninja-info {
+            position: relative;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px;
+        }
+
+        .power-meter {
+            height: 20px;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px;
+        }
+
+        .achievement {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .achievement.unlocked {
+            background: rgba(255, 215, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ninja-character">🥷</div>
+        
+        <div class="level-indicator">
+            <div class="level active" onclick="setLevel(1)">初級</div>
+            <div class="level" onclick="setLevel(2)">中級</div>
+            <div class="level" onclick="setLevel(3)">上級</div>
+        </div>
+
+        <div class="ninja-info">
+            <div>忍者レベル: <span id="ninjaLevel">1</span></div>
+            <div class="power-meter" id="powerMeter"></div>
+        </div>
+
+        <div class="problem" id="problem"></div>
+        <div class="options" id="options"></div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="stars">
+            <div class="star">⭐</div>
+            <div class="star">⭐</div>
+            <div class="star">⭐</div>
+        </div>
+        
+        <div class="score">スコア: <span id="score">0</span></div>
+
+        <div class="achievements">
+            <div class="achievement" id="achievement1">
+                🎯 3問連続正解
+            </div>
+            <div class="achievement" id="achievement2">
+                🔥 10問正解
+            </div>
+            <div class="achievement" id="achievement3">
+                ⚡ スピード解答
+            </div>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        let score = 0;
+        let streak = 0;
+        let currentLevel = 1;
+        let correctAnswer;
+        let startTime;
+        let achievements = {
+            streak3: false,
+            solved10: false,
+            speedSolver: false
+        };
+
+        // 問題生成
+        function generateProblem() {
+            let num1, num2, operator;
+            
+            switch(currentLevel) {
+                case 1:
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    operator = '+';
+                    break;
+                case 2:
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                    operator = Math.random() < 0.5 ? '+' : '-';
+                    break;
+                case 3:
+                    num1 = Math.floor(Math.random() * 12) + 1;
+                    num2 = Math.floor(Math.random() * 12) + 1;
+                    operator = Math.random() < 0.5 ? '×' : '÷';
+                    if (operator === '÷') {
+                        // 割り切れる数を生成
+                        num1 = num2 * (Math.floor(Math.random() * 10) + 1);
+                    }
+                    break;
+            }
+
+            let problem = `${num1} ${operator} ${num2} = ?`;
+            
+            switch(operator) {
+                case '+': correctAnswer = num1 + num2; break;
+                case '-': correctAnswer = num1 - num2; break;
+                case '×': correctAnswer = num1 * num2; break;
+                case '÷': correctAnswer = num1 / num2; break;
+            }
+
+            document.getElementById('problem').textContent = problem;
+            generateOptions();
+            startTime = Date.now();
+        }
+
+        // 選択肢生成
+        function generateOptions() {
+            const options = [correctAnswer];
+            while (options.length < 4) {
+                let wrong = correctAnswer + (Math.random() < 0.5 ? 1 : -1) * 
+                           Math.floor(Math.random() * 5 + 1);
+                if (!options.includes(wrong)) {
+                    options.push(wrong);
+                }
+            }
+
+            // シャッフル
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = options.map(opt => 
+                `<button class="option" onclick="checkAnswer(${opt})">${opt}</button>`
+            ).join('');
+        }
+
+        // 答え合わせ
+        function checkAnswer(answer) {
+            const timeTaken = (Date.now() - startTime) / 1000;
+            const feedback = document.getElementById('feedback');
+            
+            if (answer === correctAnswer) {
+                score += currentLevel * 10;
+                streak++;
+                feedback.textContent = '正解！🎉';
+                feedback.style.color = '#FFD700';
+                
+                // アチーブメントチェック
+                if (streak >= 3 && !achievements.streak3) {
+                    achievements.streak3 = true;
+                    document.getElementById('achievement1').classList.add('unlocked');
+                    showCelebration();
+                }
+                if (score >= 100 && !achievements.solved10) {
+                    achievements.solved10 = true;
+                    document.getElementById('achievement2').classList.add('unlocked');
+                    showCelebration();
+                }
+                if (timeTaken < 3 && !achievements.speedSolver) {
+                    achievements.speedSolver = true;
+                    document.getElementById('achievement3').classList.add('unlocked');
+                    showCelebration();
+                }
+
+                updateStars();
+                updatePowerMeter();
+            } else {
+                streak = 0;
+                feedback.textContent = 'がんばって！👊';
+                feedback.style.color = '#FF6B6B';
+            }
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('ninjaLevel').textContent = Math.floor(score / 100) + 1;
+
+            setTimeout(generateProblem, 1000);
+        }
+
+        // スター表示更新
+        function updateStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < streak);
+            });
+        }
+
+        // パワーメーター更新
+        function updatePowerMeter() {
+            const meter = document.getElementById('powerMeter');
+            const power = (score % 100);
+            meter.style.width = `${power}%`;
+        }
+
+        // レベル設定
+        function setLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.level').forEach((el, i) => {
+                el.classList.toggle('active', i + 1 === level);
+            });
+            generateProblem();
+        }
+
+        // お祝いエフェクト
+        function showCelebration() {
+            const celebration = document.getElementById('celebration');
+            celebration.style.display = 'block';
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.opacity = Math.random();
+                celebration.appendChild(confetti);
+            }
+
+            setTimeout(() => {
+                celebration.style.display = 'none';
+                celebration.innerHTML = '';
+            }, 3000);
+        }
+
+        // 初期化
+        generateProblem();
+    </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG図形エディター</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .drawing-area {
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        svg {
+            width: 100%;
+            height: 600px;
+            background: white;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.active {
+            background: #0056b3;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .properties {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .properties label {
+            margin-right: 10px;
+        }
+        .shape-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .shape-item {
+            padding: 5px 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .shape-item:hover {
+            background: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SVG図形エディター</h1>
+        
+        <div class="toolbar">
+            <button id="rectBtn">四角形</button>
+            <button id="circleBtn">円</button>
+            <button id="lineBtn">直線</button>
+            <button id="selectBtn">選択</button>
+            <button id="deleteBtn">削除</button>
+            <div class="color-picker">
+                <label>色:</label>
+                <input type="color" id="colorPicker" value="#000000">
+            </div>
+        </div>
+
+        <div class="properties">
+            <label>線の太さ:</label>
+            <input type="range" id="strokeWidth" min="1" max="10" value="2">
+            <label>透明度:</label>
+            <input type="range" id="opacity" min="0" max="100" value="100">
+        </div>
+
+        <div class="drawing-area">
+            <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
+                <g id="shapes"></g>
+            </svg>
+        </div>
+
+        <button onclick="saveDrawing()">保存</button>
+        <button onclick="loadDrawing()">読み込み</button>
+
+        <div id="savedShapes" class="shape-list"></div>
+    </div>
+
+    <script>
+        let currentTool = 'select';
+        let isDrawing = false;
+        let currentShape = null;
+        let selectedShape = null;
+        let startX, startY;
+        let shapes = [];
+
+        const canvas = document.getElementById('canvas');
+        const shapesGroup = document.getElementById('shapes');
+
+        // ツールボタンの設定
+        document.querySelectorAll('.toolbar button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTool = this.id.replace('Btn', '');
+                if (selectedShape) {
+                    selectedShape.removeAttribute('stroke-width');
+                    selectedShape = null;
+                }
+            });
+        });
+
+        // マウスイベントの処理
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+
+        function startDrawing(e) {
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            isDrawing = true;
+
+            if (currentTool !== 'select') {
+                const color = document.getElementById('colorPicker').value;
+                const strokeWidth = document.getElementById('strokeWidth').value;
+                const opacity = document.getElementById('opacity').value / 100;
+
+                switch(currentTool) {
+                    case 'rect':
+                        currentShape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        currentShape.setAttribute('x', startX);
+                        currentShape.setAttribute('y', startY);
+                        break;
+                    case 'circle':
+                        currentShape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        currentShape.setAttribute('cx', startX);
+                        currentShape.setAttribute('cy', startY);
+                        break;
+                    case 'line':
+                        currentShape = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        currentShape.setAttribute('x1', startX);
+                        currentShape.setAttribute('y1', startY);
+                        currentShape.setAttribute('x2', startX);
+                        currentShape.setAttribute('y2', startY);
+                        break;
+                }
+
+                if (currentShape) {
+                    currentShape.setAttribute('fill', 'none');
+                    currentShape.setAttribute('stroke', color);
+                    currentShape.setAttribute('stroke-width', strokeWidth);
+                    currentShape.setAttribute('opacity', opacity);
+                    shapesGroup.appendChild(currentShape);
+                }
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (currentTool === 'select' && selectedShape) {
+                // 図形の移動処理
+                const dx = x - startX;
+                const dy = y - startY;
+                startX = x;
+                startY = y;
+
+                if (selectedShape.tagName === 'rect') {
+                    const currentX = parseFloat(selectedShape.getAttribute('x'));
+                    const currentY = parseFloat(selectedShape.getAttribute('y'));
+                    selectedShape.setAttribute('x', currentX + dx);
+                    selectedShape.setAttribute('y', currentY + dy);
+                } else if (selectedShape.tagName === 'circle') {
+                    const currentCX = parseFloat(selectedShape.getAttribute('cx'));
+                    const currentCY = parseFloat(selectedShape.getAttribute('cy'));
+                    selectedShape.setAttribute('cx', currentCX + dx);
+                    selectedShape.setAttribute('cy', currentCY + dy);
+                }
+            } else if (currentShape) {
+                // 図形の描画処理
+                switch(currentTool) {
+                    case 'rect':
+                        const width = x - startX;
+                        const height = y - startY;
+                        currentShape.setAttribute('width', Math.abs(width));
+                        currentShape.setAttribute('height', Math.abs(height));
+                        currentShape.setAttribute('x', width < 0 ? x : startX);
+                        currentShape.setAttribute('y', height < 0 ? y : startY);
+                        break;
+                    case 'circle':
+                        const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+                        currentShape.setAttribute('r', radius);
+                        break;
+                    case 'line':
+                        currentShape.setAttribute('x2', x);
+                        currentShape.setAttribute('y2', y);
+                        break;
+                }
+            }
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            if (currentShape && currentTool !== 'select') {
+                shapes.push(currentShape);
+                currentShape = null;
+            }
+        }
+
+        // 図形の選択
+        canvas.addEventListener('click', function(e) {
+            if (currentTool === 'select') {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // 以前の選択をクリア
+                if (selectedShape) {
+                    selectedShape.removeAttribute('stroke-width');
+                }
+
+                // クリックされた位置にある図形を探す
+                selectedShape = document.elementFromPoint(e.clientX, e.clientY);
+                if (selectedShape && selectedShape.tagName !== 'svg' && selectedShape.tagName !== 'g') {
+                    selectedShape.setAttribute('stroke-width', '4');
+                } else {
+                    selectedShape = null;
+                }
+            }
+        });
+
+        // 図形の削除
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            if (selectedShape) {
+                selectedShape.remove();
+                shapes = shapes.filter(shape => shape !== selectedShape);
+                selectedShape = null;
+            }
+        });
+
+        // 描画の保存
+        function saveDrawing() {
+            const drawing = {
+                shapes: Array.from(shapesGroup.children).map(shape => ({
+                    type: shape.tagName,
+                    attributes: Array.from(shape.attributes).reduce((obj, attr) => {
+                        obj[attr.name] = attr.value;
+                        return obj;
+                    }, {})
+                }))
+            };
+            localStorage.setItem('savedDrawing', JSON.stringify(drawing));
+            updateSavedShapesList();
+        }
+
+        // 描画の読み込み
+        function loadDrawing() {
+            const savedDrawing = localStorage.getItem('savedDrawing');
+            if (savedDrawing) {
+                const drawing = JSON.parse(savedDrawing);
+                shapesGroup.innerHTML = '';
+                shapes = [];
+                
+                drawing.shapes.forEach(shapeData => {
+                    const shape = document.createElementNS('http://www.w3.org/2000/svg', shapeData.type);
+                    Object.entries(shapeData.attributes).forEach(([name, value]) => {
+                        shape.setAttribute(name, value);
+                    });
+                    shapesGroup.appendChild(shape);
+                    shapes.push(shape);
+                });
+            }
+        }
+
+        // 保存された図形リストの更新
+        function updateSavedShapesList() {
+            const savedShapes = document.getElementById('savedShapes');
+            const savedDrawing = localStorage.getItem('savedDrawing');
+            if (savedDrawing) {
+                const drawing = JSON.parse(savedDrawing);
+                savedShapes.innerHTML = `
+                    <div class="shape-item">
+                        保存された図形: ${drawing.shapes.length}個
+                    </div>
+                `;
+            }
+        }
+
+        // 初期化
+        document.getElementById('selectBtn').click();
+        updateSavedShapesList();
+    </script>
+</body>
+</html>

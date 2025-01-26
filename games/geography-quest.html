@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>地理探検クエスト</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'メイリオ', Meiryo, sans-serif;
+            background: #f0f2f5;
+        }
+        #game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        #world-map {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: #a8e6ff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .continent {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .continent:hover {
+            transform: scale(1.05);
+        }
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 30px;
+            transition: all 0.5s ease;
+            z-index: 100;
+            cursor: pointer;
+        }
+        .location-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff4444;
+            border-radius: 50%;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        #info-panel {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #collection-panel {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .collection-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .collection-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        #mini-game {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+        }
+        #photo-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            z-index: 2000;
+        }
+        #photo-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 10px;
+        }
+        .photo-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .achievement {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            animation: slideIn 0.5s ease;
+            display: none;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>地理探検クエスト 🌍</h1>
+        
+        <div id="world-map">
+            <div id="player">🧭</div>
+        </div>
+
+        <div id="info-panel">
+            <h2>探検情報</h2>
+            <p>発見した場所: <span id="locations-found">0</span>/20</p>
+            <p>集めたアイテム: <span id="items-collected">0</span>/50</p>
+            <button onclick="togglePhotoMode()">📸 フォトモード</button>
+        </div>
+
+        <div id="collection-panel">
+            <!-- コレクションアイテムがここに表示されます -->
+        </div>
+    </div>
+
+    <div id="mini-game">
+        <h2>文化クイズ</h2>
+        <div id="quiz-content"></div>
+        <button onclick="answerQuiz()">回答する</button>
+        <button onclick="closeMiniGame()">閉じる</button>
+    </div>
+
+    <div id="photo-mode">
+        <canvas id="photo-canvas"></canvas>
+        <div class="photo-controls">
+            <button onclick="takePhoto()">📸 撮影</button>
+            <button onclick="togglePhotoMode()">閉じる</button>
+        </div>
+    </div>
+
+    <div class="achievement" id="achievement"></div>
+
+    <script>
+        const locations = [
+            { id: 1, name: '東京', x: 80, y: 30, items: ['寿司', '着物', '富士山'] },
+            { id: 2, name: 'パリ', x: 45, y: 25, items: ['エッフェル塔', 'クロワッサン', 'ベレー帽'] },
+            { id: 3, name: 'ニューヨーク', x: 25, y: 30, items: ['自由の女神', 'ホットドッグ', 'イエローキャブ'] }
+            // 他の場所も同様に追加
+        ];
+
+        const culturalQuizzes = [
+            {
+                location: '東京',
+                question: '日本の伝統的な床材は何でしょう？',
+                options: ['畳', 'カーペット', 'フローリング', 'タイル'],
+                correct: '畳'
+            },
+            {
+                location: 'パリ',
+                question: 'フランスの伝統的な朝食といえば？',
+                options: ['クロワッサン', 'ハンバーガー', 'おにぎり', 'ピザ'],
+                correct: 'クロワッサン'
+            }
+            // 他のクイズも同様に追加
+        ];
+
+        let discoveredLocations = new Set();
+        let collectedItems = new Set();
+        let currentLocation = null;
+
+        // 世界地図の初期化
+        function initializeMap() {
+            locations.forEach(location => {
+                const marker = document.createElement('div');
+                marker.className = 'location-marker';
+                marker.style.left = `${location.x}%`;
+                marker.style.top = `${location.y}%`;
+                marker.onclick = () => visitLocation(location);
+                document.getElementById('world-map').appendChild(marker);
+            });
+        }
+
+        // 場所の訪問
+        function visitLocation(location) {
+            currentLocation = location;
+            const player = document.getElementById('player');
+            player.style.left = `${location.x}%`;
+            player.style.top = `${location.y}%`;
+
+            if (!discoveredLocations.has(location.id)) {
+                discoveredLocations.add(location.id);
+                updateStats();
+                startMiniGame(location);
+                showAchievement(`${location.name}を発見しました！`);
+            }
+        }
+
+        // ミニゲームの開始
+        function startMiniGame(location) {
+            const quiz = culturalQuizzes.find(q => q.location === location.name);
+            if (!quiz) return;
+
+            const content = document.getElementById('quiz-content');
+            content.innerHTML = `
+                <h3>${quiz.question}</h3>
+                ${quiz.options.map(option => `
+                    <label>
+                        <input type="radio" name="quiz" value="${option}">
+                        ${option}
+                    </label><br>
+                `).join('')}
+            `;
+
+            document.getElementById('mini-game').style.display = 'block';
+        }
+
+        // クイズの回答
+        function answerQuiz() {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) return;
+
+            const quiz = culturalQuizzes.find(q => q.location === currentLocation.name);
+            if (selected.value === quiz.correct) {
+                showAchievement('正解！新しいアイテムを獲得しました！');
+                collectRandomItem(currentLocation);
+            } else {
+                showAchievement('残念！もう一度チャレンジしてみよう！');
+            }
+
+            closeMiniGame();
+        }
+
+        // アイテムの収集
+        function collectRandomItem(location) {
+            const uncollectedItems = location.items.filter(item => !collectedItems.has(item));
+            if (uncollectedItems.length > 0) {
+                const randomItem = uncollectedItems[Math.floor(Math.random() * uncollectedItems.length)];
+                collectedItems.add(randomItem);
+                updateCollection();
+                updateStats();
+            }
+        }
+
+        // コレクションの更新
+        function updateCollection() {
+            const panel = document.getElementById('collection-panel');
+            panel.innerHTML = '';
+            
+            Array.from(collectedItems).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'collection-item';
+                div.innerHTML = `
+                    <img src="/api/placeholder/60/60" alt="${item}">
+                    <p>${item}</p>
+                `;
+                panel.appendChild(div);
+            });
+        }
+
+        // 統計の更新
+        function updateStats() {
+            document.getElementById('locations-found').textContent = discoveredLocations.size;
+            document.getElementById('items-collected').textContent = collectedItems.size;
+        }
+
+        // フォトモードの切り替え
+        function togglePhotoMode() {
+            const photoMode = document.getElementById('photo-mode');
+            photoMode.style.display = photoMode.style.display === 'none' ? 'block' : 'none';
+            
+            if (photoMode.style.display === 'block') {
+                initPhotoCanvas();
+            }
+        }
+
+        // フォトキャンバスの初期化
+        function initPhotoCanvas() {
+            const canvas = document.getElementById('photo-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 600;
+            canvas.height = 400;
+            
+            // 背景を描画
+            ctx.fillStyle = '#f0f2f5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 現在の場所の情報を描画
+            if (currentLocation) {
+                ctx.fillStyle = '#333';
+                ctx.font = '24px Arial';
+                ctx.fillText(`${currentLocation.name}にて`, 20, 40);
+            }
+        }
+
+        // 写真撮影
+        function takePhoto() {
+            showAchievement('写真を保存しました！');
+            togglePhotoMode();
+        }
+
+        // 実績表示
+        function showAchievement(text) {
+            const achievement = document.getElementById('achievement');
+            achievement.textContent = text;
+            achievement.style.display = 'block';
+            setTimeout(() => {
+                achievement.style.display = 'none';
+            }, 3000);
+        }
+
+        // ミニゲームを閉じる
+        function closeMiniGame() {
+            document.getElementById('mini-game').style.display = 'none';
+        }
+
+        // ゲームの初期化
+        initializeMap();
+        updateStats();
+    </script>
+</body>
+</html>

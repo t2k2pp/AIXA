@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通貨換算アプリ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .converter {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+        }
+        .rate-display {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        .chart-container {
+            margin-top: 30px;
+            height: 300px;
+        }
+        .favorites {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .favorites-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .favorite-pair {
+            padding: 5px 10px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        .favorite-pair:hover {
+            background-color: #dee2e6;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>通貨換算アプリ</h1>
+        
+        <div class="converter">
+            <div class="input-group">
+                <label>変換元通貨:</label>
+                <input type="number" id="fromAmount" value="1">
+                <select id="fromCurrency">
+                    <option value="JPY">日本円 (JPY)</option>
+                    <option value="USD" selected>米ドル (USD)</option>
+                    <option value="EUR">ユーロ (EUR)</option>
+                    <option value="GBP">英ポンド (GBP)</option>
+                    <option value="AUD">豪ドル (AUD)</option>
+                    <option value="CAD">加ドル (CAD)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>変換先通貨:</label>
+                <input type="number" id="toAmount" readonly>
+                <select id="toCurrency">
+                    <option value="JPY" selected>日本円 (JPY)</option>
+                    <option value="USD">米ドル (USD)</option>
+                    <option value="EUR">ユーロ (EUR)</option>
+                    <option value="GBP">英ポンド (GBP)</option>
+                    <option value="AUD">豪ドル (AUD)</option>
+                    <option value="CAD">加ドル (CAD)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="rate-display" id="rateDisplay">
+            1 USD = 110.00 JPY
+        </div>
+
+        <button onclick="addToFavorites()">お気に入りに追加</button>
+
+        <div class="favorites">
+            <h3>お気に入りの通貨ペア</h3>
+            <div class="favorites-list" id="favoritesList"></div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="rateChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 為替レートのモックデータ
+        const mockRates = {
+            'USD': { 'JPY': 110.0, 'EUR': 0.85, 'GBP': 0.73, 'AUD': 1.35, 'CAD': 1.25 },
+            'EUR': { 'JPY': 129.4, 'USD': 1.18, 'GBP': 0.86, 'AUD': 1.59, 'CAD': 1.47 },
+            'GBP': { 'JPY': 150.7, 'USD': 1.37, 'EUR': 1.16, 'AUD': 1.85, 'CAD': 1.71 },
+            'JPY': { 'USD': 0.0091, 'EUR': 0.0077, 'GBP': 0.0066, 'AUD': 0.012, 'CAD': 0.011 },
+            'AUD': { 'JPY': 81.5, 'USD': 0.74, 'EUR': 0.63, 'GBP': 0.54, 'CAD': 0.93 },
+            'CAD': { 'JPY': 87.6, 'USD': 0.80, 'EUR': 0.68, 'GBP': 0.58, 'AUD': 1.08 }
+        };
+
+        // チャートの初期化
+        let rateChart;
+        function initChart() {
+            const ctx = document.getElementById('rateChart').getContext('2d');
+            rateChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                    datasets: [{
+                        label: 'Exchange Rate',
+                        data: generateMockHistoricalData(30),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // モック履歴データの生成
+        function generateMockHistoricalData(days) {
+            const baseRate = getExchangeRate(
+                document.getElementById('fromCurrency').value,
+                document.getElementById('toCurrency').value
+            );
+            return Array.from({length: days}, () => 
+                baseRate * (0.95 + Math.random() * 0.1)
+            );
+        }
+
+        // 為替レートの取得
+        function getExchangeRate(from, to) {
+            if (from === to) return 1;
+            return mockRates[from][to] || 1 / mockRates[to][from];
+        }
+
+        // 通貨換算の実行
+        function convert() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const amount = parseFloat(document.getElementById('fromAmount').value);
+            const rate = getExchangeRate(fromCurrency, toCurrency);
+            
+            document.getElementById('toAmount').value = (amount * rate).toFixed(2);
+            document.getElementById('rateDisplay').textContent = 
+                `1 ${fromCurrency} = ${rate.toFixed(2)} ${toCurrency}`;
+
+            updateChart(fromCurrency, toCurrency);
+        }
+
+        // チャートの更新
+        function updateChart(fromCurrency, toCurrency) {
+            if (rateChart) {
+                rateChart.data.datasets[0].data = generateMockHistoricalData(30);
+                rateChart.data.datasets[0].label = `${fromCurrency}/${toCurrency} Rate`;
+                rateChart.update();
+            }
+        }
+
+        // お気に入りの管理
+        let favorites = JSON.parse(localStorage.getItem('favoritePairs') || '[]');
+
+        function addToFavorites() {
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const pair = `${fromCurrency}/${toCurrency}`;
+            
+            if (!favorites.includes(pair)) {
+                favorites.push(pair);
+                localStorage.setItem('favoritePairs', JSON.stringify(favorites));
+                updateFavoritesList();
+            }
+        }
+
+        function updateFavoritesList() {
+            const list = document.getElementById('favoritesList');
+            list.innerHTML = favorites.map(pair => `
+                <div class="favorite-pair" onclick="loadFavoritePair('${pair}')">
+                    ${pair}
+                </div>
+            `).join('');
+        }
+
+        function loadFavoritePair(pair) {
+            const [from, to] = pair.split('/');
+            document.getElementById('fromCurrency').value = from;
+            document.getElementById('toCurrency').value = to;
+            convert();
+        }
+
+        // イベントリスナーの設定
+        document.getElementById('fromAmount').addEventListener('input', convert);
+        document.getElementById('fromCurrency').addEventListener('change', convert);
+        document.getElementById('toCurrency').addEventListener('change', convert);
+
+        // 初期化
+        initChart();
+        updateFavoritesList();
+        convert();
+    </script>
+</body>
+</html>

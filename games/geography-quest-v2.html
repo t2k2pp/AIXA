@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>地理探検クエスト</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'メイリオ', Meiryo, sans-serif;
+            background: #f0f2f5;
+        }
+        #game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+        #map-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #a8e6ff;
+        }
+        .continent {
+            position: absolute;
+            stroke: #666;
+            fill: #90caf9;
+            stroke-width: 1;
+            transition: all 0.3s;
+        }
+        .continent:hover {
+            fill: #42a5f5;
+            cursor: pointer;
+        }
+        .continent.discovered {
+            fill: #4caf50;
+        }
+        .location-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            transform: translate(-50%, -100%);
+        }
+        #info-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .info-section h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .location-info {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .landmark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        .landmark img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            background: #4caf50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #quiz-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+            z-index: 1000;
+        }
+        .quiz-option {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background: #e0e0e0;
+        }
+        #achievement {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            animation: slideIn 0.5s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="map-container">
+            <svg id="map" viewBox="0 0 1000 500">
+                <!-- 実際の大陸の形状をpath要素で表現 -->
+                <path class="continent" id="asia" d="M650 100 L800 100 L800 300 L650 300 Z" 
+                      data-name="アジア" />
+                <path class="continent" id="europe" d="M450 100 L600 100 L600 250 L450 250 Z"
+                      data-name="ヨーロッパ" />
+                <path class="continent" id="africa" d="M450 270 L600 270 L600 400 L450 400 Z"
+                      data-name="アフリカ" />
+                <path class="continent" id="namerica" d="M200 100 L350 100 L350 250 L200 250 Z"
+                      data-name="北アメリカ" />
+                <path class="continent" id="samerica" d="M250 270 L400 270 L400 400 L250 400 Z"
+                      data-name="南アメリカ" />
+                <path class="continent" id="oceania" d="M700 350 L850 350 L850 450 L700 450 Z"
+                      data-name="オセアニア" />
+            </svg>
+        </div>
+
+        <div id="info-panel">
+            <div class="info-section">
+                <h3>探検状況</h3>
+                <div class="stat">
+                    <span>発見した大陸</span>
+                    <span id="continents-found">0/6</span>
+                </div>
+                <div class="stat">
+                    <span>学んだ文化</span>
+                    <span id="cultures-learned">0/24</span>
+                </div>
+                <div class="stat">
+                    <span>獲得スコア</span>
+                    <span id="total-score">0</span>
+                </div>
+            </div>
+
+            <div id="location-info" class="location-info">
+                <h3>地域情報</h3>
+                <div id="region-details"></div>
+                <div id="landmarks"></div>
+                <button onclick="startQuiz()">文化クイズに挑戦</button>
+                <button onclick="togglePhotoMode()">📸 フォトスポット</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-modal">
+        <h3>文化クイズ</h3>
+        <div id="quiz-content"></div>
+        <button onclick="checkAnswer()">回答する</button>
+        <button onclick="closeQuiz()">閉じる</button>
+    </div>
+
+    <div id="achievement"></div>
+
+    <script>
+        const regions = {
+            asia: {
+                name: 'アジア',
+                description: 'アジアは世界最大の大陸で、多様な文化と歴史を持つ地域です。',
+                landmarks: [
+                    { name: '万里の長城', location: '中国', description: '世界最長の城壁' },
+                    { name: 'タージマハル', location: 'インド', description: '美しい大理石建築' },
+                    { name: '富士山', location: '日本', description: '日本の象徴的な山' }
+                ],
+                quizzes: [
+                    {
+                        question: '日本の伝統的な住居の特徴は？',
+                        options: ['畳の使用', 'レンガの壁', '円形の構造', '地下室'],
+                        correct: 0,
+                        explanation: '畳は日本の伝統的な床材で、和室の重要な要素です。'
+                    }
+                ]
+            },
+            europe: {
+                name: 'ヨーロッパ',
+                description: '芸術、文化、歴史的建造物が豊富な大陸です。',
+                landmarks: [
+                    { name: 'エッフェル塔', location: 'フランス', description: 'パリのシンボル' },
+                    { name: 'コロッセオ', location: 'イタリア', description: '古代ローマの円形闘技場' }
+                ],
+                quizzes: [
+                    {
+                        question: 'フランスの代表的な料理は？',
+                        options: ['クロワッサン', '寿司', 'タコス', 'カレー'],
+                        correct: 0,
+                        explanation: 'クロワッサンはフランスの代表的なペイストリーです。'
+                    }
+                ]
+            }
+            // 他の大陸のデータも同様に定義
+        };
+
+        let discoveredRegions = new Set();
+        let score = 0;
+        let currentRegion = null;
+
+        // 地図の初期化
+        document.querySelectorAll('.continent').forEach(continent => {
+            continent.addEventListener('click', () => {
+                const regionId = continent.id;
+                const region = regions[regionId];
+                if (region) {
+                    visitRegion(regionId, region);
+                }
+            });
+
+            // ホバー時の地域名表示
+            continent.addEventListener('mouseenter', (e) => {
+                const name = continent.dataset.name;
+                showLocationLabel(name, e.clientX, e.clientY);
+            });
+            continent.addEventListener('mouseleave', hideLocationLabel);
+        });
+
+        function showLocationLabel(name, x, y) {
+            let label = document.querySelector('.location-label');
+            if (!label) {
+                label = document.createElement('div');
+                label.className = 'location-label';
+                document.body.appendChild(label);
+            }
+            label.textContent = name;
+            label.style.left = x + 'px';
+            label.style.top = y + 'px';
+        }
+
+        function hideLocationLabel() {
+            const label = document.querySelector('.location-label');
+            if (label) {
+                label.remove();
+            }
+        }
+
+        function visitRegion(regionId, region) {
+            currentRegion = regionId;
+            const continent = document.getElementById(regionId);
+            
+            if (!discoveredRegions.has(regionId)) {
+                discoveredRegions.add(regionId);
+                continent.classList.add('discovered');
+                updateStats();
+                showAchievement(`${region.name}を発見しました！`);
+            }
+
+            showRegionInfo(region);
+        }
+
+        function showRegionInfo(region) {
+            const locationInfo = document.getElementById('location-info');
+            const regionDetails = document.getElementById('region-details');
+            const landmarks = document.getElementById('landmarks');
+
+            regionDetails.innerHTML = `
+                <h4>${region.name}</h4>
+                <p>${region.description}</p>
+            `;
+
+            landmarks.innerHTML = region.landmarks.map(landmark => `
+                <div class="landmark">
+                    <img src="/api/placeholder/50/50" alt="${landmark.name}">
+                    <div>
+                        <strong>${landmark.name}</strong>
+                        <p>${landmark.description}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            locationInfo.style.display = 'block';
+        }
+
+        function startQuiz() {
+            const region = regions[currentRegion];
+            const quiz = region.quizzes[0]; // 簡単のため最初のクイズのみ使用
+
+            const quizModal = document.getElementById('quiz-modal');
+            const quizContent = document.getElementById('quiz-content');
+            
+            quizContent.innerHTML = `
+                <p>${quiz.question}</p>
+                ${quiz.options.map((option, index) => `
+                    <label class="quiz-option">
+                        <input type="radio" name="quiz" value="${index}">
+                        ${option}
+                    </label>
+                `).join('')}
+            `;
+
+            quizModal.style.display = 'block';
+        }
+
+        function checkAnswer() {
+            const selected = document.querySelector('input[name="quiz"]:checked');
+            if (!selected) return;
+
+            const region = regions[currentRegion];
+            const quiz = region.quizzes[0];
+            
+            if (parseInt(selected.value) === quiz.correct) {
+                score += 100;
+                updateStats();
+                showAchievement('正解！文化理解度が上がりました！');
+            } else {
+                showAchievement('残念！もう一度チャレンジしてみよう！');
+            }
+
+            closeQuiz();
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').style.display = 'none';
+        }
+
+        function updateStats() {
+            document.getElementById('continents-found').textContent = 
+                `${discoveredRegions.size}/6`;
+            document.getElementById('cultures-learned').textContent = 
+                `${Math.floor(score / 100)}/24`;
+            document.getElementById('total-score').textContent = score;
+        }
+
+        function showAchievement(text) {
+            const achievement = document.getElementById('achievement');
+            achievement.textContent = text;
+            achievement.style.display = 'block';
+            setTimeout(() => {
+                achievement.style.display = 'none';
+            }, 3000);
+        }
+
+        // 初期化
+        updateStats();
+    </script>
+</body>
+</html>
