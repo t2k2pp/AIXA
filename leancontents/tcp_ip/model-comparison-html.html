@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIモデルとTCP/IPモデルの対応を理解しよう！</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .layers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .layer-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    /* すべての層のベーススタイル */
+    .layer {
+      height: 9rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      text-align: center;
+      color: white;  /* すべての層のテキストを白に */
+    }
+
+    /* OSIモデルの上位3層用のスタイル */
+    .osi-top {
+      height: 9rem;
+      display: flex;
+      flex-direction: column;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .osi-top > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+      color: white;  /* 明示的に白を指定 */
+      padding: 0.5rem;
+    }
+
+    /* OSIモデルの下位2層用のスタイル */
+    .osi-bottom {
+      height: 9rem;
+      display: flex;
+      flex-direction: column;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .osi-bottom > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+      color: white;  /* 明示的に白を指定 */
+      padding: 0.5rem;
+    }
+
+    .layer:hover,
+    .osi-top > div:hover,
+    .osi-bottom > div:hover {
+      opacity: 0.9;
+    }
+
+    .highlighted {
+      outline: 4px solid #60A5FA;
+    }
+
+    /* 層の色 */
+    .bg-purple-500 { background-color: #8B5CF6; }
+    .bg-purple-400 { background-color: #A78BFA; }
+    .bg-purple-300 { background-color: #C4B5FD; }
+    .bg-blue-500 { background-color: #3B82F6; }
+    .bg-green-500 { background-color: #22C55E; }
+    .bg-orange-400 { background-color: #FB923C; }
+    .bg-orange-500 { background-color: #F97316; }
+
+    .explanation-card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 0 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      animation: slideDown 0.3s ease-in;
+    }
+
+    .footer-text {
+      text-align: center;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 2rem;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .explanation-card {
+        margin: 0 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OSIモデルとTCP/IPモデルの対応を理解しよう！</h1>
+    <p class="subtitle">同じ色の層をクリックすると、詳しい説明が表示されるよ！</p>
+
+    <div class="grid">
+      <!-- OSIモデル -->
+      <div>
+        <h2>OSIモデル</h2>
+        <div class="layers-container">
+          <!-- 上位3層 -->
+          <div class="osi-top" data-group="1">
+            <div class="bg-purple-500">アプリケーション層（第7層）</div>
+            <div class="bg-purple-400">プレゼンテーション層（第6層）</div>
+            <div class="bg-purple-300">セッション層（第5層）</div>
+          </div>
+
+          <div class="layer bg-blue-500" data-group="2">
+            トランスポート層（第4層）
+          </div>
+
+          <div class="layer bg-green-500" data-group="3">
+            ネットワーク層（第3層）
+          </div>
+
+          <!-- 下位2層 -->
+          <div class="osi-bottom" data-group="4">
+            <div class="bg-orange-400">データリンク層（第2層）</div>
+            <div class="bg-orange-500">物理層（第1層）</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TCP/IPモデル -->
+      <div>
+        <h2>TCP/IPモデル</h2>
+        <div class="layers-container">
+          <div class="layer bg-purple-500" data-group="1">
+            アプリケーション層（第4層）
+          </div>
+          <div class="layer bg-blue-500" data-group="2">
+            トランスポート層（第3層）
+          </div>
+          <div class="layer bg-green-500" data-group="3">
+            インターネット層（第2層）
+          </div>
+          <div class="layer bg-orange-500" data-group="4">
+            ネットワークインターフェース層（第1層）
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-text">
+      TCP/IPモデルは、OSIモデルの7層を実用的な4層に整理したものだよ。<br>
+      どちらも大切なモデルで、状況に応じて使い分けられているんだ！
+    </div>
+  </div>
+
+  <script>
+    const explanations = {
+      1: {
+        title: "アプリケーション層の対応",
+        description: "TCP/IPモデルのアプリケーション層は、OSIモデルの上位3層（アプリケーション層、プレゼンテーション層、セッション層）をまとめたものだよ！\n\nこれらの層は、ユーザーが直接使うアプリケーションやデータの形式、通信の管理などを担当するんだ。\n\n例えば、LINEやWebブラウザを使う時、データの圧縮や文字コードの変換、通信の確立なども、全部この層でまとめて行われるんだよ！"
+      },
+      2: {
+        title: "トランスポート層の対応",
+        description: "トランスポート層は、両方のモデルで同じ役割を持っているよ！\n\nデータの配送方法（TCPやUDP）を決めたり、ポート番号を管理したりする大切な層なんだ。\n\nTCPは確実な配送、UDPは速い配送を重視するんだよ。メールなら確実なTCP、ゲームなら速いUDPというように、用途によって使い分けられているんだ！"
+      },
+      3: {
+        title: "ネットワーク層の対応",
+        description: "OSIモデルのネットワーク層は、TCP/IPモデルではインターネット層と呼ばれているよ！\n\nどちらもIPアドレスを使って、データの配送経路を決める役割があるんだ。\n\nインターネット上でデータがどの経路を通って届くのか、ルーターを使って最適な道順を決めるのがこの層の仕事だよ！"
+      },
+      4: {
+        title: "物理的な通信を担当する層の対応",
+        description: "TCP/IPモデルのネットワークインターフェース層は、OSIモデルの物理層とデータリンク層をまとめたものだよ！\n\n実際のケーブルや無線での通信（物理層）と、MACアドレスを使った直接の機器同士の通信（データリンク層）を担当しているんだ。\n\nLANケーブルや無線LANを使った通信が、この層で行われているよ！"
+      }
+    };
+
+    let selectedGroup = null;
+
+    function handleLayerClick(group) {
+      // 以前の選択をクリア
+      document.querySelectorAll('.highlighted').forEach(el => {
+        el.classList.remove('highlighted');
+      });
+      document.querySelectorAll('.explanation-card').forEach(card => card.remove());
+
+      // 同じグループをクリックした場合は選択を解除
+      if (selectedGroup === group) {
+        selectedGroup = null;
+        return;
+      }
+
+      selectedGroup = group;
+
+      // 対応する層をハイライト
+      document.querySelectorAll(`[data-group="${group}"]`).forEach(el => {
+        el.classList.add('highlighted');
+      });
+
+      // 説明カードを作成
+      const explanationCard = document.createElement('div');
+      explanationCard.className = 'explanation-card';
+      const explanation = explanations[group];
+      explanationCard.innerHTML = `
+        <h2 style="text-align: center; margin-bottom: 1rem;">${explanation.title}</h2>
+        <p style="white-space: pre-line;">${explanation.description}</p>
+      `;
+
+      // 説明カードを挿入
+      document.querySelector('.grid').insertAdjacentElement('afterend', explanationCard);
+    }
+
+    // クリックイベントを設定
+    document.querySelectorAll('[data-group]').forEach(el => {
+      el.addEventListener('click', () => handleLayerClick(el.dataset.group));
+    });
+  </script>
+</body>
+</html>

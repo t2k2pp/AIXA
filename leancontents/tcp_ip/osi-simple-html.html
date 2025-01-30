@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSI参照モデルを理解しよう！</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+
+    .layers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .layer-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .layer {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .layer:hover {
+      opacity: 0.9;
+    }
+
+    .layer.highlighted {
+      outline: 4px solid #60A5FA;
+    }
+
+    /* 層の色 */
+    .bg-purple-500 { background-color: #8B5CF6; }
+    .bg-blue-500 { background-color: #3B82F6; }
+    .bg-green-500 { background-color: #22C55E; }
+    .bg-yellow-500 { background-color: #EAB308; }
+    .bg-orange-500 { background-color: #F97316; }
+    .bg-red-500 { background-color: #EF4444; }
+    .bg-pink-500 { background-color: #EC4899; }
+
+    .explanation-card {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin: 0 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      animation: slideDown 0.3s ease-in;
+    }
+
+    .explanation-card h2 {
+      margin-top: 0;
+    }
+
+    .examples {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+
+    .footer-text {
+      text-align: center;
+      color: #666;
+      font-size: 0.875rem;
+      margin-top: 2rem;
+    }
+
+    @keyframes slideDown {
+      from { 
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+      }
+      .explanation-card {
+        margin: 0 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OSI参照モデルを理解しよう！</h1>
+    <p class="subtitle">各層をクリックすると、詳しい説明が表示されるよ！</p>
+
+    <div class="layers-container">
+      <div class="layer-wrapper" data-layer="7">
+        <div class="layer bg-purple-500">
+          アプリケーション層（第7層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="6">
+        <div class="layer bg-blue-500">
+          プレゼンテーション層（第6層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="5">
+        <div class="layer bg-green-500">
+          セッション層（第5層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="4">
+        <div class="layer bg-yellow-500">
+          トランスポート層（第4層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="3">
+        <div class="layer bg-orange-500">
+          ネットワーク層（第3層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="2">
+        <div class="layer bg-red-500">
+          データリンク層（第2層）
+        </div>
+      </div>
+      <div class="layer-wrapper" data-layer="1">
+        <div class="layer bg-pink-500">
+          物理層（第1層）
+        </div>
+      </div>
+    </div>
+
+    <p class="footer-text">
+      OSI参照モデルは、ネットワーク通信を7つの層に分けて考える枠組みだよ。<br>
+      下の層から順番に積み重なって、私たちが使うアプリケーションが動いているんだ！
+    </p>
+  </div>
+
+  <script>
+    const explanations = {
+      7: {
+        name: "アプリケーション層",
+        description: "ユーザーが直接触れるアプリケーションのLayer！\nLINE、メール、ブラウザなどが該当するよ。\nデータを見やすい形式に変換する役割もあるんだ。",
+        examples: "Web閲覧、メール送受信、ファイル転送"
+      },
+      6: {
+        name: "プレゼンテーション層",
+        description: "データの形式を統一する層だよ。\n例えば文字コードの変換や、データの圧縮、暗号化などを行うんだ。\nこの層のおかげで、違うOSでも同じように見えるんだよ！",
+        examples: "文字コード変換(UTF-8など)、データ圧縮、暗号化"
+      },
+      5: {
+        name: "セッション層",
+        description: "通信の開始から終了までを管理する層だよ。\nアプリケーション同士の対話を制御するんだ。\n途中で通信が切れても再開できるようにする仕組みもあるよ！",
+        examples: "通信の確立・維持・切断、データの同期"
+      },
+      4: {
+        name: "トランスポート層",
+        description: "データの配送を担当する層だよ。\n確実にデータを届けるTCPや、\n速さ重視のUDPといった仕組みがあるんだ。\nポート番号もここで管理されるよ！",
+        examples: "TCP、UDP、ポート番号による通信制御"
+      },
+      3: {
+        name: "ネットワーク層",
+        description: "データの配送経路を決める層だよ。\nIPアドレスを使って、\n最適な経路を選んでパケットを届けるんだ。\nルーターの主な仕事はこの層だよ！",
+        examples: "IPアドレス、ルーティング、パケット転送"
+      },
+      2: {
+        name: "データリンク層",
+        description: "直接つながっている機器同士の通信を管理する層だよ。\nMACアドレスを使って、\n確実にデータを届ける仕組みを提供するんだ。\nLANの通信はここが重要！",
+        examples: "MACアドレス、イーサネット、無線LAN"
+      },
+      1: {
+        name: "物理層",
+        description: "通信の物理的な部分を担当する層だよ。\n電気信号や光信号として、\nデータを0と1のビット列として送受信するんだ。\nLANケーブルや無線の電波もここで扱うよ！",
+        examples: "ケーブル、ハブ、電気信号、光信号"
+      }
+    };
+
+    let selectedLayer = null;
+
+    function handleLayerClick(layerWrapper) {
+      const layerId = parseInt(layerWrapper.dataset.layer);
+      const existingExplanation = layerWrapper.querySelector('.explanation-card');
+      
+      // 既存の説明カードをすべて削除
+      document.querySelectorAll('.explanation-card').forEach(card => card.remove());
+      document.querySelectorAll('.layer').forEach(layer => layer.classList.remove('highlighted'));
+      
+      // 同じ層をクリックした場合は選択を解除
+      if (selectedLayer === layerId) {
+        selectedLayer = null;
+        return;
+      }
+
+      // 新しい層を選択
+      selectedLayer = layerId;
+      layerWrapper.querySelector('.layer').classList.add('highlighted');
+
+      // 説明カードを作成
+      const explanationCard = document.createElement('div');
+      explanationCard.className = 'explanation-card';
+      const explanation = explanations[layerId];
+      explanationCard.innerHTML = `
+        <h2>${explanation.name}（第${layerId}層）の説明</h2>
+        <div>
+          <h3>この層では何をするの？</h3>
+          <p style="white-space: pre-line">${explanation.description}</p>
+        </div>
+        <div class="examples">
+          <h3>具体例：</h3>
+          <p>${explanation.examples}</p>
+        </div>
+      `;
+
+      // 説明カードを層の下に挿入
+      layerWrapper.appendChild(explanationCard);
+    }
+
+    // クリックイベントを設定
+    document.querySelectorAll('.layer-wrapper').forEach(wrapper => {
+      wrapper.querySelector('.layer').addEventListener('click', () => handleLayerClick(wrapper));
+    });
+  </script>
+</body>
+</html>
