@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>TCP/IP基礎講座</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .slide {
+            background: white;
+            width: 80%;
+            max-width: 800px;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .quiz-option {
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .quiz-option:hover {
+            background: #f8f9fa;
+        }
+        .quiz-option.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .quiz-option.incorrect {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #007bff;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-container">
+        <!-- スライド1: イントロダクション -->
+        <div class="slide active" id="slide1">
+            <h1>TCP/IP入門</h1>
+            <h2>基本情報技術者試験対策</h2>
+            <p>このスライドショーでは、TCP/IPプロトコルスイートの基礎について学習します。</p>
+            <ul>
+                <li>TCP/IPとは何か</li>
+                <li>各層の役割と主要プロトコル</li>
+                <li>IPアドレスとサブネット</li>
+                <li>実践的な演習問題</li>
+            </ul>
+        </div>
+
+        <!-- スライド2: TCP/IPの概要 -->
+        <div class="slide" id="slide2">
+            <h2>TCP/IPとは？</h2>
+            <p>TCP/IPは、インターネットで使用される主要な通信プロトコル群です。</p>
+            <p>以下の4つの層で構成されています：</p>
+            <ul>
+                <li>アプリケーション層 (HTTP, FTP, SMTP等)</li>
+                <li>トランスポート層 (TCP, UDP)</li>
+                <li>インターネット層 (IP)</li>
+                <li>ネットワークインターフェース層 (Ethernet等)</li>
+            </ul>
+        </div>
+
+        <!-- スライド3: IPアドレス -->
+        <div class="slide" id="slide3">
+            <h2>IPアドレス</h2>
+            <p>IPアドレスは、ネットワーク上の機器を識別するための番号です。</p>
+            <p>IPv4では、32ビットの数値を8ビットずつ4つに分けて表現します。</p>
+            <p>例：192.168.1.1</p>
+            <div class="interactive-demo">
+                <p>クラスAのアドレス範囲：1.0.0.0 ～ 126.255.255.255</p>
+                <p>クラスBのアドレス範囲：128.0.0.0 ～ 191.255.255.255</p>
+                <p>クラスCのアドレス範囲：192.0.0.0 ～ 223.255.255.255</p>
+            </div>
+        </div>
+
+        <!-- スライド4: TCP vs UDP -->
+        <div class="slide" id="slide4">
+            <h2>TCPとUDPの比較</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 1rem; border: 1px solid #dee2e6;">特徴</th>
+                    <th style="padding: 1rem; border: 1px solid #dee2e6;">TCP</th>
+                    <th style="padding: 1rem; border: 1px solid #dee2e6;">UDP</th>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">信頼性</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">高い（確認応答あり）</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">低い（確認応答なし）</td>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">速度</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">比較的遅い</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">高速</td>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">用途</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">Webブラウジング、メール</td>
+                    <td style="padding: 1rem; border: 1px solid #dee2e6;">動画ストリーミング、オンラインゲーム</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- スライド5: 確認クイズ -->
+        <div class="slide" id="slide5">
+            <h2>確認クイズ</h2>
+            <p>以下の質問に答えてください：</p>
+            <p>Q: TCPの特徴として正しいものは？</p>
+            <div class="quiz-options">
+                <div class="quiz-option" onclick="checkAnswer(this, true)">
+                    確認応答があり、信頼性の高い通信が可能
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    確認応答がなく、高速な通信が可能
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    コネクションレス型の通信プロトコル
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button onclick="prevSlide()">前へ</button>
+        <button onclick="nextSlide()">次へ</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 5;
+
+        function updateProgressBar() {
+            const progress = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function showSlide(slideNumber) {
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+            document.getElementById(`slide${slideNumber}`).classList.add('active');
+            updateProgressBar();
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        function checkAnswer(element, isCorrect) {
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+            } else {
+                element.classList.add('incorrect');
+            }
+        }
+
+        // キーボードナビゲーション
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        updateProgressBar();
+    </script>
+</body>
+</html>
