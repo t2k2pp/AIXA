@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>神経衰弱ゲーム</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background-color: #f0f9ff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            color: #2563eb;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .setup-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .settings {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .setting-group {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 1.2rem;
+            color: #3b82f6;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .start-button {
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .start-button:hover {
+            transform: scale(1.02);
+        }
+
+        .game-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .current-player {
+            font-size: 1.2rem;
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .scores {
+            display: flex;
+            gap: 20px;
+        }
+
+        .score {
+            padding: 8px 15px;
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .cards-grid {
+            display: grid;
+            gap: 8px;
+            margin: 0 auto;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background-color: #60a5fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+            border: 3px solid #3b82f6;
+            color: white;
+        }
+
+        .card.flipped {
+            background-color: white;
+            transform: rotateY(180deg);
+            color: black;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .reset-button {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .settings {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎮 神経衰弱ゲーム 🎮</h1>
+        
+        <div id="setup" class="setup-container">
+            <div class="settings">
+                <div class="setting-group">
+                    <div class="setting-title">むずかしさ</div>
+                    <div class="radio-group" id="difficulty">
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="1" checked> かんたん (10枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="2"> レベル2 (20枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="3"> レベル3 (30枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="4"> レベル4 (40枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="5"> レベル5 (50枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="6"> レベル6 (60枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="7"> レベル7 (70枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="8"> レベル8 (80枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="9"> レベル9 (90枚)
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="level" value="10"> ちょうむずい (100枚)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <div class="setting-title">プレイヤーすう</div>
+                    <div class="radio-group" id="players">
+                        <label class="radio-option">
+                            <input type="radio" name="players" value="1" checked> 1人
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="players" value="2"> 2人
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="players" value="3"> 3人
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="players" value="4"> 4人
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startButton" class="start-button">はじめる！</button>
+        </div>
+
+        <div id="game" class="game-container">
+            <div class="game-info">
+                <div class="current-player">プレイヤー1の番！</div>
+                <div class="scores"></div>
+            </div>
+            <div id="cards" class="cards-grid"></div>
+            <button id="resetButton" class="reset-button">さいしょからやりなおす</button>
+        </div>
+    </div>
+
+    <script>
+        const emojis = [
+            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', 
+            '🦁', '🐮', '🐷', '🐸', '🐙', '🐵', '🦄', '🦋', '🐢', '🦉',
+            '🦒', '🦘', '🦡', '🦃', '🦚', '🦜', '🦢', '🦩', '🐤', '🐧',
+            '🦕', '🦖', '🐳', '🐬', '🐠', '🐡', '🦈', '🐚', '🦀', '🦞',
+            '🌸', '🌹', '🌺', '🌻', '🌼', '🌷', '🌱', '🌲', '🍄', '🌍'
+        ];
+
+        let currentPlayer = 0;
+        let scores = [];
+        let flippedCards = [];
+        let matchedPairs = [];
+        let cards = [];
+
+        function initializeGame() {
+            const level = parseInt(document.querySelector('input[name="level"]:checked').value);
+            const numPlayers = parseInt(document.querySelector('input[name="players"]:checked').value);
+            const cardCount = level * 10;
+            
+            // リセット
+            currentPlayer = 0;
+            scores = Array(numPlayers).fill(0);
+            flippedCards = [];
+            matchedPairs = [];
+            
+            // カードの準備
+            const selectedEmojis = emojis.slice(0, cardCount / 2);
+            cards = [...selectedEmojis, ...selectedEmojis]
+                .sort(() => Math.random() - 0.5)
+                .map((emoji, index) => ({ id: index, emoji: emoji }));
+
+            // グリッドのサイズ調整
+            const cardsContainer = document.getElementById('cards');
+            const columns = Math.ceil(Math.sqrt(cardCount));
+            cardsContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            
+            // カードの表示
+            cardsContainer.innerHTML = cards.map((card, index) => `
+                <div class="card" data-index="${index}">❔</div>
+            `).join('');
+
+            // スコア表示の更新
+            updateScoreDisplay();
+            
+            // 画面切り替え
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+
+            // カードサイズの調整
+            adjustCardSize();
+        }
+
+        function adjustCardSize() {
+            const cards = document.querySelectorAll('.card');
+            const containerWidth = document.getElementById('cards').offsetWidth;
+            const columns = Math.sqrt(cards.length);
+            const fontSize = Math.floor(containerWidth / (columns * 3));
+            
+            cards.forEach(card => {
+                card.style.fontSize = `${fontSize}px`;
+            });
+        }
+
+        function handleCardClick(index) {
+            if (flippedCards.length === 2 || flippedCards.includes(index) || 
+                matchedPairs.includes(cards[index].emoji)) return;
+
+            const card = document.querySelector(`[data-index="${index}"]`);
+            card.textContent = cards[index].emoji;
+            card.classList.add('flipped');
+            flippedCards.push(index);
+
+            if (flippedCards.length === 2) {
+                const [first, second] = flippedCards;
+                
+                if (cards[first].emoji === cards[second].emoji) {
+                    // マッチ成功
+                    matchedPairs.push(cards[first].emoji);
+                    scores[currentPlayer]++;
+                    updateScoreDisplay();
+                    flippedCards = [];
+
+                    if (matchedPairs.length === cards.length / 2) {
+                        setTimeout(() => {
+                            const winner = scores.indexOf(Math.max(...scores));
+                            alert(`ゲームクリア！🎉\nプレイヤー${winner + 1}の勝ち！`);
+                        }, 500);
+                    }
+                } else {
+                    // マッチ失敗
+                    setTimeout(() => {
+                        flippedCards.forEach(index => {
+                            const card = document.querySelector(`[data-index="${index}"]`);
+                            card.textContent = '❔';
+                            card.classList.remove('flipped');
+                        });
+                        flippedCards = [];
+                        currentPlayer = (currentPlayer + 1) % scores.length;
+                        updateScoreDisplay();
+                    }, 1000);
+                }
+            }
+        }
+
+        function updateScoreDisplay() {
+            const scoresContainer = document.querySelector('.scores');
+            scoresContainer.innerHTML = scores.map((score, index) => `
+                <div class="score">プレイヤー${index + 1}: ${score}ペア</div>
+            `).join('');
+            
+            document.querySelector('.current-player').textContent = 
+                `プレイヤー${currentPlayer + 1}の番！`;
+        }
+
+        // イベントリスナーの設定
+        document.getElementById('startButton').addEventListener('click', initializeGame);
+        document.getElementById('resetButton').addEventListener('click', () => {
+            document.getElementById('setup').style.display = 'block';
+            document.getElementById('game').style.display = 'none';
+        });
+        document.getElementById('cards').addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (card) {
+                const index = parseInt(card.dataset.index);
+                handleCardClick(index);
+            }
+        });
+
+        // ウィンドウサイズ変更時にカードサイズを調整
+        window.addEventListener('resize', () => {
+            if (document.getElementById('game').style.display === 'block') {
+                adjustCardSize();
+            }
+        });
+    </script>
+</body>
+</html>
