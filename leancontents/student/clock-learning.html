@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>時計学習</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .clocks {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        .clock-section {
+            text-align: center;
+        }
+        .clock-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .digital {
+            font-family: monospace;
+            font-size: 24px;
+            background: #eee;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        .controls {
+            text-align: center;
+        }
+        .control-row {
+            margin: 10px 0;
+        }
+        .control-label {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        button {
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .hour-btn {
+            background: #e3f2fd;
+        }
+        .hour-btn:hover {
+            background: #bbdefb;
+        }
+        .min-btn {
+            background: #ffebee;
+        }
+        .min-btn:hover {
+            background: #ffcdd2;
+        }
+        .hour-btn.active {
+            background: #1976d2 !important;
+            color: white;
+        }
+        .min-btn.active {
+            background: #d32f2f !important;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>アナログ時計を学ぼう！</h1>
+        <div class="clocks">
+            <div class="clock-section">
+                <div class="clock-title">今の時間</div>
+                <svg width="300" height="300" viewBox="0 0 300 300">
+                    <circle cx="150" cy="150" r="145" fill="white" stroke="black" stroke-width="2"/>
+                    <g id="marks1"></g>
+                    <g id="numbers1"></g>
+                    <line id="hour1" x1="150" y1="150" x2="150" y2="80" stroke="blue" stroke-width="4" stroke-linecap="round"/>
+                    <line id="min1" x1="150" y1="150" x2="150" y2="60" stroke="red" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="150" cy="150" r="5" fill="black"/>
+                </svg>
+                <div class="digital" id="time1">00:00</div>
+                <div class="controls" id="buttons1"></div>
+            </div>
+            
+            <div class="clock-section">
+                <div class="clock-title">学習用の時計</div>
+                <svg width="300" height="300" viewBox="0 0 300 300">
+                    <circle cx="150" cy="150" r="145" fill="white" stroke="black" stroke-width="2"/>
+                    <g id="marks2"></g>
+                    <g id="numbers2"></g>
+                    <line id="hour2" x1="150" y1="150" x2="150" y2="80" stroke="blue" stroke-width="4" stroke-linecap="round"/>
+                    <line id="min2" x1="150" y1="150" x2="150" y2="60" stroke="red" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="150" cy="150" r="5" fill="black"/>
+                </svg>
+                <div class="digital" id="time2">00:00</div>
+                <div class="controls" id="buttons2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentHours = 0;
+        let currentMinutes = 0;
+        let learningHours = 3;
+        let learningMinutes = 0;
+
+        function drawClock(id) {
+            // 目盛りを描画
+            const marks = document.getElementById('marks' + id);
+            for (let i = 0; i < 60; i++) {
+                const angle = i * 6;
+                const isHour = i % 5 === 0;
+                const r1 = 145;
+                const r2 = isHour ? 135 : 140;
+                
+                const x1 = 150 + r1 * Math.cos((angle - 90) * Math.PI / 180);
+                const y1 = 150 + r1 * Math.sin((angle - 90) * Math.PI / 180);
+                const x2 = 150 + r2 * Math.cos((angle - 90) * Math.PI / 180);
+                const y2 = 150 + r2 * Math.sin((angle - 90) * Math.PI / 180);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', 'black');
+                line.setAttribute('stroke-width', isHour ? 2 : 1);
+                marks.appendChild(line);
+            }
+
+            // 数字を描画
+            const numbers = document.getElementById('numbers' + id);
+            for (let i = 0; i < 12; i++) {
+                const angle = i * 30;
+                const r = 120;
+                const x = 150 + r * Math.cos((angle - 90) * Math.PI / 180);
+                const y = 150 + r * Math.sin((angle - 90) * Math.PI / 180);
+                const number = i === 0 ? 12 : i;
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.textContent = number;
+                text.setAttribute('x', x);
+                text.setAttribute('y', y);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.setAttribute('font-size', '20');
+                numbers.appendChild(text);
+            }
+        }
+
+        function createButtons(id) {
+            const container = document.getElementById('buttons' + id);
+            container.innerHTML = '';
+            const isCurrentTime = id === '1';
+            const hours = isCurrentTime ? currentHours : learningHours;
+            const minutes = isCurrentTime ? currentMinutes : learningMinutes;
+
+            // 時間ボタン
+            const hourDiv = document.createElement('div');
+            hourDiv.className = 'control-row';
+            hourDiv.innerHTML = '<div class="control-label">時</div>';
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'hour-btn' + (hours === i ? ' active' : '');
+                btn.textContent = i;
+                if (!isCurrentTime) {
+                    btn.onclick = () => setHour(i);
+                }
+                hourDiv.appendChild(btn);
+            }
+            container.appendChild(hourDiv);
+
+            // 分（10の位）ボタン
+            const min10Div = document.createElement('div');
+            min10Div.className = 'control-row';
+            min10Div.innerHTML = '<div class="control-label">分（10の位）</div>';
+            for (let i = 0; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'min-btn' + (Math.floor(minutes / 10) === i ? ' active' : '');
+                btn.textContent = i + '0';
+                if (!isCurrentTime) {
+                    btn.onclick = () => setMin10(i);
+                }
+                min10Div.appendChild(btn);
+            }
+            container.appendChild(min10Div);
+
+            // 分（1の位）ボタン
+            const min1Div = document.createElement('div');
+            min1Div.className = 'control-row';
+            min1Div.innerHTML = '<div class="control-label">分（1の位）</div>';
+            for (let i = 0; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'min-btn' + (minutes % 10 === i ? ' active' : '');
+                btn.textContent = i;
+                if (!isCurrentTime) {
+                    btn.onclick = () => setMin1(i);
+                }
+                min1Div.appendChild(btn);
+            }
+            container.appendChild(min1Div);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            currentHours = now.getHours() % 12 || 12;
+            currentMinutes = now.getMinutes();
+
+            updateClock('1', currentHours, currentMinutes);
+            updateClock('2', learningHours, learningMinutes);
+            
+            createButtons('1');
+            createButtons('2');
+        }
+
+        function updateClock(id, hours, minutes) {
+            const hourAngle = (hours % 12) * 30 + minutes * 0.5;
+            const minuteAngle = minutes * 6;
+
+            const hourHand = document.getElementById('hour' + id);
+            const minuteHand = document.getElementById('min' + id);
+            
+            hourHand.setAttribute('transform', `rotate(${hourAngle},150,150)`);
+            minuteHand.setAttribute('transform', `rotate(${minuteAngle},150,150)`);
+
+            document.getElementById('time' + id).textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        }
+
+        function setHour(value) {
+            learningHours = value;
+            updateTime();
+        }
+
+        function setMin10(value) {
+            learningMinutes = value * 10 + (learningMinutes % 10);
+            updateTime();
+        }
+
+        function setMin1(value) {
+            learningMinutes = Math.floor(learningMinutes / 10) * 10 + value;
+            updateTime();
+        }
+
+        window.onload = function() {
+            drawClock('1');
+            drawClock('2');
+            updateTime();
+            setInterval(updateTime, 1000);
+        };
+    </script>
+</body>
+</html>
