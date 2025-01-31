@@ -12,6 +12,7 @@
  6. [わり算の余りゲーム](https://t2k2pp.github.io/AIXA/games/division-remainder-game-with-easy.html)
  7. [算数ゲーム](https://t2k2pp.github.io/AIXA/games/math-game.html)
  8. [ドット絵エディタ](https://t2k2pp.github.io/AIXA/games/dot-paint.html)
+ 9. [神経衰弱](https://t2k2pp.github.io/AIXA/games/memory-game.html)
 
 **[失敗パターン]**
  1. [アングリーバードもどき](https://t2k2pp.github.io/AIXA/games/angry-birds-clone.html)
