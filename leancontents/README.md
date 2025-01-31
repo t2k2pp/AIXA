@@ -1,3 +1,6 @@
+## 子供向け
+1. [アナログ時計を学ぼう！](https://t2k2pp.github.io/AIXA/leancontents/student/clock-learning.html)
+
 
 ## TCP/IP
 ### OSI参照モデルとTCP/IPモデル
