@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+
+        body {
+            font-family: 'Arial', 'ヒラギノ角ゴ Pro W3', sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url('background.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: #333;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.80);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #e67e22;
+            margin-top: 30px;
+        }
+
+        /* ゲームボード全体 */
+        .game-board {
+            width: 100%;
+            height: 650px;
+            background-color: #e8f6f3;
+            position: relative;
+            border: 8px solid #2ecc71;
+            border-radius: 20px;
+            margin: 30px 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* プレイヤーエリア */
+        .player-area {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: rgba(255,255,255,0.5);
+            border: 4px dashed #3498db;
+            border-radius: 15px;
+            box-sizing: border-box;
+        }
+        .player-area.top {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            transform: rotate(180deg);
+        }
+        .player-area.bottom {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+        }
+
+        /* カード置き場 */
+        .card-zone {
+            width: 140px;
+            height: 140px;
+            border: 4px dashed #666;
+            border-radius: 15px;
+            padding: 10px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .zone-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .lose-zone .zone-label { background: #e74c3c; }
+        .win-zone .zone-label { background: #2ecc71; }
+
+        /* カード */
+        .card {
+            width: 60px;
+            height: 90px;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card.back {
+            background: #ddd;
+        }
+
+        /* 対戦エリア */
+        .battle-area {
+            width: 300px;
+            height: 140px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 20px 0;
+            border: 5px solid #e74c3c;
+            border-radius: 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(231,76,60,0.3);
+        }
+        .battle-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+
+        /* 手札エリア */
+        .hand-area {
+            position: absolute;
+            bottom: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff3cd;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 補助表示 */
+        .card-direction {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 36px;
+            color: #666;
+            font-weight: bold;
+        }
+        .left-arrow { left: 180px; }
+        .right-arrow { right: 180px; }
+
+        /* カード説明 */
+        .card-instruction {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .important {
+            color: #e74c3c;
+        }
+
+        .setup-steps {
+            background-color: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .setup-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            background-color: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .important-rule {
+            background-color: #ffe5e5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .note {
+            background-color: #e8f4f8;
+            color: #666d;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-style: italic;
+            font-size: 0.9em;
+        } 
+        .game-intro {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: "Arial", sans-serif;
+        }
+
+        .main-title {
+            color: #333;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .question {
+            color: #e74c3c;
+            font-size: 1.8em;
+            text-align: center;
+        }
+
+        .highlight {
+            font-size: 1.2em;
+            color: #2c3e50;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .features p {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f9f9f9;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .easy-start h3, .team-select h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        
+        .teams {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        /* .call-to-action {
+            text-align: center;
+            margin-top: 40px;
+        } */
+        
+        .call-to-action {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #ff4444 0%, #3498db 100%);
+            color: white;
+            border-radius: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .final-message {
+            font-size: 1.3em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+        .intro {
+            font-size: 1.2em;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #444;
+        }
+        .world-map {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .world {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+        .astral {
+            border-right: 2px dashed #666;
+        }
+        .realm-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .card-type {
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card-symbol {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+        .red { color: #e74c3c; }
+        .black { color: #2c3e50; }
+        .relationship-diagram {
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .arrow {
+            display: inline-block;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+
+        .title-banner {
+            position: relative;
+            width: 100%;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .title-background {
+            width: 100%;
+            max-width: 1000px;
+            height: auto;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .title-banner h1 {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .title-main {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .title-sub {
+            font-size: 0.8em;
+            color: #ffd700;
+        }
+        
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="title-banner">
+        <img src="titleback.png" alt="タイトル背景" class="title-background">
+        <h1>
+            <span class="title-main">ブラック OR レッド (ブラレ)</span>
+            <span class="title-sub">トランプカードバトル</span>
+        </h1>
+    </div>
+
+    <div class="intro">
+        <p>―光と闇の世界が交わるとき、壮絶な戦いが始まる―</p>
+        <p>天使たちの住む天空界と、人間たちの暮らす地上界。</p>
+        <p>平和だったふたつの世界に、突然魔物たちの影が忍び寄る！</p>
+        <p>天使と人間が手を組んで、悪魔と魔物に立ち向かう。</p>
+    </div>
+
+    <div class="world-map">
+        <div class="world astral">
+            <div class="realm-title">天空界</div>
+            <div class="card-type">
+                <div class="card-symbol red">👼 ♥</div>
+                <div>エンジェル</div>
+                <div class="note">天使の戦士たち</div>
+            </div>
+            <div class="card-type">
+                <div class="card-symbol black">👿 ♠</div>
+                <div>デーモン</div>
+                <div class="note">闇をもたらす悪魔</div>
+            </div>
+        </div>
+        <div class="world glamor">
+            <div class="realm-title">地上界</div>
+            <div class="card-type">
+                <div class="card-symbol red">🧙‍♂️ ♦</div>
+                <div>ヒューマン</div>
+                <div class="note">知恵と勇気の戦士</div>
+            </div>
+            <div class="card-type">
+                <div class="card-symbol black">👾 ♣</div>
+                <div>モンスター</div>
+                <div class="note">恐るべき魔物たち</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relationship-diagram">
+        <h3 style="text-align: center">二つの世界の相関関係</h3>
+        <div style="text-align: center; margin: 20px 0;">
+            <div style="margin: 15px 0;">
+                エンジェル(♥) <span class="arrow">→</span> デビル(♠) 「神聖なる力で浄化」
+                <br>
+                エンジェル(♥) <span class="arrow">←</span> モンスター(♣) 「物理干渉の制限」
+            </div>
+            <div style="margin: 15px 0;">
+                ヒューマン(♦) <span class="arrow">→</span> モンスター(♣) 「知恵と武器で対抗」
+                <br>
+                ヒューマン(♦) <span class="arrow">←</span> デビル(♠) 「精神への干渉」
+            </div>
+        </div>
+    </div>
+
+    <div class="call-to-action">
+        さぁ、キミはどちらのチームで戦う？<br>
+        天使と人間の赤チーム？ それとも悪魔と魔物の黒チーム？<br>
+        伝説の戦いが、今はじまる！
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; color: #666;">
+        ※ それぞれの種族には英雄（J,Q,K）がいます。両世界を自由に行き来できる特別な存在として扱われます。
+    </div>
+
+    <h2>1. ゲームの始め方</h2>
+    <div class="setup-steps">
+        <div class="setup-step">
+            <div class="step-number">1</div>
+            <div>
+                <h3>カードを分ける</h3>
+                <p>・ジョーカーと任意の1枚を除く（50枚使用）</p>
+                <p>・赤チーム（♥️ハート・♦️ダイヤ）と黒チーム（♠️スペード・♣️クラブ）に分ける</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="step-number">2</div>
+            <div>
+                <h3>最初の1枚を抜く（重要！）</h3>
+                <p>・お互いの山札から1枚ずつ抜き取る</p>
+                <p>・抜いたカードは<span style="color: #e74c3c;">相手の負けカード置き場に裏向きで置く</span></p>
+                <p>・これで各プレイヤー25枚になります</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="step-number">3</div>
+            <div>
+                <h3>手札を作る</h3>
+                <p>・自分の山札から7枚を引いて手札とする</p>
+                <p>・残りは補充用の山札として使う</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>2. カードの置き方（とても重要！）</h2>
+    <div class="important-rule">
+        <h3>⚠️ 必ず守ってほしいルール</h3>
+        <ul>
+            <li>負けカードは必ず<span style="color: #e74c3c;">裏向き</span>で置く</li>
+            <li>負けたカードは<span style="color: #e74c3c;">相手の負けカード置き場</span>に置く</li>
+            <li>勝ったカードは自分の勝ちカード置き場に表向きで置く</li>
+        </ul>
+    </div>
+
+    <h2>3. カードの配置図</h2>
+    <div class="game-board">
+        <!-- 上の人のエリア -->
+        <div class="player-area top">
+            <div class="card-zone lose-zone">
+                <span class="zone-label">負けカード置き場</span>
+                <div class="card back">🂠</div>
+                <div class="card-instruction">
+                    <span class="important">⚠️必ず裏向き！</span>
+                </div>
+                <span class="card-direction left-arrow">←</span>
+            </div>
+            <div class="card-zone">
+                <span class="zone-label">補充カード</span>
+                <div class="card">🂠</div>
+                <div class="card-instruction">
+                    カードを引く場所
+                </div>
+            </div>
+            <div class="card-zone win-zone">
+                <span class="zone-label">勝ちカード置き場</span>
+                <div class="card">👑</div>
+                <div class="card-instruction">
+                    表向きで置く
+                </div>
+                <span class="card-direction right-arrow">→</span>
+            </div>
+            <div class="hand-area">
+                手札は手で持とう！
+            </div>
+        </div>
+
+        <!-- 真ん中の対戦エリア -->
+        <div class="battle-area">
+            <span class="battle-label">ここで勝負！</span>
+            ここに裏向きで<br>カードを置いてね
+        </div>
+
+        <!-- 下の人のエリア -->
+        <div class="player-area bottom">
+            <div class="card-zone lose-zone">
+                <span class="zone-label">負けカード置き場</span>
+                <div class="card back">🂠</div>
+                <div class="card-instruction">
+                    <span class="important">⚠️必ず裏向き！</span>
+                </div>
+                <span class="card-direction left-arrow">←</span>
+            </div>
+            <div class="card-zone">
+                <span class="zone-label">補充カード</span>
+                <div class="card">🂠</div>
+                <div class="card-instruction">
+                    カードを引く場所
+                </div>
+            </div>
+            <div class="card-zone win-zone">
+                <span class="zone-label">勝ちカード置き場</span>
+                <div class="card">👑</div>
+                <div class="card-instruction">
+                    表向きで置く
+                </div>
+                <span class="card-direction right-arrow">→</span>
+            </div>
+            <div class="hand-area">
+                手札は手で持とう！
+            </div>
+        </div>
+    </div>
+
+    <h2>4. カードの強さ</h2>
+    <div class="note">
+        <h3>数字カード（A-10）の場合</h3>
+        <p>♦️ダイヤは：</p>
+        <ul>
+            <li>♠️スペードに<span style="color: #e74c3c;">弱い</span></li>
+            <li>♣️クラブに<span style="color: #e74c3c;">強い</span></li>
+        </ul>
+        <p>♥️ハートは：</p>
+        <ul>
+            <li>♠️スペードに<span style="color: #e74c3c;">強い</span></li>
+            <li>♣️クラブに<span style="color: #e74c3c;">弱い</span></li>
+        </ul>
+
+        <h3>絵札（J,Q,K）の場合</h3>
+        <ul>
+            <li>絵札は「人族」として扱う</li>
+            <li>強さの順：K > Q > J</li>
+            <li>絵札は他の種族と戦うとき、補正なし</li>
+        </ul>
+
+        <h3>特別ルール</h3>
+        <ul>
+            <li>Aは最強（でも2には負ける）</li>
+            <li>同じ数字のときだけ種族関係をみる</li>
+        </ul>
+    </div>
+
+    <h2>5. ゲームの進め方</h2>
+    <div class="setup-steps">
+        <div class="setup-step">
+            <div class="step-number">1</div>
+            <div>
+                <h3>カードを出す</h3>
+                <p>・手札から1枚選ぶ</p>
+                <p>・中央に裏向きで置く</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="step-number">2</div>
+            <div>
+                <h3>同時にめくる</h3>
+                <p>・「せーの」で同時にカードをめくる</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="step-number">3</div>
+            <div>
+                <h3>勝負の結果</h3>
+                <p>・勝ったカード → 自分の勝ちカード置き場（表向き）</p>
+                <p>・負けたカード → 相手の負けカード置き場（裏向き）</p>
+            </div>
+        </div>
+        <div class="setup-step">
+            <div class="step-number">4</div>
+            <div>
+                <h3>手札を補充</h3>
+                <p>・自分の山札から引いて7枚にする</p>
+                <p>・山札がなくなったら、手札が減っていく</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>6. 勝利条件</h2>
+    <div class="note">
+        <p>全てのカードがなくなったとき、勝ちカード置き場のカードが多い方の勝ち！</p>
+    </div>
+
+    <div class="important-rule">
+        <h3>🌟 ゲームを楽しく遊ぶためのポイント</h3>
+        <ul>
+            <li>カードは必ず決められた場所に置こう</li>
+            <li>負けカードは必ず裏向きにしよう</li>
+            <li>カードはていねいに扱おう</li>
+            <li>勝っても負けても楽しく遊ぼう！</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
