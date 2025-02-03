@@ -329,26 +329,44 @@
 
         // アプリケーションの初期化
         document.addEventListener('DOMContentLoaded', () => {
+            // DOMの読み込み完了を待ってから初期化
+            const shopList = document.getElementById('shop-list');
+            if (!shopList) {
+                console.error('要素が見つかりません: #shop-list');
+                return;
+            }
+
             // 初期化関数の実行
             init().catch(error => {
                 console.error('初期化エラー:', error);
+                document.getElementById('shop-list').innerHTML = `
+                    <p class="error">エラーが発生しました: ${error.message}</p>
+                `;
             });
         });
 
         async function init() {
-            // 地図の初期化
-            initMap();
+            try {
+                // 地図の初期化
+                await initMap();
 
-            // スタイルの追加
+                // スタイルの追加
+                addStyles();
+
+                // データの読み込みと表示
+                await loadAndDisplayShops();
+            } catch (error) {
+                throw new Error(`初期化に失敗しました: ${error.message}`);
+            }
+        }
+
+        function addStyles() {
             const style = document.createElement('style');
             style.textContent = `
                 .loading { color: #666; text-align: center; padding: 1rem; }
                 .error { color: #e74c3c; text-align: center; padding: 1rem; }
             `;
             document.head.appendChild(style);
-
-            // 店舗データの読み込みと表示
-            await loadAndDisplayShops();
         }
 
         async function loadAndDisplayShops() {
