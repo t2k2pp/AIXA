@@ -330,16 +330,16 @@
         // アプリケーションの初期化
         document.addEventListener('DOMContentLoaded', () => {
             // DOMの読み込み完了を待ってから初期化
-            const shopList = document.getElementById('shop-list');
+            const shopList = document.getElementById('restaurantList');
             if (!shopList) {
-                console.error('要素が見つかりません: #shop-list');
+                console.error('要素が見つかりません: #restaurantList');
                 return;
             }
 
             // 初期化関数の実行
             init().catch(error => {
                 console.error('初期化エラー:', error);
-                document.getElementById('shop-list').innerHTML = `
+                document.getElementById('restaurantList').innerHTML = `
                     <p class="error">エラーが発生しました: ${error.message}</p>
                 `;
             });
