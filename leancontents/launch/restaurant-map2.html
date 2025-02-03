@@ -329,118 +329,80 @@
 
         // アプリケーションの初期化
         async function init() {
+            // 地図の初期化
             initMap();
 
-            try {
-                generateShopList();
-                // const response = await fetch('restaurants.csv');
-                // const csvText = await response.text();
-                // const results = Papa.parse(csvText, {
-                //     header: true,
-                //     dynamicTyping: true,
-                //     skipEmptyLines: true
-                // });
-                // restaurants = results.data;
-            } catch (error) {
-                console.warn('Using dummy data');
-                restaurants = dummyData;
-            }
+            // スタイルの追加
+            const style = document.createElement('style');
+            style.textContent = `
+                .loading {
+                    color: #666;
+                    text-align: center;
+                    padding: 1rem;
+                }
+                .error {
+                    color: #e74c3c;
+                    text-align: center;
+                    padding: 1rem;
+                }
+            `;
+            document.head.appendChild(style);
 
+            // 店舗データの読み込みと表示
+            await loadAndDisplayShops();
+        }
+
+        async function loadAndDisplayShops() {
+            const listElement = document.getElementById('shop-list');
+            listElement.innerHTML = '<p class="loading">データを読み込み中...</p>';
+
+            try {
+                const response = await fetch('restaurants.csv');
+                if (!response.ok) {
+                    throw new Error('CSVファイルの読み込みに失敗しました');
+                }
+
+                const csvText = await response.text();
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        if (results.data && results.data.length > 0) {
+                            restaurants = results.data
+                                .filter(shop => shop.name)
+                                .map((shop, index) => ({
+                                    id: index + 1,
+                                    ...shop
+                                }));
+                            console.log('CSVデータを読み込みました:', restaurants.length + '件');
+                        } else {
+                            throw new Error('CSVデータが空です');
+                        }
+                        updateDisplay();
+                    },
+                    error: function(error) {
+                        console.error('CSVパースエラー:', error);
+                        useDummyData();
+                    }
+                });
+            } catch (error) {
+                console.warn('CSVファイル読み込みエラー:', error);
+                useDummyData();
+            }
+        }
+
+        function useDummyData() {
+            console.log('ダミーデータを使用します');
+            restaurants = dummyData;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
             displayRestaurantList(restaurants);
             displayMarkers(restaurants);
         }
 
         init();
-
-      // 店舗リスト生成
-      function generateShopList() {
-        const listElement = document.getElementById('shop-list');
-        listElement.innerHTML = '<p class="loading">データを読み込み中...</p>';
-
-        fetch('shops.csv')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('CSVファイルの読み込みに失敗しました');
-            }
-            return response.text();
-          })
-          .then(csvText => {
-            console.log('CSVデータ取得成功:', csvText.slice(0, 100) + '...');
-            
-            Papa.parse(csvText, {
-              header: true,
-              dynamicTyping: true,
-              complete: function(results) {
-                console.log('パース結果:', results);
-                
-                if (results.data && results.data.length > 0) {
-                  shops = results.data
-                    .filter(shop => shop.name)
-                    .map((shop, index) => ({
-                      id: index + 1,
-                      ...shop
-                    }));
-                  
-                  updateShopList(shops);
-                } else {
-                  listElement.innerHTML = '<p class="error">データが見つかりませんでした</p>';
-                }
-              },
-              error: function(error) {
-                console.error('CSVパースエラー:', error);
-                listElement.innerHTML = '<p class="error">データの解析に失敗しました</p>';
-              }
-            });
-          })
-          .catch(error => {
-            console.error('エラー発生:', error);
-            listElement.innerHTML = `<p class="error">${error.message}</p>`;
-          });
-      }
-
-      // スタイル追加
-      const style = document.createElement('style');
-      style.textContent = `
-        .loading {
-          color: #666;
-          text-align: center;
-          padding: 1rem;
-        }
-        .error {
-          color: #e74c3c;
-          text-align: center;
-          padding: 1rem;
-        }
-      `;
-      document.head.appendChild(style);
-
-      // CSVデータ読み込み
-      const xhr = new XMLHttpRequest();
-      generateShopList();
-      
-      xhr.open('GET', 'restaurants.csv', true);
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          Papa.parse(xhr.responseText, {
-            header: true,
-            dynamicTyping: true,
-            complete: function(results) {
-              if (results.data && results.data.length > 0) {
-                shops = results.data
-                  .filter(shop => shop.name)
-                  .map((shop, index) => ({
-                    id: index + 1,
-                    ...shop
-                  }));
-                generateShopList();
-              }
-            }
-          });
-        }
-      };
-      xhr.send(null);
-
-        
     </script>
 </body>
 </html>
