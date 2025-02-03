@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ランチマップ</title>
+    
+    <!-- 外部リソース -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+
+    <style>
+      #map {
+        height: 100%;
+        min-height: 500px;
+      }
+      
+      .shop-card {
+        transition: all .2s;
+      }
+      
+      .shop-card:hover {
+        transform: translateY(-1px);
+      }
+      
+      .copyright {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        background: rgba(255, 255, 255, .9);
+        padding: 4px 8px;
+        font-size: 12px;
+        border-top-left-radius: 4px;
+      }
+      
+      @media (max-width: 768px) {
+        .layout-container {
+          grid-template-columns: 1fr !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="bg-gradient-to-br from-orange-50 to-red-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-4xl font-bold mb-8 text-orange-600 text-center">
+        🍽️ ランチマップ
+      </h1>
+
+      <div class="layout-container grid gap-4" 
+           style="grid-template-columns: 300px minmax(300px,1fr) minmax(400px,1fr)">
+        <!-- 店舗一覧 -->
+        <div class="bg-white p-4 rounded-2xl shadow-lg flex flex-col h-[calc(100vh-8rem)]">
+          <h2 class="text-xl font-semibold mb-4 text-orange-600">店舗一覧</h2>
+          <div class="overflow-y-auto flex-grow">
+            <ul id="shop-list" class="space-y-2"></ul>
+          </div>
+        </div>
+
+        <!-- 店舗情報 -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg">
+          <h2 class="text-xl font-semibold mb-4 text-orange-600">店舗情報</h2>
+          <div id="shop-detail">
+            <p class="text-gray-500">左の一覧から店舗を選択してください</p>
+          </div>
+        </div>
+
+        <!-- 地図 -->
+        <div class="bg-white p-4 rounded-2xl shadow-lg">
+          <div id="map" class="rounded-xl"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright">
+      Map data © 
+      <a href="https://www.openstreetmap.org/copyright" 
+         target="_blank" 
+         class="text-blue-600 hover:underline">
+        OpenStreetMap
+      </a> 
+      contributors
+    </div>
+
+    <script>
+      // カテゴリーアイコン
+      const categoryIcons = {
+        'うどん': '🍜',
+        'ラーメン': '🍜',
+        '中華料理': '🥢',
+        '寿司': '🍣',
+        'イタリアン': '🍝'
+      };
+
+      // 初期データ
+      const initialShops = [{
+        id: 1,
+        name: 'うどん 丸香',
+        category: 'うどん',
+        description: 'コシの強い手打ちうどんが魅力。かけうどんがおすすめ。',
+        address: '東京都新宿区西新宿1-1-1',
+        parking: false,
+        businessHours: '11:00-15:00',
+        businessDays: '月〜土',
+        tel: '03-1234-5678',
+        website: 'https://example.com/marukou',
+        lat: 35.6895,
+        lng: 139.7004,
+        price: '800円〜1,200円'
+      }];
+
+      let shops = [...initialShops];
+      const map = L.map('map').setView([35.6895, 139.7004], 13);
+      const markers = {};
+
+      // 地図レイヤーの設定
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // 店舗詳細表示
+      function showShopDetail(shop) {
+        const detailElement = document.getElementById('shop-detail');
+        const icon = categoryIcons[shop.category] || '🍴';
+        
+        detailElement.innerHTML = `
+          <h3 class="text-2xl font-bold mb-4 text-orange-600">${shop.name}</h3>
+          <!-- ...詳細情報のHTML... -->
+        `;
+        
+        map.setView([shop.lat, shop.lng], 15);
+        markers[shop.id].openPopup();
+      }
+
+      // 店舗リスト生成
+      function generateShopList() {
+        const listElement = document.getElementById('shop-list');
+        listElement.innerHTML = '';
+        
+        shops
+          .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+          .forEach(shop => {
+            const listItem = document.createElement('li');
+            listItem.className = [
+              'shop-card',
+              'cursor-pointer',
+              'bg-white',
+              'hover:bg-orange-50',
+              'p-2',
+              'rounded-lg',
+              'shadow-sm',
+              'border',
+              'border-orange-100',
+              'flex',
+              'items-center',
+              'space-x-2',
+              'transition-colors'
+            ].join(' ');
+
+            const icon = categoryIcons[shop.category] || '🍴';
+            listItem.innerHTML = `
+              <span class="text-xl" role="img" aria-label="${shop.category}">
+                ${icon}
+              </span>
+              <span class="font-medium truncate">${shop.name}</span>
+            `;
+            
+            listItem.onclick = () => showShopDetail(shop);
+            shopList.appendChild(listItem);
+            
+            markers[shop.id] = L.marker([shop.lat, shop.lng])
+              .bindPopup(shop.name)
+              .addTo(map);
+          });
+      }
+
+      // CSVデータ読み込み
+      const xhr = new XMLHttpRequest();
+      generateShopList();
+      
+      xhr.open('GET', 'shops.csv', true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          Papa.parse(xhr.responseText, {
+            header: true,
+            dynamicTyping: true,
+            complete: function(results) {
+              if (results.data && results.data.length > 0) {
+                shops = results.data
+                  .filter(shop => shop.name)
+                  .map((shop, index) => ({
+                    id: index + 1,
+                    ...shop
+                  }));
+                generateShopList();
+              }
+            }
+          });
+        }
+      };
+      xhr.send(null);
+    </script>
+  </body>
+</html>
