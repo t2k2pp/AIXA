@@ -328,6 +328,13 @@
         }
 
         // アプリケーションの初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初期化関数の実行
+            init().catch(error => {
+                console.error('初期化エラー:', error);
+            });
+        });
+
         async function init() {
             // 地図の初期化
             initMap();
@@ -335,16 +342,8 @@
             // スタイルの追加
             const style = document.createElement('style');
             style.textContent = `
-                .loading {
-                    color: #666;
-                    text-align: center;
-                    padding: 1rem;
-                }
-                .error {
-                    color: #e74c3c;
-                    text-align: center;
-                    padding: 1rem;
-                }
+                .loading { color: #666; text-align: center; padding: 1rem; }
+                .error { color: #e74c3c; text-align: center; padding: 1rem; }
             `;
             document.head.appendChild(style);
 
@@ -354,6 +353,11 @@
 
         async function loadAndDisplayShops() {
             const listElement = document.getElementById('shop-list');
+            if (!listElement) {
+                console.error('店舗リスト要素が見つかりません');
+                return;
+            }
+
             listElement.innerHTML = '<p class="loading">データを読み込み中...</p>';
 
             try {
@@ -401,8 +405,6 @@
             displayRestaurantList(restaurants);
             displayMarkers(restaurants);
         }
-
-        init();
     </script>
 </body>
 </html>
