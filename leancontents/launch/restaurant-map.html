@@ -360,7 +360,7 @@
                     <div class="detail-content">
                         <div><span class="detail-label">営業時間:</span>${restaurant.businessHours}</div>
                         <div><span class="detail-label">営業日:</span>${restaurant.businessDays}</div>
-                        <div><span class="detail-label">価格帯:</span>${restaurant.price}円</div>
+                        <div><span class="detail-label">価格帯:</span>${restaurant.price}</div>
                     </div>
                 </div>
 
@@ -404,6 +404,17 @@
                 
                 // データ読み込みと表示（非同期）
                 await loadAndDisplayShops();
+                
+                // 最初の店舗を自動選択
+                if (restaurants && restaurants.length > 0) {
+                    showRestaurantDetail(0);
+                    
+                    // リストの最初の項目をハイライト
+                    const firstItem = document.querySelector('#shop-list li');
+                    if (firstItem) {
+                        firstItem.classList.add('selected');
+                    }
+                }
             } catch (error) {
                 throw new Error(`初期化に失敗しました: ${error.message}`);
             }
