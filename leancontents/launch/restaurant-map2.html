@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ランチマップ</title>
+    <title>レストランマップ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
@@ -176,6 +176,12 @@
     </div>
 
     <script>
+        // Papa Parse が定義されているか確認
+        if (typeof Papa === 'undefined') {
+            console.error('Papa Parse ライブラリが読み込まれていません');
+            throw new Error('必要なライブラリが見つかりません');
+        }
+
         // カテゴリと絵文字のマッピング
         const categoryEmoji = {
             'うどん/そば': '🍜',
