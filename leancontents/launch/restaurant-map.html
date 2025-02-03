@@ -5,8 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ランチマップ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+    <!-- 依存ライブラリの読み込み -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/KFQW0q+MJQe1wmVw="
+          crossorigin="" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- アプリケーションの初期化 -->
+    <script>
+        function checkDependencies() {
+            if (typeof L === 'undefined') {
+                throw new Error('Leafletライブラリが読み込まれていません');
+            }
+            if (typeof Papa === 'undefined') {
+                throw new Error('Papa Parseライブラリが読み込まれていません');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                checkDependencies();
+                init();
+            } catch (error) {
+                console.error('初期化エラー:', error.message);
+                const listElement = document.getElementById('shop-list');
+                if (listElement) {
+                    listElement.innerHTML = `<p class="error">${error.message}</p>`;
+                }
+            }
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -328,28 +359,103 @@
         }
 
         // アプリケーションの初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOMの読み込み完了を待ってから初期化
+            const shopList = document.getElementById('restaurantList');
+            if (!shopList) {
+                console.error('要素が見つかりません: #restaurantList');
+                return;
+            }
+
+            // 初期化関数の実行
+            init().catch(error => {
+                console.error('初期化エラー:', error);
+                document.getElementById('restaurantList').innerHTML = `
+                    <p class="error">エラーが発生しました: ${error.message}</p>
+                `;
+            });
+        });
+
+
+        // アプリケーションの初期化
         async function init() {
-            initMap();
+            try {
+                // 同期的に地図を初期化
+                initMap();
+                
+                // スタイル追加
+                addStyles();
+                
+                // データ読み込みと表示（非同期）
+                await loadAndDisplayShops();
+            } catch (error) {
+                throw new Error(`初期化に失敗しました: ${error.message}`);
+            }
+        }
+
+        function addStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .loading { color: #666; text-align: center; padding: 1rem; }
+                .error { color: #e74c3c; text-align: center; padding: 1rem; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        async function loadAndDisplayShops() {
+            const listElement = document.getElementById('restaurantList');
+            if (!listElement) {
+                console.error('店舗リスト要素が見つかりません');
+                return;
+            }
+
+            listElement.innerHTML = '<p class="loading">データを読み込み中...</p>';
 
             try {
                 const response = await fetch('restaurants.csv');
+                if (!response.ok) {
+                    throw new Error('CSVファイルの読み込みに失敗しました');
+                }
+
                 const csvText = await response.text();
-                const results = Papa.parse(csvText, {
+                Papa.parse(csvText, {
                     header: true,
                     dynamicTyping: true,
-                    skipEmptyLines: true
+                    complete: function(results) {
+                        if (results.data && results.data.length > 0) {
+                            restaurants = results.data
+                                .filter(shop => shop.name)
+                                .map((shop, index) => ({
+                                    id: index + 1,
+                                    ...shop
+                                }));
+                            console.log('CSVデータを読み込みました:', restaurants.length + '件');
+                        } else {
+                            throw new Error('CSVデータが空です');
+                        }
+                        updateDisplay();
+                    },
+                    error: function(error) {
+                        console.error('CSVパースエラー:', error);
+                        useDummyData();
+                    }
                 });
-                restaurants = results.data;
             } catch (error) {
-                console.warn('Using dummy data');
-                restaurants = dummyData;
+                console.warn('CSVファイル読み込みエラー:', error);
+                useDummyData();
             }
+        }
 
+        function useDummyData() {
+            console.log('ダミーデータを使用します');
+            restaurants = dummyData;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
             displayRestaurantList(restaurants);
             displayMarkers(restaurants);
         }
-
-        init();
     </script>
 </body>
 </html>
