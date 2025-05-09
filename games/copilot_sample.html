@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>拡張 シンプルアクションゲーム</title>
+  <style>
+    /* ページ全体のスタイル（flexboxで中央寄せ） */
+    body {
+      background-color: #222;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    /* ゲームキャンバスを囲むコンテナ */
+    #gameContainer {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      border: 2px solid #fff;
+      background-color: #333;
+    }
+    canvas {
+      background-color: #333;
+      display: block;
+    }
+    /* スタート画面、ゲームオーバー画面のオーバーレイ */
+    .overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      z-index: 2;
+      text-align: center;
+    }
+    .button {
+      background-color: #28a745;
+      padding: 10px 20px;
+      font-size: 20px;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      margin: 10px;
+    }
+    .button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <!-- スタート画面 -->
+    <div id="startScreen" class="overlay">
+      <h1>アクションゲーム</h1>
+      <button class="button" id="startButton">Start</button>
+    </div>
+    <!-- ゲームオーバー画面 -->
+    <div id="gameOverScreen" class="overlay" style="display: none;">
+      <h1>Game Over</h1>
+      <p id="finalScore"></p>
+      <button class="button" id="restartButton">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    // Canvasの初期設定
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI要素の取得
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const restartButton = document.getElementById('restartButton');
+    const finalScoreP = document.getElementById('finalScore');
+
+    // ゲーム状態管理（"start"、"playing"、"gameover"）
+    let gameState = "start";
+
+    // プレイヤーや障害物などの変数定義
+    const player = {
+      width: 50,
+      height: 50,
+      x: canvas.width / 2 - 25,
+      y: canvas.height - 60,
+      speed: 6
+    };
+
+    let obstacles = [];
+    let keys = {};
+    let obstacleTimer = 0;
+    let obstacleInterval = 100; // 障害物生成の初期間隔（フレーム数）
+    let score = 0;
+    let level = 1;
+    let gameOver = false;
+
+    // キーボード操作のイベントリスナー
+    document.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+    });
+    document.addEventListener('keyup', (e) => {
+      keys[e.code] = false;
+    });
+
+    /* UI Manager 関連 */
+    function showStartScreen() {
+      startScreen.style.display = "flex";
+      gameOverScreen.style.display = "none";
+    }
+    function hideStartScreen() {
+      startScreen.style.display = "none";
+    }
+    function showGameOverScreen() {
+      gameOverScreen.style.display = "flex";
+      finalScoreP.textContent = "Score: " + Math.floor(score);
+    }
+    function hideGameOverScreen() {
+      gameOverScreen.style.display = "none";
+    }
+
+    /* ゲーム再スタート処理 */
+    function restartGame() {
+      score = 0;
+      level = 1;
+      obstacles = [];
+      obstacleTimer = 0;
+      gameOver = false;
+      player.x = canvas.width / 2 - 25;
+      player.y = canvas.height - 60;
+      keys = {};
+      hideGameOverScreen();
+      gameState = "playing";
+      gameLoop();
+    }
+
+    /* Difficulty Manager: スコア・レベルに応じた難易度調整 */
+    function adjustDifficulty() {
+      // 例：スコアが一定に達するごとにレベルアップし、障害物発生間隔を短縮
+      if (score > level * 100) {
+        level++;
+        obstacleInterval = Math.max(50, obstacleInterval - 10);
+      }
+    }
+
+    /* 障害物生成関数 */
+    function spawnObstacle() {
+      const size = Math.random() * 20 + 20;
+      const x = Math.random() * (canvas.width - size);
+      // レベルに応じて少しずつスピードアップ
+      const speed = Math.random() * 2 + 2 + (level - 1) * 0.5;
+      obstacles.push({ x: x, y: -size, width: size, height: size, speed: speed });
+    }
+
+    /* Effects Manager: 衝突時のエフェクト（簡易フラッシュ） */
+    function playCollisionEffect() {
+      canvas.style.filter = "brightness(2)";
+      setTimeout(() => {
+        canvas.style.filter = "brightness(1)";
+      }, 100);
+    }
+
+    /* ゲーム状態更新 */
+    function update() {
+      if (gameOver) return;
+
+      // プレイヤー移動処理（キー入力に基づく）
+      if (keys['ArrowLeft'] && player.x > 0) {
+        player.x -= player.speed;
+      }
+      if (keys['ArrowRight'] && (player.x + player.width) < canvas.width) {
+        player.x += player.speed;
+      }
+      if (keys['ArrowUp'] && player.y > 0) {
+        player.y -= player.speed;
+      }
+      if (keys['ArrowDown'] && (player.y + player.height) < canvas.height) {
+        player.y += player.speed;
+      }
+
+      // 障害物生成タイマー更新
+      obstacleTimer++;
+      if (obstacleTimer > obstacleInterval) {
+        spawnObstacle();
+        obstacleTimer = 0;
+      }
+
+      // 既存障害物の移動処理
+      obstacles.forEach(obstacle => {
+        obstacle.y += obstacle.speed;
+      });
+
+      // キャンバス外に出た障害物の削除とスコア加算
+      obstacles = obstacles.filter(obstacle => {
+        if (obstacle.y < canvas.height) {
+          return true;
+        } else {
+          score += 1;
+          return false;
+        }
+      });
+
+      // 衝突判定
+      for (let obstacle of obstacles) {
+        if (
+          player.x < obstacle.x + obstacle.width &&
+          player.x + player.width > obstacle.x &&
+          player.y < obstacle.y + obstacle.height &&
+          player.y + player.height > obstacle.y
+        ) {
+          playCollisionEffect();
+          gameOver = true;
+        }
+      }
+
+      // 時間経過によるスコア加算
+      score += 0.05;
+
+      adjustDifficulty();
+    }
+
+    /* 描画処理 */
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // プレイヤーの描画（緑の四角形）
+      ctx.fillStyle = '#0f0';
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      
+      // 障害物の描画（赤の四角形）
+      ctx.fillStyle = '#f00';
+      obstacles.forEach(obstacle => {
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      });
+      
+      // スコア・レベル表示
+      ctx.fillStyle = '#fff';
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + Math.floor(score), 10, 25);
+      ctx.fillText('Level: ' + level, 10, 50);
+    }
+
+    /* ゲームループ */
+    function gameLoop() {
+      if (gameOver) {
+        gameState = "gameover";
+        showGameOverScreen();
+        return;
+      }
+      update();
+      draw();
+      if (gameState === "playing") {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    /* ボタンのイベントリスナー */
+    startButton.addEventListener('click', () => {
+      hideStartScreen();
+      gameState = "playing";
+      gameLoop();
+    });
+
+    restartButton.addEventListener('click', () => {
+      restartGame();
+    });
+
+    // 初回はスタート画面を表示
+    showStartScreen();
+  </script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ninja Runner - アクションゲーム</title>
+    <style>
+        /* ゲームのスタイル設定 */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+            font-family: Arial, sans-serif;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            border: 2px solid #000;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+        }
+        
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            bottom: 0;
+            left: 50px;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #333 70%, #222 100%);
+        }
+        
+        #player::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            width: 10px;
+            height: 5px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        
+        .obstacle {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            bottom: 0;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+            border-top: 2px solid #A52A2A;
+        }
+        
+        .star {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background-color: #FFD700;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: starRotate 2s linear infinite;
+        }
+        
+        @keyframes starRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #ground {
+            position: absolute;
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+            bottom: 0;
+        }
+        
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 2px #000;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 48px;
+            text-shadow: 2px 2px 4px #000;
+            display: none;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        #start-button {
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        #start-button:hover {
+            background-color: #45a049;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 820px) {
+            #game-container {
+                width: 95vw;
+                height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ground"></div>
+        <div id="player"></div>
+        <div id="score">スコア: 0</div>
+        <div id="game-over">ゲームオーバー!</div>
+        <div id="start-screen">
+            <h1>Ninja Runner</h1>
+            <p>スペースキーか上矢印キーでジャンプします。障害物を避けて星を集めましょう！</p>
+            <p>モバイルの場合は画面をタップしてジャンプします。</p>
+            <button id="start-button">ゲームスタート</button>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム変数
+        let score = 0;
+        let isJumping = false;
+        let isGameOver = false;
+        let gameSpeed = 5;
+        let jumpCount = 0;
+        let playerBottom = 0;
+        let gravity = 0.9;
+        let obstacles = [];
+        let stars = [];
+        let gameInterval;
+        
+        // DOM要素
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverDisplay = document.getElementById('game-over');
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+        
+        // ゲームのサイズ設定
+        const gameWidth = gameContainer.offsetWidth;
+        const gameHeight = gameContainer.offsetHeight;
+        const playerWidth = player.offsetWidth;
+        const playerHeight = player.offsetHeight;
+        const groundHeight = document.getElementById('ground').offsetHeight;
+        
+        // ジャンプの設定を強化
+        const jumpPower = 15; // ジャンプ力を増加
+        const jumpGravity = 0.7; // 重力を少し弱めて長く滞空できるように
+        
+        // ゲーム初期化
+        function startGame() {
+            startScreen.style.display = 'none';
+            isGameOver = false;
+            score = 0;
+            gameSpeed = 5;
+            obstacles = [];
+            stars = [];
+            scoreDisplay.textContent = 'スコア: 0';
+            gameOverDisplay.style.display = 'none';
+            
+            // 既存の障害物と星を削除
+            document.querySelectorAll('.obstacle, .star').forEach(elem => elem.remove());
+            
+            // プレイヤーの位置をリセット
+            player.style.bottom = groundHeight + 'px';
+            playerBottom = groundHeight;
+            
+            // ゲームループを開始
+            gameInterval = setInterval(updateGame, 20);
+            
+            // 障害物と星の生成を開始
+            setTimeout(createObstacle, getRandomTime(1000, 2000));
+            setTimeout(createStar, getRandomTime(2000, 3000));
+        }
+        
+        // ゲーム状態の更新
+        function updateGame() {
+            if (isGameOver) return;
+            
+            // プレイヤーのジャンプ処理を強化
+            if (isJumping) {
+                // より高くジャンプできるように調整
+                playerBottom += jumpPower - jumpCount;
+                jumpCount += jumpGravity;
+                
+                if (playerBottom <= groundHeight) {
+                    playerBottom = groundHeight;
+                    isJumping = false;
+                    jumpCount = 0;
+                }
+                
+                player.style.bottom = playerBottom + 'px';
+            }
+            
+            // 障害物の移動と衝突チェック
+            obstacles.forEach((obstacle, index) => {
+                const obstacleLeft = parseInt(obstacle.style.left);
+                const newLeft = obstacleLeft - gameSpeed;
+                
+                if (newLeft < -30) {
+                    // 画面外に出た障害物を削除
+                    obstacle.remove();
+                    obstacles.splice(index, 1);
+                } else {
+                    obstacle.style.left = newLeft + 'px';
+                    
+                    // 改良された衝突判定
+                    const obstacleHeight = parseInt(obstacle.dataset.height);
+                    
+                    // X軸の衝突（横方向の重なり）
+                    const isCollisionX = (newLeft < 50 + playerWidth) && (newLeft + 30 > 50);
+                    
+                    // ここが重要: Y軸の衝突判定（縦方向の重なり）
+                    // プレイヤーの下部が障害物の上部より上にあれば、衝突していない
+                    const obstacleTop = groundHeight + obstacleHeight;
+                    const isNotJumpingOver = playerBottom < obstacleTop;
+                    
+                    // 横方向で重なっていて、かつジャンプで越えていない場合に衝突
+                    if (isCollisionX && isNotJumpingOver) {
+                        gameOver();
+                    }
+                }
+            });
+            
+            // 星の移動と収集チェック
+            stars.forEach((star, index) => {
+                const starLeft = parseInt(star.style.left);
+                const starBottom = parseInt(star.style.bottom);
+                const newLeft = starLeft - gameSpeed;
+                
+                if (newLeft < -20) {
+                    // 画面外に出た星を削除
+                    star.remove();
+                    stars.splice(index, 1);
+                } else {
+                    star.style.left = newLeft + 'px';
+                    
+                    // 収集判定
+                    if (
+                        newLeft < 50 + playerWidth && 
+                        newLeft + 20 > 50 && 
+                        Math.abs(starBottom - playerBottom) < playerHeight
+                    ) {
+                        // 星を収集
+                        score += 10;
+                        scoreDisplay.textContent = 'スコア: ' + score;
+                        star.remove();
+                        stars.splice(index, 1);
+                        
+                        // ゲームスピードを少し上げる
+                        gameSpeed += 0.1;
+                    }
+                }
+            });
+        }
+        
+        // 障害物の作成
+        function createObstacle() {
+            if (isGameOver) return;
+            
+            const obstacle = document.createElement('div');
+            obstacle.className = 'obstacle';
+            obstacle.style.left = gameWidth + 'px';
+            
+            // 障害物の高さを設定し、データ属性にも保存
+            const obstacleHeight = getRandomHeight(30, 60);
+            obstacle.style.height = obstacleHeight + 'px';
+            obstacle.dataset.height = obstacleHeight;
+            
+            gameContainer.appendChild(obstacle);
+            obstacles.push(obstacle);
+            
+            setTimeout(createObstacle, getRandomTime(1000, 2000));
+        }
+        
+        // 星の作成
+        function createStar() {
+            if (isGameOver) return;
+            
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = gameWidth + 'px';
+            star.style.bottom = getRandomHeight(50, 200) + 'px';
+            gameContainer.appendChild(star);
+            stars.push(star);
+            
+            setTimeout(createStar, getRandomTime(2000, 3000));
+        }
+        
+        // プレイヤージャンプ関数
+        function jump() {
+            if (!isJumping && !isGameOver) {
+                isJumping = true;
+                jumpCount = 0;
+            }
+        }
+        
+        // ゲームオーバー関数
+        function gameOver() {
+            isGameOver = true;
+            gameOverDisplay.style.display = 'block';
+            clearInterval(gameInterval);
+            
+            // 遅延後にリスタートボタンを表示
+            setTimeout(() => {
+                startScreen.style.display = 'flex';
+                startScreen.querySelector('h1').textContent = 'ゲームオーバー';
+                startButton.textContent = 'もう一度プレイ';
+            }, 1500);
+        }
+        
+        // ヘルパー関数
+        function getRandomTime(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+        
+        function getRandomHeight(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+        
+        // イベントリスナー
+        document.addEventListener('keydown', (event) => {
+            if ((event.code === 'Space' || event.code === 'ArrowUp') && !isJumping) {
+                jump();
+            }
+        });
+        
+        // モバイル用のタッチサポート
+        gameContainer.addEventListener('touchstart', () => {
+            if (!isJumping) {
+                jump();
+            }
+        });
+        
+        // スタートボタン
+        startButton.addEventListener('click', startGame);
+    </script>
+</body>
+</html>

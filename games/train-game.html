@@ -1,0 +1,984 @@
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電車でGo風ゲーム</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            width: 800px;
+            height: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            position: relative;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        #track-view {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .track {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30px;
+            background-color: #555;
+        }
+        
+        .rail {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            height: 5px;
+            background-color: #999;
+        }
+        
+        .rail:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #ccc;
+        }
+        
+        .rail:after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #777;
+        }
+        
+        .sleeper {
+            position: absolute;
+            bottom: 29px;
+            width: 20px;
+            height: 7px;
+            background-color: #8B4513;
+        }
+        
+        #train {
+            position: absolute;
+            bottom: 35px;
+            left: 50px;
+            width: 150px;
+            height: 40px;
+            background-color: #e74c3c;
+            border-radius: 5px 15px 2px 2px;
+            z-index: 10;
+        }
+        
+        #train:before {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 50%;
+            box-shadow: 40px 0 0 #333, 80px 0 0 #333, 120px 0 0 #333;
+        }
+        
+        .station {
+            position: absolute;
+            bottom: 30px;
+            width: 100px;
+            height: 60px;
+            background-color: #3498db;
+            z-index: 5;
+        }
+        
+        .station-platform {
+            position: absolute;
+            bottom: 30px;
+            height: 15px;
+            background-color: #e67e22;
+            z-index: 3;
+        }
+        
+        .station-name {
+            position: absolute;
+            bottom: 100px;
+            width: 100px;
+            text-align: center;
+            color: #fff;
+            background-color: rgba(0,0,0,0.7);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        .stop-marker {
+            position: absolute;
+            bottom: 50px;
+            width: 10px;
+            height: 20px;
+            background-color: #e74c3c;
+            z-index: 6;
+        }
+        
+        #control-panel {
+            width: 100%;
+            height: 300px;
+            background-color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+        
+        #speed-indicator {
+            width: 300px;
+            height: 120px;
+            background-color: #222;
+            margin-bottom: 20px;
+            position: relative;
+            border: 5px solid #444;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        #digital-speed {
+            font-size: 40px;
+            color: #e74c3c;
+            font-family: 'Digital', monospace;
+            background-color: #111;
+            width: 120px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            border: 2px solid #555;
+        }
+        
+        #speed-gauge {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+        }
+        
+        .speed-block {
+            width: 20px;
+            height: 20px;
+            background-color: #333;
+            border: 1px solid #555;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        #brake-lever, #power-lever {
+            width: 40px;
+            height: 200px;
+            background-color: #555;
+            border-radius: 10px;
+            position: relative;
+            margin: 10px auto;
+        }
+        
+        #brake-lever-handle, #power-lever-handle {
+            width: 60px;
+            height: 30px;
+            background-color: #e74c3c;
+            position: absolute;
+            left: -10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #brake-lever-handle {
+            bottom: 10px;
+        }
+        
+        #power-lever-handle {
+            bottom: 10px;
+        }
+        
+        #score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        
+        #next-station {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        
+        #hud {
+            position: absolute;
+            bottom: 320px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            z-index: 20;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+        
+        #game-over h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        #restart-button {
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+        
+        #start-screen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        #start-button {
+            background-color: #2ecc71;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .landscape {
+            position: absolute;
+            bottom: 30px;
+            height: 100px;
+            background-color: #2ecc71;
+            z-index: 1;
+        }
+        
+        .building {
+            position: absolute;
+            bottom: 130px;
+            z-index: 2;
+            max-height: 70px;
+        }
+        
+        .tree {
+            position: absolute;
+            bottom: 130px;
+            width: 30px;
+            height: 60px;
+            background-color: #27ae60;
+            border-radius: 50% 50% 0 0;
+            z-index: 2;
+        }
+        
+        .tree:before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 12px;
+            width: 6px;
+            height: 20px;
+            background-color: #8B4513;
+        }
+        
+        #status-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 24px;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="track-view">
+            <div class="track"></div>
+            <div class="rail"></div>
+            <div id="train"></div>
+            <div id="score-display">スコア: 0</div>
+            <div id="next-station">次の駅: 東京駅</div>
+            <div id="hud">
+                <div id="speed-hud">速度: 0 km/h</div>
+                <div id="distance-hud">距離: 0 m</div>
+            </div>
+            <div id="status-message"></div>
+        </div>
+        <div id="control-panel">
+            <div id="controls">
+                <div class="control-unit">
+                    <h3>ブレーキ</h3>
+                    <div id="brake-lever">
+                        <div id="brake-lever-handle" draggable="true"></div>
+                    </div>
+                </div>
+                <div id="speed-indicator">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                <div class="control-unit">
+                    <h3>パワー</h3>
+                    <div id="power-lever">
+                        <div id="power-lever-handle" draggable="true"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="game-over">
+            <h1>ゲームオーバー</h1>
+            <div id="final-score">最終スコア: 0</div>
+            <button id="restart-button">もう一度プレイ</button>
+        </div>
+        <div id="start-screen">
+            <h1>電車でGo風ゲーム</h1>
+            <p>駅に正確に停車してポイントを獲得しよう！</p>
+            <p>操作方法: ブレーキとパワーレバーを使って速度を調整</p>
+            <p>キーボード操作: ↑↓パワー増減、←→ブレーキ増減</p>
+            
+            <div id="speed-settings">
+                <label for="bg-speed-slider">背景スピード倍率: <span id="bg-speed-value">5.0</span></label>
+                <input type="range" id="bg-speed-slider" min="0.5" max="10.0" step="0.1" value="5.0">
+            </div>
+            
+            <button id="start-button">ゲームスタート</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        let gameStarted = false;
+        let gameOver = false;
+        let trainSpeed = 0; // km/h
+        let maxSpeed = 120; // km/h
+        let distance = 0; // meters
+        let score = 0;
+        let currentStation = 0;
+        let powerLevel = 0; // 0-5
+        let brakeLevel = 0; // 0-5
+        let animationId;
+        let lastTimestamp = 0;
+        let backgroundSpeedMultiplier = 5.0; // 背景移動速度の倍率（デフォルト=5.0）
+        
+        // Station definitions
+        const stations = [
+            { name: "東京駅", distance: 1000, length: 200 },
+            { name: "新橋駅", distance: 3000, length: 180 },
+            { name: "品川駅", distance: 5500, length: 220 },
+            { name: "川崎駅", distance: 9000, length: 190 },
+            { name: "横浜駅", distance: 13000, length: 250 },
+            { name: "終点", distance: 15000, length: 0 }
+        ];
+        
+        // Track elements
+        const sleepers = [];
+        const landscapes = [];
+        const trees = [];
+        const buildings = [];
+        
+        // DOM Elements
+        const train = document.getElementById('train');
+        const trackView = document.getElementById('track-view');
+        const brakeLever = document.getElementById('brake-lever-handle');
+        const powerLever = document.getElementById('power-lever-handle');
+        const speedNeedle = document.getElementById('speed-needle');
+        const speedHud = document.getElementById('speed-hud');
+        const distanceHud = document.getElementById('distance-hud');
+        const scoreDisplay = document.getElementById('score-display');
+        const nextStationDisplay = document.getElementById('next-station');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const statusMessage = document.getElementById('status-message');
+        
+        // Initialize speed indicator with digital display and square blocks
+        function initSpeedIndicator() {
+            const speedIndicator = document.getElementById('speed-indicator');
+            
+            // Create speed gauge with 12 blocks (最初にゲージを作成)
+            const speedGauge = document.createElement('div');
+            speedGauge.id = 'speed-gauge';
+            
+            for (let i = 0; i < 12; i++) {
+                const block = document.createElement('div');
+                block.className = 'speed-block';
+                block.dataset.index = i;
+                speedGauge.appendChild(block);
+            }
+            
+            speedIndicator.appendChild(speedGauge);
+            
+            // Create digital speed display (次にデジタル表示を作成)
+            const digitalSpeed = document.createElement('div');
+            digitalSpeed.id = 'digital-speed';
+            digitalSpeed.textContent = '0';
+            speedIndicator.appendChild(digitalSpeed);
+        }
+        
+        // Initialize track elements
+        function initTrack() {
+            // Create sleepers
+            for (let i = 0; i < 100; i++) {
+                createSleeper(i * 30);
+            }
+            
+            // Create stations
+            stations.forEach((station, index) => {
+                if (index < stations.length - 1) { // Skip the last "terminal" station for display
+                    createStation(station);
+                }
+            });
+            
+            // Create landscape elements
+            for (let i = 0; i < 30; i++) {
+                createLandscape(i * 400);
+                
+                // Add trees and buildings
+                for (let j = 0; j < 3; j++) {
+                    createTree(i * 400 + j * 100 + Math.random() * 100);
+                    
+                    if (Math.random() > 0.5) {
+                        createBuilding(i * 400 + j * 120 + Math.random() * 50);
+                    }
+                }
+            }
+        }
+        
+        // Create a sleeper (tie) for the track
+        function createSleeper(xPos) {
+            const sleeper = document.createElement('div');
+            sleeper.className = 'sleeper';
+            sleeper.style.left = xPos + 'px';
+            trackView.appendChild(sleeper);
+            sleepers.push({ element: sleeper, x: xPos });
+        }
+        
+        // Create a station
+        function createStation(station) {
+            const stationElement = document.createElement('div');
+            stationElement.className = 'station';
+            stationElement.style.left = station.distance + 'px';
+            stationElement.style.width = station.length + 'px';
+            trackView.appendChild(stationElement);
+            
+            const platformElement = document.createElement('div');
+            platformElement.className = 'station-platform';
+            platformElement.style.left = (station.distance - 50) + 'px';
+            platformElement.style.width = (station.length + 100) + 'px';
+            trackView.appendChild(platformElement);
+            
+            const nameElement = document.createElement('div');
+            nameElement.className = 'station-name';
+            nameElement.textContent = station.name;
+            nameElement.style.left = (station.distance + station.length / 2 - 50) + 'px';
+            trackView.appendChild(nameElement);
+            
+            const stopMarker = document.createElement('div');
+            stopMarker.className = 'stop-marker';
+            stopMarker.style.left = (station.distance + station.length / 2) + 'px';
+            trackView.appendChild(stopMarker);
+        }
+        
+        // Create landscape background
+        function createLandscape(xPos) {
+            const landscape = document.createElement('div');
+            landscape.className = 'landscape';
+            landscape.style.left = xPos + 'px';
+            landscape.style.width = '400px';
+            trackView.appendChild(landscape);
+            landscapes.push({ element: landscape, x: xPos });
+        }
+        
+        // Create tree
+        function createTree(xPos) {
+            const tree = document.createElement('div');
+            tree.className = 'tree';
+            tree.style.left = xPos + 'px';
+            trackView.appendChild(tree);
+            trees.push({ element: tree, x: xPos });
+        }
+        
+        // Create building
+        function createBuilding(xPos) {
+            const building = document.createElement('div');
+            building.className = 'building';
+            building.style.left = xPos + 'px';
+            
+            const height = 50 + Math.random() * 100;
+            const width = 40 + Math.random() * 60;
+            
+            building.style.width = width + 'px';
+            building.style.height = height + 'px';
+            building.style.backgroundColor = `rgb(${150 + Math.random() * 100}, ${150 + Math.random() * 100}, ${150 + Math.random() * 100})`;
+            
+            trackView.appendChild(building);
+            buildings.push({ element: building, x: xPos });
+        }
+        
+        // Show status message
+        function showStatusMessage(message, duration = 2000) {
+            statusMessage.textContent = message;
+            statusMessage.style.opacity = '1';
+            
+            setTimeout(() => {
+                statusMessage.style.opacity = '0';
+            }, duration);
+        }
+        
+        // Update the train's position and speed
+        function updateTrain(timestamp) {
+            if (!lastTimestamp) {
+                lastTimestamp = timestamp;
+            }
+            
+            const deltaTime = (timestamp - lastTimestamp) / 1000; // seconds
+            lastTimestamp = timestamp;
+            
+            // Calculate acceleration based on power and brake levels
+            let acceleration = 0;
+            
+            if (powerLevel > 0 && brakeLevel === 0) {
+                acceleration = powerLevel * 2; // km/h per second
+            } else if (brakeLevel > 0) {
+                acceleration = -brakeLevel * 5; // km/h per second
+            } else {
+                // Natural deceleration when no power and no brake
+                acceleration = -0.5;
+            }
+            
+            // Update speed
+            trainSpeed += acceleration * deltaTime;
+            
+            // Clamp speed
+            trainSpeed = Math.max(0, Math.min(trainSpeed, maxSpeed));
+            
+            // Update distance
+            const distanceDelta = (trainSpeed / 3.6) * deltaTime; // Convert km/h to m/s
+            distance += distanceDelta;
+            
+            // Update displays
+            updateDisplays();
+            
+            // Move track elements
+            moveTrackElements(distanceDelta);
+            
+            // Check for stations
+            checkStations();
+            
+            // Check end of game
+            if (distance >= stations[stations.length - 1].distance) {
+                endGame();
+                return;
+            }
+            
+            // Continue animation loop if game is still running
+            if (gameStarted && !gameOver) {
+                animationId = requestAnimationFrame(updateTrain);
+            }
+        }
+        
+        // Update display elements
+        function updateDisplays() {
+            // Update digital speed display and gauge blocks
+            document.getElementById('digital-speed').textContent = Math.round(trainSpeed);
+            
+            // Update speed gauge blocks
+            const speedBlocks = document.querySelectorAll('.speed-block');
+            const lightedBlocks = Math.ceil((trainSpeed / maxSpeed) * 12);
+            
+            speedBlocks.forEach((block, index) => {
+                if (index < lightedBlocks) {
+                    block.style.backgroundColor = '#ffcc00'; // Lit up in yellow
+                } else {
+                    block.style.backgroundColor = '#333'; // Unlit
+                }
+            });
+            
+            // Update HUD
+            speedHud.textContent = `速度: ${Math.round(trainSpeed)} km/h`;
+            distanceHud.textContent = `距離: ${Math.round(distance)} m`;
+            
+            // Update score
+            scoreDisplay.textContent = `スコア: ${score}`;
+            
+            // Update next station
+            const nextStation = stations[currentStation];
+            const distanceToStation = nextStation.distance - distance;
+            nextStationDisplay.textContent = `次の駅: ${nextStation.name} (あと${Math.max(0, Math.round(distanceToStation))}m)`;
+        }
+        
+        // Move track elements based on train movement
+        function moveTrackElements(distanceDelta) {
+            // Apply background speed multiplier to all movements
+            const adjustedDelta = distanceDelta * backgroundSpeedMultiplier;
+            
+            // Move sleepers
+            sleepers.forEach(sleeper => {
+                sleeper.x -= adjustedDelta;
+                if (sleeper.x < -50) {
+                    sleeper.x += 3000; // Recycle
+                }
+                sleeper.element.style.left = sleeper.x + 'px';
+            });
+            
+            // Move landscape elements
+            landscapes.forEach(landscape => {
+                landscape.x -= adjustedDelta * 0.5; // Parallax effect
+                if (landscape.x < -400) {
+                    landscape.x += 12000; // Recycle
+                }
+                landscape.element.style.left = landscape.x + 'px';
+            });
+            
+            // Move trees
+            trees.forEach(tree => {
+                tree.x -= adjustedDelta * 0.7; // Parallax effect
+                if (tree.x < -50) {
+                    tree.x += 12000; // Recycle
+                }
+                tree.element.style.left = tree.x + 'px';
+            });
+            
+            // Move buildings
+            buildings.forEach(building => {
+                building.x -= adjustedDelta * 0.6; // Parallax effect
+                if (building.x < -100) {
+                    building.x += 12000; // Recycle
+                }
+                building.element.style.left = building.x + 'px';
+            });
+        }
+        
+        // Check if train is at a station
+        function checkStations() {
+            if (currentStation < stations.length - 1) {
+                const station = stations[currentStation];
+                const stationStart = station.distance;
+                const stationEnd = station.distance + station.length;
+                
+                // If we've passed the station
+                if (distance > stationEnd) {
+                    // Check if we stopped at the station
+                    if (trainSpeed === 0 && distance >= stationStart && distance <= stationEnd) {
+                        // Perfect stop - full points
+                        const stoppingAccuracy = 1 - Math.abs((distance - (stationStart + station.length / 2)) / (station.length / 2));
+                        const stationPoints = Math.round(1000 * stoppingAccuracy);
+                        score += stationPoints;
+                        
+                        // Visual feedback
+                        showStatusMessage(`完璧な停車！ +${stationPoints}ポイント`, 2000);
+                    } else {
+                        // Passed station without stopping
+                        showStatusMessage(`${station.name}を通過してしまいました。減点-500ポイント`, 2000);
+                        score -= 500;
+                    }
+                    
+                    // Move to next station
+                    currentStation++;
+                }
+                
+                // If we're at the station but still moving
+                else if (distance >= stationStart && distance <= stationEnd && trainSpeed === 0) {
+                    // We've stopped at the station
+                    const stoppingAccuracy = 1 - Math.abs((distance - (stationStart + station.length / 2)) / (station.length / 2));
+                    const stationPoints = Math.round(1000 * stoppingAccuracy);
+                    score += stationPoints;
+                    
+                    // Visual feedback
+                    showStatusMessage(`${station.name}に停車しました！ +${stationPoints}ポイント`, 2000);
+                    
+                    // Move to next station
+                    currentStation++;
+                }
+            }
+        }
+        
+        // Handle lever drag for brake and power
+        function initLevers() {
+            let isDraggingBrake = false;
+            let isDraggingPower = false;
+            
+            const brakeLeverElement = document.getElementById('brake-lever');
+            const powerLeverElement = document.getElementById('power-lever');
+            
+            brakeLever.addEventListener('mousedown', (e) => {
+                isDraggingBrake = true;
+                e.preventDefault();
+            });
+            
+            powerLever.addEventListener('mousedown', (e) => {
+                isDraggingPower = true;
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDraggingBrake) {
+                    const brakePos = e.clientY - brakeLeverElement.getBoundingClientRect().top;
+                    const leverHeight = brakeLeverElement.clientHeight - brakeLever.clientHeight;
+                    const normalizedPos = Math.max(0, Math.min(1, 1 - (brakePos / leverHeight)));
+                    brakeLevel = Math.round(normalizedPos * 5);
+                    
+                    brakeLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+                }
+                
+                if (isDraggingPower) {
+                    const powerPos = e.clientY - powerLeverElement.getBoundingClientRect().top;
+                    const leverHeight = powerLeverElement.clientHeight - powerLever.clientHeight;
+                    const normalizedPos = Math.max(0, Math.min(1, 1 - (powerPos / leverHeight)));
+                    powerLevel = Math.round(normalizedPos * 5);
+                    
+                    powerLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDraggingBrake = false;
+                isDraggingPower = false;
+            });
+            
+            // Also handle keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (!gameStarted || gameOver) return;
+                
+                const leverHeight = brakeLeverElement.clientHeight - brakeLever.clientHeight;
+                
+                switch (e.key) {
+                    case 'ArrowUp':
+                        // Increase power
+                        if (powerLevel < 5) {
+                            powerLevel++;
+                            powerLever.style.bottom = (powerLevel / 5 * leverHeight) + 'px';
+                        }
+                        break;
+                    case 'ArrowDown':
+                        // Decrease power
+                        if (powerLevel > 0) {
+                            powerLevel--;
+                            powerLever.style.bottom = (powerLevel / 5 * leverHeight) + 'px';
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        // Decrease brake
+                        if (brakeLevel > 0) {
+                            brakeLevel--;
+                            brakeLever.style.bottom = (brakeLevel / 5 * leverHeight) + 'px';
+                        }
+                        break;
+                    case 'ArrowRight':
+                        // Increase brake
+                        if (brakeLevel < 5) {
+                            brakeLevel++;
+                            brakeLever.style.bottom = (brakeLevel / 5 * leverHeight) + 'px';
+                        }
+                        break;
+                }
+            });
+        }
+        
+        // Start the game
+        function startGame() {
+            gameStarted = true;
+            gameOver = false;
+            trainSpeed = 0;
+            distance = 0;
+            score = 0;
+            currentStation = 0;
+            powerLevel = 0;
+            brakeLevel = 0;
+            
+            // スピード設定を保存
+            const slider = document.getElementById('bg-speed-slider');
+            if (slider) {
+                backgroundSpeedMultiplier = parseFloat(slider.value);
+            }
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            
+            // Reset lever positions
+            const brakeLeverElement = document.getElementById('brake-lever');
+            const powerLeverElement = document.getElementById('power-lever');
+            
+            brakeLever.style.bottom = '10px';
+            powerLever.style.bottom = '10px';
+            
+            // Start the animation loop
+            lastTimestamp = 0;
+            animationId = requestAnimationFrame(updateTrain);
+        }
+        
+        // End the game
+        function endGame() {
+            gameStarted = false;
+            gameOver = true;
+            
+            cancelAnimationFrame(animationId);
+            
+            // Show game over screen
+            finalScoreDisplay.textContent = `最終スコア: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Add touch controls for mobile devices
+        function addTouchControls() {
+            const brakeLeverElement = document.getElementById('brake-lever');
+            const powerLeverElement = document.getElementById('power-lever');
+            
+            brakeLever.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const touchY = touch.clientY - brakeLeverElement.getBoundingClientRect().top;
+                const leverHeight = brakeLeverElement.clientHeight - brakeLever.clientHeight;
+                const normalizedPos = Math.max(0, Math.min(1, 1 - (touchY / leverHeight)));
+                brakeLevel = Math.round(normalizedPos * 5);
+                
+                brakeLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+            });
+            
+            powerLever.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const touchY = touch.clientY - powerLeverElement.getBoundingClientRect().top;
+                const leverHeight = powerLeverElement.clientHeight - powerLever.clientHeight;
+                const normalizedPos = Math.max(0, Math.min(1, 1 - (touchY / leverHeight)));
+                powerLevel = Math.round(normalizedPos * 5);
+                
+                powerLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+            });
+            
+            brakeLever.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const touchY = touch.clientY - brakeLeverElement.getBoundingClientRect().top;
+                const leverHeight = brakeLeverElement.clientHeight - brakeLever.clientHeight;
+                const normalizedPos = Math.max(0, Math.min(1, 1 - (touchY / leverHeight)));
+                brakeLevel = Math.round(normalizedPos * 5);
+                
+                brakeLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+            });
+            
+            powerLever.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const touchY = touch.clientY - powerLeverElement.getBoundingClientRect().top;
+                const leverHeight = powerLeverElement.clientHeight - powerLever.clientHeight;
+                const normalizedPos = Math.max(0, Math.min(1, 1 - (touchY / leverHeight)));
+                powerLevel = Math.round(normalizedPos * 5);
+                
+                powerLever.style.bottom = (normalizedPos * leverHeight) + 'px';
+            });
+        }
+        
+        // Initialize the game
+        function init() {
+            initSpeedIndicator();
+            initTrack();
+            initLevers();
+            
+            // Add event listeners
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', startGame);
+            
+            // Add speed slider functionality
+            const bgSpeedSlider = document.getElementById('bg-speed-slider');
+            const bgSpeedValue = document.getElementById('bg-speed-value');
+            
+            bgSpeedSlider.addEventListener('input', function() {
+                backgroundSpeedMultiplier = parseFloat(this.value);
+                bgSpeedValue.textContent = backgroundSpeedMultiplier.toFixed(1);
+            });
+            
+            // Add touch controls for mobile
+            addTouchControls();
+        }
+        
+        // Start everything once the page is loaded
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
