@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動物絵文字ぷよぷよゲーム</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        
+        .game-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .next-piece {
+            width: 120px;
+            height: 120px;
+            border: 2px solid #333;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        
+        .next-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .next-container {
+            font-size: 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        
+        .instructions {
+            width: 200px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        
+        h1 {
+            color: #4a6fb5;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #game-board {
+            border: 2px solid #333;
+            display: grid;
+            grid-template-columns: repeat(6, 50px);
+            grid-template-rows: repeat(12, 50px);
+            gap: 1px;
+            padding: 2px;
+            background-color: #eee;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4a6fb5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a5a99;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .highlight {
+            animation: pop 0.5s ease-out;
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        .falling {
+            opacity: 0.9;
+        }
+        
+        .chain-counter {
+            position: absolute;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff5722;
+            text-shadow: 2px 2px 0 white;
+            z-index: 10;
+            animation: flyUp 1s ease-out forwards;
+        }
+        
+        @keyframes flyUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h1>動物絵文字ぷよぷよゲーム</h1>
+    
+    <div class="game-container">
+        <div class="game-info">
+            <div class="score-display">
+                スコア: <span id="score">0</span>
+            </div>
+            
+            <div class="next-piece">
+                <div class="next-title">次のぷよ</div>
+                <div class="next-container" id="next-container"></div>
+            </div>
+            
+            <div class="instructions">
+                <h3>操作方法:</h3>
+                <p>⬅️ ➡️: 左右移動</p>
+                <p>⬇️: 下に移動</p>
+                <p>⬆️: 回転</p>
+                <p>スペース: 即落下</p>
+            </div>
+        </div>
+        
+        <div id="game-board"></div>
+    </div>
+    
+    <div class="controls">
+        <button id="start-button">ゲーム開始</button>
+        <button id="pause-button">一時停止</button>
+    </div>
+    
+    <div class="game-over" id="game-over">
+        <h2>ゲームオーバー</h2>
+        <p>スコア: <span id="final-score">0</span></p>
+        <button id="restart-button">もう一度プレイ</button>
+    </div>
+    
+    <script>
+        // ゲーム設定
+        const BOARD_ROWS = 12;
+        const BOARD_COLS = 6;
+        const ANIMALS = ['🐶', '🐱', '🐰', '🐼', '🦊'];
+        const EMPTY = '';
+        
+        // ゲーム状態
+        let board = [];
+        let currentPiece = null;
+        let nextPiece = null;
+        let score = 0;
+        let gameInterval = null;
+        let isPaused = false;
+        let isGameOver = false;
+        let chainCount = 0;
+        let isAnimating = false;
+        
+        // DOM要素
+        const gameBoard = document.getElementById('game-board');
+        const scoreDisplay = document.getElementById('score');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const gameOverDisplay = document.getElementById('game-over');
+        const startButton = document.getElementById('start-button');
+        const pauseButton = document.getElementById('pause-button');
+        const restartButton = document.getElementById('restart-button');
+        const nextContainer = document.getElementById('next-container');
+        
+        // ゲームボードの初期化
+        function initializeBoard() {
+            gameBoard.innerHTML = '';
+            board = [];
+            
+            for (let row = 0; row < BOARD_ROWS; row++) {
+                const boardRow = [];
+                
+                for (let col = 0; col < BOARD_COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    gameBoard.appendChild(cell);
+                    boardRow.push(EMPTY);
+                }
+                
+                board.push(boardRow);
+            }
+        }
+        
+        // ぷよペアの生成
+        function createPiece() {
+            if (nextPiece) {
+                currentPiece = nextPiece;
+            } else {
+                currentPiece = {
+                    shape: [
+                        getRandomAnimal(),
+                        getRandomAnimal()
+                    ],
+                    position: { row: 0, col: 2 },
+                    orientation: 0 // 0: 縦, 1: 右, 2: 下, 3: 左
+                };
+            }
+            
+            nextPiece = {
+                shape: [
+                    getRandomAnimal(),
+                    getRandomAnimal()
+                ],
+                position: { row: 0, col: 2 },
+                orientation: 0
+            };
+            
+            updateNextPieceDisplay();
+            
+            // ゲームオーバーチェック
+            if (!isValidMove(currentPiece)) {
+                endGame();
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 次のぷよ表示を更新
+        function updateNextPieceDisplay() {
+            nextContainer.innerHTML = '';
+            const top = document.createElement('div');
+            top.textContent = nextPiece.shape[0];
+            const bottom = document.createElement('div');
+            bottom.textContent = nextPiece.shape[1];
+            
+            nextContainer.appendChild(top);
+            nextContainer.appendChild(document.createElement('div'));
+            nextContainer.appendChild(bottom);
+            nextContainer.appendChild(document.createElement('div'));
+        }
+        
+        // ランダムな動物を取得
+        function getRandomAnimal() {
+            return ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+        }
+        
+        // 現在のぷよを描画
+        function drawPiece() {
+            clearPiece();
+            const positions = getPiecePositions(currentPiece);
+            
+            positions.forEach((pos, index) => {
+                if (pos.row >= 0 && pos.row < BOARD_ROWS && pos.col >= 0 && pos.col < BOARD_COLS) {
+                    const cell = document.querySelector(`.cell[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                    cell.textContent = currentPiece.shape[index];
+                    cell.classList.add('falling');
+                }
+            });
+        }
+        
+        // 現在のぷよをクリア
+        function clearPiece() {
+            document.querySelectorAll('.falling').forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('falling');
+            });
+        }
+        
+        // ぷよの位置を取得
+        function getPiecePositions(piece) {
+            const positions = [];
+            const { row, col } = piece.position;
+            
+            // 最初のぷよは常に同じ位置
+            positions.push({ row, col });
+            
+            // 2番目のぷよは向きによって異なる
+            switch (piece.orientation) {
+                case 0: // 上から2つ目のぷよが下
+                    positions.push({ row: row + 1, col });
+                    break;
+                case 1: // 上から2つ目のぷよが右
+                    positions.push({ row, col: col + 1 });
+                    break;
+                case 2: // 上から2つ目のぷよが上
+                    positions.push({ row: row - 1, col });
+                    break;
+                case 3: // 上から2つ目のぷよが左
+                    positions.push({ row, col: col - 1 });
+                    break;
+            }
+            
+            return positions;
+        }
+        
+        // 移動の有効性チェック
+        function isValidMove(piece) {
+            const positions = getPiecePositions(piece);
+            
+            return positions.every(pos => {
+                return (
+                    pos.row >= 0 &&
+                    pos.col >= 0 &&
+                    pos.col < BOARD_COLS &&
+                    pos.row < BOARD_ROWS &&
+                    (pos.row < 0 || board[pos.row][pos.col] === EMPTY)
+                );
+            });
+        }
+        
+        // ぷよを下に移動
+        function moveDown() {
+            if (isAnimating) return;
+            
+            const newPiece = {
+                ...currentPiece,
+                position: {
+                    row: currentPiece.position.row + 1,
+                    col: currentPiece.position.col
+                }
+            };
+            
+            if (isValidMove(newPiece)) {
+                currentPiece = newPiece;
+                drawPiece();
+                return true;
+            } else {
+                placePiece();
+                return false;
+            }
+        }
+        
+        // ぷよを左右に移動
+        function moveHorizontal(direction) {
+            if (isAnimating) return;
+            
+            const newPiece = {
+                ...currentPiece,
+                position: {
+                    row: currentPiece.position.row,
+                    col: currentPiece.position.col + direction
+                }
+            };
+            
+            if (isValidMove(newPiece)) {
+                currentPiece = newPiece;
+                drawPiece();
+            }
+        }
+        
+        // ぷよを即落下
+        function hardDrop() {
+            if (isAnimating) return;
+            
+            while (moveDown()) {
+                // ぷよが底に着くまで繰り返し
+            }
+        }
+        
+        // ぷよを回転
+        function rotatePiece() {
+            if (isAnimating) return;
+            
+            const newPiece = {
+                ...currentPiece,
+                orientation: (currentPiece.orientation + 1) % 4
+            };
+            
+            // 回転が有効かチェック
+            if (isValidMove(newPiece)) {
+                currentPiece = newPiece;
+                drawPiece();
+                return;
+            }
+            
+            // 壁キックの試行
+            const wallKicks = [
+                { row: 0, col: -1 }, // 左に移動
+                { row: 0, col: 1 },  // 右に移動
+                { row: -1, col: 0 }, // 上に移動
+                { row: 1, col: 0 }   // 下に移動
+            ];
+            
+            for (const kick of wallKicks) {
+                const kickedPiece = {
+                    ...newPiece,
+                    position: {
+                        row: newPiece.position.row + kick.row,
+                        col: newPiece.position.col + kick.col
+                    }
+                };
+                
+                if (isValidMove(kickedPiece)) {
+                    currentPiece = kickedPiece;
+                    drawPiece();
+                    return;
+                }
+            }
+        }
+        
+        // ぷよをボードに配置
+        function placePiece() {
+            const positions = getPiecePositions(currentPiece);
+            
+            positions.forEach((pos, index) => {
+                if (pos.row >= 0 && pos.row < BOARD_ROWS && pos.col >= 0 && pos.col < BOARD_COLS) {
+                    board[pos.row][pos.col] = currentPiece.shape[index];
+                    const cell = document.querySelector(`.cell[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                    cell.textContent = currentPiece.shape[index];
+                    cell.classList.remove('falling');
+                }
+            });
+            
+            checkForMatches();
+        }
+        
+        // ボードの状態を更新
+        function updateBoard() {
+            for (let row = 0; row < BOARD_ROWS; row++) {
+                for (let col = 0; col < BOARD_COLS; col++) {
+                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                    cell.textContent = board[row][col];
+                    cell.classList.remove('falling');
+                }
+            }
+        }
+        
+        // 隣接する同じ動物を探索
+        function findConnectedGroups() {
+            const visited = Array(BOARD_ROWS).fill().map(() => Array(BOARD_COLS).fill(false));
+            const groups = [];
+            
+            for (let row = 0; row < BOARD_ROWS; row++) {
+                for (let col = 0; col < BOARD_COLS; col++) {
+                    if (board[row][col] !== EMPTY && !visited[row][col]) {
+                        const group = [];
+                        const animal = board[row][col];
+                        
+                        // 深さ優先探索で同じ動物を探す
+                        function dfs(r, c) {
+                            if (
+                                r < 0 || r >= BOARD_ROWS || 
+                                c < 0 || c >= BOARD_COLS || 
+                                visited[r][c] || 
+                                board[r][c] !== animal
+                            ) {
+                                return;
+                            }
+                            
+                            visited[r][c] = true;
+                            group.push({ row: r, col: c });
+                            
+                            // 4方向を探索
+                            dfs(r + 1, c); // 下
+                            dfs(r - 1, c); // 上
+                            dfs(r, c + 1); // 右
+                            dfs(r, c - 1); // 左
+                        }
+                        
+                        dfs(row, col);
+                        
+                        if (group.length >= 4) {
+                            groups.push(group);
+                        }
+                    }
+                }
+            }
+            
+            return groups;
+        }
+        
+        // マッチングをチェック
+        function checkForMatches() {
+            const groups = findConnectedGroups();
+            
+            if (groups.length > 0) {
+                isAnimating = true;
+                chainCount++;
+                
+                // マッチしたぷよに効果アニメーション適用
+                groups.forEach(group => {
+                    group.forEach(pos => {
+                        const cell = document.querySelector(`.cell[data-row="${pos.row}"][data-col="${pos.col}"]`);
+                        cell.classList.add('highlight');
+                        
+                        // ポイント計算
+                        const basePoints = 10;
+                        const groupBonus = group.length - 3; // 4個以上で追加ポイント
+                        const chainBonus = chainCount - 1;   // 2連鎖以上でボーナス
+                        let points = basePoints + (groupBonus * 5) + (chainBonus * 20);
+                        
+                        // スコア更新
+                        score += points;
+                        scoreDisplay.textContent = score;
+                    });
+                });
+                
+                // 連鎖表示
+                if (chainCount > 1) {
+                    const chainDisplay = document.createElement('div');
+                    chainDisplay.classList.add('chain-counter');
+                    chainDisplay.textContent = `${chainCount}連鎖！`;
+                    chainDisplay.style.left = `${Math.random() * 300 + 100}px`;
+                    chainDisplay.style.top = `${Math.random() * 200 + 100}px`;
+                    document.body.appendChild(chainDisplay);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(chainDisplay);
+                    }, 1000);
+                }
+                
+                // 消えるアニメーション後に処理
+                setTimeout(() => {
+                    // マッチしたぷよを消す
+                    groups.forEach(group => {
+                        group.forEach(pos => {
+                            board[pos.row][pos.col] = EMPTY;
+                        });
+                    });
+                    
+                    updateBoard();
+                    
+                    // 重力の適用
+                    applyGravity();
+                    
+                    // 次のチェック
+                    setTimeout(() => {
+                        if (!checkForMatches()) {
+                            isAnimating = false;
+                            chainCount = 0;
+                            if (!createPiece()) return;
+                            drawPiece();
+                        }
+                    }, 500);
+                }, 500);
+                
+                return true;
+            } else {
+                chainCount = 0;
+                if (!createPiece()) return;
+                drawPiece();
+                return false;
+            }
+        }
+        
+        // 重力を適用（ぷよを下に落とす）
+        function applyGravity() {
+            let moved = false;
+            
+            for (let col = 0; col < BOARD_COLS; col++) {
+                for (let row = BOARD_ROWS - 2; row >= 0; row--) {
+                    if (board[row][col] !== EMPTY && board[row + 1][col] === EMPTY) {
+                        let currentRow = row;
+                        
+                        // 空白がある限り下に移動
+                        while (
+                            currentRow + 1 < BOARD_ROWS && 
+                            board[currentRow + 1][col] === EMPTY
+                        ) {
+                            board[currentRow + 1][col] = board[currentRow][col];
+                            board[currentRow][col] = EMPTY;
+                            currentRow++;
+                            moved = true;
+                        }
+                    }
+                }
+            }
+            
+            if (moved) {
+                updateBoard();
+            }
+            
+            return moved;
+        }
+        
+        // ゲームを開始
+        function startGame() {
+            if (gameInterval) return;
+            
+            initializeBoard();
+            score = 0;
+            scoreDisplay.textContent = score;
+            isGameOver = false;
+            isPaused = false;
+            chainCount = 0;
+            isAnimating = false;
+            
+            gameOverDisplay.style.display = 'none';
+            createPiece();
+            drawPiece();
+            
+            gameInterval = setInterval(() => {
+                if (!isPaused && !isAnimating) {
+                    moveDown();
+                }
+            }, 500);
+        }
+        
+        // ゲームを一時停止/再開
+        function togglePause() {
+            if (isGameOver) return;
+            
+            isPaused = !isPaused;
+            pauseButton.textContent = isPaused ? 'ゲーム再開' : '一時停止';
+        }
+        
+        // ゲームを終了
+        function endGame() {
+            clearInterval(gameInterval);
+            gameInterval = null;
+            isGameOver = true;
+            finalScoreDisplay.textContent = score;
+            gameOverDisplay.style.display = 'block';
+        }
+        
+        // キーボードイベント
+        document.addEventListener('keydown', (event) => {
+            if (isGameOver || isPaused) return;
+            
+            switch (event.key) {
+                case 'ArrowLeft':
+                    moveHorizontal(-1);
+                    break;
+                case 'ArrowRight':
+                    moveHorizontal(1);
+                    break;
+                case 'ArrowDown':
+                    moveDown();
+                    break;
+                case 'ArrowUp':
+                    rotatePiece();
+                    break;
+                case ' ': // スペースキー
+                    event.preventDefault();
+                    hardDrop();
+                    break;
+            }
+        });
+        
+        // ボタンイベント
+        startButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
+        restartButton.addEventListener('click', startGame);
+        
+        // 初期表示
+        initializeBoard();
+    </script>
+</body>
+</html>
