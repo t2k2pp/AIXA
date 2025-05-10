@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アニマルファイターズ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameContainer {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            border: 5px solid #333;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 50%, #90EE90 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background: #8B4513;
+            border-top: 5px solid #654321;
+        }
+
+        .character {
+            position: absolute;
+            width: 50px;
+            height: 80px;
+            transition: all 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            border: 3px solid #333;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.8);
+        }
+
+        #player {
+            bottom: 100px;
+            left: 50px;
+        }
+
+        #enemy {
+            bottom: 100px;
+            right: 50px;
+        }
+
+        .punch, .kick {
+            position: absolute;
+            height: 8px;
+            background: #FFD700;
+            border: 2px solid #333;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #playerHealth, #enemyHealth {
+            position: absolute;
+            top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255,255,255,0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 3px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #playerHealth {
+            left: 20px;
+        }
+
+        #enemyHealth {
+            right: 20px;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #333;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            font-size: 14px;
+        }
+
+        #characterSelect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 5px solid #333;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #characterGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .character-option {
+            width: 80px;
+            height: 80px;
+            font-size: 48px;
+            border: 4px solid #333;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .character-option:hover {
+            transform: scale(1.1);
+            background: #FFD700;
+        }
+
+        .stats {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        #gameScreen, #gameOverScreen, #victoryScreen, #battleResultScreen {
+            display: none;
+        }
+
+        #gameOverScreen, #victoryScreen, #battleResultScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            border: 5px solid #333;
+            text-align: center;
+        }
+
+        .restart {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 18px;
+            background: #4CAF50;
+            color: white;
+            border: 3px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .restart:hover {
+            background: #45a049;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border: 1px solid #333;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* 体力バーの修正 */
+        .health-bar-container {
+            display: inline-block;
+            width: 120px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #000;
+        }
+
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(to right, #FF6B6B 0%, #FFD93D 50%, #6BCB77 100%);
+            transition: width 0.5s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 8px;
+        }
+
+        .health-text {
+            color: #333;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ground"></div>
+        
+        <!-- キャラクター選択画面 -->
+        <div id="characterSelect">
+            <h1>キャラクターを選んでください</h1>
+            <div id="characterGrid">
+                <!-- キャラクターはJavaScriptで動的に生成 -->
+            </div>
+            <div id="characterInfo">
+                <h3>選択中の動物</h3>
+                <div id="selectedStats"></div>
+            </div>
+        </div>
+        
+        <!-- ゲーム画面 -->
+        <div id="gameScreen">
+            <div id="player" class="character">
+                <div class="punch"></div>
+                <div class="kick"></div>
+            </div>
+            <div id="enemy" class="character">
+                <div class="punch"></div>
+                <div class="kick"></div>
+            </div>
+            
+            <div id="playerHealth">
+                <span id="playerEmoji"></span>
+                <div class="health-bar-container">
+                    <div class="health-bar" id="playerHealthBar"></div>
+                </div>
+                <span class="health-text" id="playerHealthText">10/10</span>
+            </div>
+            <div id="enemyHealth">
+                <span id="enemyEmoji"></span>
+                <div class="health-bar-container">
+                    <div class="health-bar" id="enemyHealthBar"></div>
+                </div>
+                <span class="health-text" id="enemyHealthText">10/10</span>
+            </div>
+            
+            <div id="instructions">
+                A:左移動 D:右移動 J:パンチ K:キック
+            </div>
+        </div>
+        
+        <!-- バトル結果画面 -->
+        <div id="battleResultScreen">
+            <h1>バトル勝利！🎊</h1>
+            <div id="defeatedEnemyInfo"></div>
+            <p>これまでに倒した敵: <span id="currentDefeatCount">1</span>体</p>
+            <p>残り敵: <span id="remainingEnemiesText">6</span>体</p>
+            <button class="restart" id="nextBattleButton">次の敵へ！</button>
+            <button class="restart" id="quitGameButton">ゲーム終了</button>
+        </div>
+        
+        <!-- ゲームオーバー画面 -->
+        <div id="gameOverScreen">
+            <h1>敗北しました！</h1>
+            <p>倒した敵の数: <span id="defeatedCount">0</span></p>
+            <button class="restart" id="restartButton">もう一度プレイ</button>
+        </div>
+
+        <!-- 完全勝利画面 -->
+        <div id="victoryScreen">
+            <h1>完全勝利！🎉</h1>
+            <p>全ての敵を倒しました！</p>
+            <p>あなたの選んだ<span id="victoryCharacterName"></span>が最強でした！</p>
+            <button class="restart" id="victoryRestartButton">もう一度プレイ</button>
+        </div>
+    </div>
+
+    <script>
+        // 動物キャラクターの定義
+        const ANIMALS = {
+            lion: { emoji: '🦁', name: 'ライオン', speed: 3, punchPower: 1, kickPower: 1, punchRange: 35, kickRange: 35 },
+            tiger: { emoji: '🐅', name: 'トラ', speed: 4, punchPower: 1, kickPower: 1, punchRange: 30, kickRange: 40 },
+            bear: { emoji: '🐻', name: 'クマ', speed: 2, punchPower: 2, kickPower: 1, punchRange: 40, kickRange: 30 },
+            rabbit: { emoji: '🐰', name: 'ウサギ', speed: 5, punchPower: 1, kickPower: 1, punchRange: 25, kickRange: 35 },
+            fox: { emoji: '🦊', name: 'キツネ', speed: 4, punchPower: 1, kickPower: 1, punchRange: 30, kickRange: 45 },
+            monkey: { emoji: '🐵', name: 'サル', speed: 4, punchPower: 1, kickPower: 1, punchRange: 35, kickRange: 30 },
+            panda: { emoji: '🐼', name: 'パンダ', speed: 2, punchPower: 1, kickPower: 2, punchRange: 35, kickRange: 40 },
+            wolf: { emoji: '🐺', name: 'オオカミ', speed: 3, punchPower: 1, kickPower: 1, punchRange: 32, kickRange: 38 }
+        };
+
+        // 定数
+        const MAX_HEALTH = 10;
+
+        // ゲーム要素の取得
+        const gameContainer = document.getElementById('gameContainer');
+        const player = document.getElementById('player');
+        const enemy = document.getElementById('enemy');
+        const playerHealthElement = document.getElementById('playerHealth');
+        const enemyHealthElement = document.getElementById('enemyHealth');
+        const characterSelect = document.getElementById('characterSelect');
+        const gameScreen = document.getElementById('gameScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const victoryScreen = document.getElementById('victoryScreen');
+        const battleResultScreen = document.getElementById('battleResultScreen');
+        const characterGrid = document.getElementById('characterGrid');
+        const selectedStats = document.getElementById('selectedStats');
+        const defeatedCountElement = document.getElementById('defeatedCount');
+
+        // ゲーム状態
+        let gameState = {
+            playerPos: { x: 50, y: 100 },
+            enemyPos: { x: 700, y: 100 },
+            playerHealth: MAX_HEALTH,
+            enemyHealth: MAX_HEALTH,
+            keys: {},
+            gameRunning: false,
+            attackCooldown: 0,
+            enemyAttackCooldown: 0,
+            playerCharacter: null,
+            enemyCharacter: null,
+            remainingEnemies: 7,
+            defeatedCount: 0,
+            selectedAnimal: null,
+            enemyStuckTimer: 0
+        };
+
+        // キャラクター選択画面の初期化
+        function initCharacterSelect() {
+            characterGrid.innerHTML = '';
+            Object.entries(ANIMALS).forEach(([key, animal]) => {
+                const option = document.createElement('div');
+                option.className = 'character-option';
+                option.textContent = animal.emoji;
+                
+                const stats = document.createElement('div');
+                stats.className = 'stats';
+                stats.innerHTML = `
+                    ${animal.name}<br>
+                    スピード:${animal.speed} パンチ:${animal.punchPower} キック:${animal.kickPower}<br>
+                    P範囲:${animal.punchRange} K範囲:${animal.kickRange}
+                `;
+                
+                const container = document.createElement('div');
+                container.appendChild(option);
+                container.appendChild(stats);
+                characterGrid.appendChild(container);
+                
+                option.addEventListener('click', () => selectCharacter(key));
+            });
+        }
+
+        // キャラクター選択
+        function selectCharacter(animalKey) {
+            gameState.selectedAnimal = animalKey;
+            const animal = ANIMALS[animalKey];
+            
+            // 選択済みスタイルのリセット
+            document.querySelectorAll('.character-option').forEach(opt => {
+                opt.style.background = 'rgba(255,255,255,0.8)';
+            });
+            
+            // 選択したキャラクターのハイライト
+            event.target.style.background = '#FFD700';
+            
+            // 詳細情報表示
+            selectedStats.innerHTML = `
+                <h2>${animal.emoji} ${animal.name}</h2>
+                <p>スピード: ${animal.speed} パンチ威力: ${animal.punchPower} キック威力: ${animal.kickPower} パンチ範囲: ${animal.punchRange} キック範囲: ${animal.kickRange}</p>
+                <button class="restart" onclick="startGame()">戦闘開始！</button>
+            `;
+        }
+
+        // ゲーム開始
+        function startGame() {
+            if (!gameState.selectedAnimal) return;
+            
+            characterSelect.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // プレイヤーキャラクター設定
+            gameState.playerCharacter = ANIMALS[gameState.selectedAnimal];
+            player.textContent = gameState.playerCharacter.emoji;
+            document.getElementById('playerEmoji').textContent = gameState.playerCharacter.emoji;
+            
+            // 敵キャラクターランダム選択
+            selectRandomEnemy();
+            
+            // ゲーム状態リセット
+            gameState.playerHealth = MAX_HEALTH;
+            gameState.enemyHealth = MAX_HEALTH;
+            gameState.playerPos = { x: 50, y: 100 };
+            gameState.enemyPos = { x: 700, y: 100 };
+            gameState.gameRunning = true;
+            gameState.attackCooldown = 0;
+            gameState.enemyAttackCooldown = 0;
+            gameState.enemyStuckTimer = 0;
+            
+            // 攻撃要素の初期化
+            initAttackElements();
+            
+            // 体力バーの初期化
+            updateHealthBars();
+            gameLoop();
+        }
+
+        // 次のバトル開始
+        function startNextBattle() {
+            battleResultScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            
+            // 敵キャラクターランダム選択
+            selectRandomEnemy();
+            
+            // ゲーム状態リセット（プレイヤーキャラクターは維持）
+            gameState.playerHealth = MAX_HEALTH;
+            gameState.enemyHealth = MAX_HEALTH;
+            gameState.playerPos = { x: 50, y: 100 };
+            gameState.enemyPos = { x: 700, y: 100 };
+            gameState.gameRunning = true;
+            gameState.attackCooldown = 0;
+            gameState.enemyAttackCooldown = 0;
+            gameState.enemyStuckTimer = 0;
+            
+            // 攻撃要素の初期化
+            initAttackElements();
+            
+            // 体力バーの初期化
+            updateHealthBars();
+            gameLoop();
+        }
+
+        // 攻撃要素の初期化
+        function initAttackElements() {
+            // プレイヤーの攻撃要素を準備
+            if (!player.querySelector('.punch')) {
+                const punch = document.createElement('div');
+                punch.className = 'punch';
+                player.appendChild(punch);
+            }
+            if (!player.querySelector('.kick')) {
+                const kick = document.createElement('div');
+                kick.className = 'kick';
+                player.appendChild(kick);
+            }
+            
+            // 敵の攻撃要素を準備
+            if (!enemy.querySelector('.punch')) {
+                const punch = document.createElement('div');
+                punch.className = 'punch';
+                enemy.appendChild(punch);
+            }
+            if (!enemy.querySelector('.kick')) {
+                const kick = document.createElement('div');
+                kick.className = 'kick';
+                enemy.appendChild(kick);
+            }
+        }
+
+        // 敵キャラクターランダム選択
+        function selectRandomEnemy() {
+            const animalKeys = Object.keys(ANIMALS).filter(key => key !== gameState.selectedAnimal);
+            const randomKey = animalKeys[Math.floor(Math.random() * animalKeys.length)];
+            gameState.enemyCharacter = ANIMALS[randomKey];
+            enemy.textContent = gameState.enemyCharacter.emoji;
+            document.getElementById('enemyEmoji').textContent = gameState.enemyCharacter.emoji;
+        }
+
+        // キーボードイベント設定
+        document.addEventListener('keydown', (e) => {
+            gameState.keys[e.key.toLowerCase()] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameState.keys[e.key.toLowerCase()] = false;
+        });
+
+        // 攻撃判定
+        function checkAttack(attacker, target, attackType) {
+            const attackerChar = attacker === player ? gameState.playerCharacter : gameState.enemyCharacter;
+            const attackerPos = attacker === player ? gameState.playerPos : gameState.enemyPos;
+            const targetPos = attacker === player ? gameState.enemyPos : gameState.playerPos;
+            
+            const distance = Math.abs(attackerPos.x - targetPos.x);
+            const attackEl = attacker.querySelector(`.${attackType === 'punch' ? 'punch' : 'kick'}`);
+            
+            // 攻撃要素が存在しない場合はスキップ
+            if (!attackEl) return false;
+            
+            let attackRange, attackPower;
+            if (attackType === 'punch') {
+                attackRange = attackerChar.punchRange;
+                attackPower = attackerChar.punchPower;
+            } else {
+                attackRange = attackerChar.kickRange;
+                attackPower = attackerChar.kickPower;
+            }
+            
+            // 攻撃が表示されていて、範囲内にいる場合
+            if (attackEl.style.opacity === '1' && distance < attackRange + 20) {
+                if (attacker === player) {
+                    gameState.enemyHealth -= attackPower;
+                    createParticles(targetPos.x, targetPos.y);
+                } else {
+                    gameState.playerHealth -= attackPower;
+                    createParticles(targetPos.x, targetPos.y);
+                }
+                
+                // ノックバック効果
+                if (attacker === player) {
+                    gameState.enemyPos.x += 30;
+                } else {
+                    gameState.playerPos.x -= 30;
+                }
+                
+                return true;
+            }
+            return false;
+        }
+
+        // パーティクル生成
+        function createParticles(x, y) {
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + Math.random() * 60 - 30 + 'px';
+                particle.style.top = y + Math.random() * 60 - 30 + 'px';
+                gameContainer.appendChild(particle);
+                
+                const vx = (Math.random() - 0.5) * 10;
+                const vy = Math.random() * -8 - 2;
+                
+                const animate = () => {
+                    const currentLeft = parseFloat(particle.style.left);
+                    const currentTop = parseFloat(particle.style.top);
+                    
+                    particle.style.left = currentLeft + vx + 'px';
+                    particle.style.top = currentTop + vy + 'px';
+                    
+                    particle.style.opacity = parseFloat(particle.style.opacity || 1) - 0.05;
+                    
+                    if (parseFloat(particle.style.opacity) > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                
+                animate();
+            }
+        }
+
+        // 攻撃アニメーション
+        function performAttack(character, attackType) {
+            const characterData = character === player ? gameState.playerCharacter : gameState.enemyCharacter;
+            const attackEl = character.querySelector(`.${attackType}`);
+            
+            // 攻撃要素が存在することを確認
+            if (!attackEl) return;
+            
+            attackEl.style.opacity = '1';
+            
+            const isRight = character === player ? gameState.playerPos.x < gameState.enemyPos.x : gameState.enemyPos.x < gameState.playerPos.x;
+            
+            if (attackType === 'punch') {
+                attackEl.style.width = characterData.punchRange + 'px';
+                attackEl.style.top = '30px';
+                attackEl.style.left = isRight ? '50px' : '-' + characterData.punchRange + 'px';
+            } else { // kick
+                attackEl.style.width = characterData.kickRange + 'px';
+                attackEl.style.top = '50px';
+                attackEl.style.left = isRight ? '50px' : '-' + characterData.kickRange + 'px';
+            }
+            
+            setTimeout(() => {
+                attackEl.style.opacity = '0';
+            }, 200);
+        }
+
+        // 敵AI
+        function updateEnemy() {
+            if (!gameState.gameRunning) return;
+            
+            const distance = Math.abs(gameState.playerPos.x - gameState.enemyPos.x);
+            const optimalDistance = 60; // 最適な攻撃距離
+            
+            // スタック状態の検出
+            if (distance < 30) {
+                gameState.enemyStuckTimer++;
+                if (gameState.enemyStuckTimer > 60) { // 1秒間引っ付いていたら
+                    // 大きく離れる動作
+                    if (gameState.playerPos.x < gameState.enemyPos.x) {
+                        gameState.enemyPos.x += gameState.enemyCharacter.speed * 3;
+                    } else {
+                        gameState.enemyPos.x -= gameState.enemyCharacter.speed * 3;
+                    }
+                    gameState.enemyStuckTimer = 0;
+                }
+            } else {
+                gameState.enemyStuckTimer = 0;
+            }
+            
+            // 攻撃圏内の場合
+            const maxAttackRange = Math.max(gameState.enemyCharacter.punchRange, gameState.enemyCharacter.kickRange);
+            if (distance < maxAttackRange + 10 && distance > 25 && gameState.enemyAttackCooldown <= 0) {
+                if (Math.random() < 0.3) {
+                    performAttack(enemy, 'punch');
+                    gameState.enemyAttackCooldown = 60;
+                } else if (Math.random() < 0.2) {
+                    performAttack(enemy, 'kick');
+                    gameState.enemyAttackCooldown = 80;
+                }
+            }
+            
+            // 移動
+            if (distance > optimalDistance + 20) {
+                // 遠すぎる場合は近づく
+                if (gameState.playerPos.x < gameState.enemyPos.x) {
+                    gameState.enemyPos.x -= gameState.enemyCharacter.speed;
+                } else {
+                    gameState.enemyPos.x += gameState.enemyCharacter.speed;
+                }
+            } else if (distance < optimalDistance - 20) {
+                // 近すぎる場合は離れる
+                if (gameState.playerPos.x < gameState.enemyPos.x) {
+                    gameState.enemyPos.x += gameState.enemyCharacter.speed;
+                } else {
+                    gameState.enemyPos.x -= gameState.enemyCharacter.speed;
+                }
+            }
+            
+            if (gameState.enemyAttackCooldown > 0) {
+                gameState.enemyAttackCooldown--;
+            }
+        }
+
+        // 体力バーの更新
+        function updateHealthBars() {
+            // プレイヤーの体力バー
+            const playerHealthPercentage = (gameState.playerHealth / MAX_HEALTH) * 100;
+            document.getElementById('playerHealthBar').style.width = playerHealthPercentage + '%';
+            document.getElementById('playerHealthText').textContent = gameState.playerHealth + '/' + MAX_HEALTH;
+            
+            // 敵の体力バー
+            const enemyHealthPercentage = (gameState.enemyHealth / MAX_HEALTH) * 100;
+            document.getElementById('enemyHealthBar').style.width = enemyHealthPercentage + '%';
+            document.getElementById('enemyHealthText').textContent = gameState.enemyHealth + '/' + MAX_HEALTH;
+        }
+
+        // ゲームループ
+        function gameLoop() {
+            if (!gameState.gameRunning) return;
+            
+            // プレイヤー移動
+            if (gameState.keys['a'] && gameState.playerPos.x > 0) {
+                gameState.playerPos.x -= gameState.playerCharacter.speed;
+            }
+            if (gameState.keys['d'] && gameState.playerPos.x < 750) {
+                gameState.playerPos.x += gameState.playerCharacter.speed;
+            }
+            
+            // プレイヤー攻撃
+            if (gameState.keys['j'] && gameState.attackCooldown <= 0) {
+                performAttack(player, 'punch');
+                gameState.attackCooldown = 30;
+            }
+            if (gameState.keys['k'] && gameState.attackCooldown <= 0) {
+                performAttack(player, 'kick');
+                gameState.attackCooldown = 50;
+            }
+            
+            if (gameState.attackCooldown > 0) {
+                gameState.attackCooldown--;
+            }
+            
+            // 敵更新
+            updateEnemy();
+            
+            // 攻撃判定
+            checkAttack(player, enemy, 'punch');
+            checkAttack(player, enemy, 'kick');
+            checkAttack(enemy, player, 'punch');
+            checkAttack(enemy, player, 'kick');
+            
+            // 位置更新
+            player.style.left = gameState.playerPos.x + 'px';
+            enemy.style.left = gameState.enemyPos.x + 'px';
+            
+            // 体力バーの更新
+            updateHealthBars();
+            
+            // ゲーム終了判定
+            if (gameState.playerHealth <= 0) {
+                gameState.gameRunning = false;
+                defeatedCountElement.textContent = gameState.defeatedCount;
+                gameScreen.style.display = 'none';
+                gameOverScreen.style.display = 'block';
+            } else if (gameState.enemyHealth <= 0) {
+                gameState.defeatedCount++;
+                gameState.remainingEnemies--;
+                gameState.gameRunning = false;
+                gameScreen.style.display = 'none';
+                
+                if (gameState.remainingEnemies <= 0) {
+                    // 完全勝利
+                    document.getElementById('victoryCharacterName').textContent = gameState.playerCharacter.name;
+                    victoryScreen.style.display = 'block';
+                } else {
+                    // バトル結果画面を表示
+                    document.getElementById('defeatedEnemyInfo').innerHTML = `
+                        <h2>${gameState.enemyCharacter.emoji} ${gameState.enemyCharacter.name}を倒した！</h2>
+                    `;
+                    document.getElementById('currentDefeatCount').textContent = gameState.defeatedCount;
+                    document.getElementById('remainingEnemiesText').textContent = gameState.remainingEnemies;
+                    battleResultScreen.style.display = 'block';
+                }
+            }
+            
+            // 画面外回避
+            gameState.playerPos.x = Math.max(0, Math.min(750, gameState.playerPos.x));
+            gameState.enemyPos.x = Math.max(0, Math.min(750, gameState.enemyPos.x));
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // リスタート
+        function resetGame() {
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            victoryScreen.style.display = 'none';
+            battleResultScreen.style.display = 'none';
+            characterSelect.style.display = 'block';
+            
+            gameState = {
+                playerPos: { x: 50, y: 100 },
+                enemyPos: { x: 700, y: 100 },
+                playerHealth: MAX_HEALTH,
+                enemyHealth: MAX_HEALTH,
+                keys: {},
+                gameRunning: false,
+                attackCooldown: 0,
+                enemyAttackCooldown: 0,
+                playerCharacter: null,
+                enemyCharacter: null,
+                remainingEnemies: 7,
+                defeatedCount: 0,
+                selectedAnimal: null,
+                enemyStuckTimer: 0
+            };
+            
+            // 選択をリセット
+            selectedStats.innerHTML = '';
+            document.querySelectorAll('.character-option').forEach(opt => {
+                opt.style.background = 'rgba(255,255,255,0.8)';
+            });
+        }
+
+        // イベントリスナー設定
+        document.getElementById('restartButton').addEventListener('click', resetGame);
+        document.getElementById('victoryRestartButton').addEventListener('click', resetGame);
+        document.getElementById('nextBattleButton').addEventListener('click', startNextBattle);
+        document.getElementById('quitGameButton').addEventListener('click', resetGame);
+
+        // 初期化
+        initCharacterSelect();
+    </script>
+</body>
+</html>
