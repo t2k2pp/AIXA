@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>反射神経テスト</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #222;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    #game {
+      width: 300px;
+      height: 300px;
+      background-color: red;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      border-radius: 10px;
+      user-select: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">クリックで開始</div>
+
+  <script>
+    const game = document.getElementById("game");
+    let startTime, timeoutID;
+    let state = "waiting";
+
+    game.addEventListener("click", () => {
+      if (state === "waiting") {
+        game.textContent = "緑になったらクリック！";
+        game.style.backgroundColor = "red";
+        state = "ready";
+        const delay = Math.random() * 2000 + 2000; // 2〜4秒
+        timeoutID = setTimeout(() => {
+          game.style.backgroundColor = "green";
+          game.textContent = "今だ！クリック！";
+          startTime = new Date();
+          state = "go";
+        }, delay);
+      } else if (state === "ready") {
+        clearTimeout(timeoutID);
+        game.textContent = "早すぎ！もう一度";
+        game.style.backgroundColor = "red";
+        state = "waiting";
+      } else if (state === "go") {
+        const reactionTime = new Date() - startTime;
+        game.textContent = `反応時間: ${reactionTime}ms\nクリックで再挑戦`;
+        game.style.backgroundColor = "red";
+        state = "waiting";
+      }
+    });
+  </script>
+</body>
+</html>
