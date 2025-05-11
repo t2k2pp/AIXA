@@ -1,5 +1,30 @@
 # 生成AIで作成したゲーム
-## 生成したゲーム一覧
+
+### 以下は2025年5月に作成したものです。
+
+#### ゲームをつくってもらおう！
+[📑ゲームをつくってもらおう！プロンプトの流れ](https://github.com/t2k2pp/AIXA/blob/main/games/%E3%82%B2%E3%83%BC%E3%83%A0%E3%82%92%E3%81%A4%E3%81%8F%E3%81%A3%E3%81%A6%E3%82%82%E3%82%89%E3%81%8A%E3%81%86%EF%BC%81.md)
+
+- [📝シンプルアクションゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/copilot_sample.html) , [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/copilot_sample.html)...2025/05/10 Copilot
+
+
+
+
+#### その他の作成ゲーム
+|コード参照|ゲームプレイ|設計書参照|作成情報|
+|---|---|---|---|
+| [📝アニマルファイターズ](https://github.com/t2k2pp/AIXA/blob/main/games/animal-fighters-healthbar-fixed.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/animal-fighters-healthbar-fixed.html) | [📖設計書](https://github.com/t2k2pp/AIXA/blob/main/games/animal-fighters-design-document.md)|2025/05/10 Claude3.7|
+| [📝反射神経テスト](https://github.com/t2k2pp/AIXA/blob/main/games/chatgpt_ReactionTimerGame.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/chatgpt_ReactionTimerGame.html) | [📖設計書](https://github.com/t2k2pp/AIXA/blob/main/games/chatgpt_ReactionTimerGame_Doc.md)|2025/05/10 ChatGPT|
+| [📝動物絵文字ぷよぷよゲーム Claude](https://github.com/t2k2pp/AIXA/blob/main/games/animal-puyo-game.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/animal-puyo-game.html)|-|2025/05/10 Claude3.7|
+| [📝動物絵文字ぷよぷよゲーム Gemini](https://github.com/t2k2pp/AIXA/blob/main/games/chrome_puyo.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/chrome_puyo.html)|-|2025/05/10 Gemini 2.5 Pro|
+| [📝Ninja Runner - アクションゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/ninja-runner-game.html)| [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/ninja-runner-game.html)|-|2025/05/10 Claude3.7|
+| [📝ポップなテトリスクローン](https://github.com/t2k2pp/AIXA/blob/main/games/pop-tetris.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/pop-tetris.html)|-|2025/05/10 Claude|
+| [📝電車ゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/train-game.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/train-game.html)|-|2025/05/10 Claude3.7|
+| [📝スネークゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/perplexity_snake.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/perplexity_snake.html)|-|2025/05/10 Perplexity|
+
+
+---
+### 以下は2025年1月に作成したものです。
 
 ブラウザであれば、下記動作します。AndroidのGitHubアプリ上では動作しませんでした。
 
