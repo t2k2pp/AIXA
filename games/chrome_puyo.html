@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>絵文字ぷよぷよクローン</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        #game-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #4a4a4a;
+            text-shadow: 1px 1px 2px #ccc;
+        }
+
+        #game-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-board {
+            display: grid;
+            /* Columns and rows will be set by JS */
+            border: 3px solid #333;
+            background-color: #e0e0e0;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            position: relative; /* For potential future overlays */
+        }
+
+        .grid-cell {
+            /* Width and height will be set by JS */
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Font size will be set by JS */
+            background-color: #f7f7f7;
+            transition: background-color 0.1s;
+        }
+        
+        .grid-cell.occupied {
+            /* background-color: #ededed; */ /* Example */
+        }
+
+        #info-panel {
+            width: 180px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #info-panel h2 {
+            font-size: 1.2em;
+            margin: 0 0 5px 0;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        #score, #chain-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e67e22; /* Orange color for score */
+        }
+
+        #next-puyo-display {
+            width: 100%;
+            height: calc(2 * var(--cell-size, 30px) + 10px); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .next-emoji {
+            /* Font size will be set by JS */
+            display: block;
+        }
+        
+        #controls-info {
+            font-size: 0.9em;
+        }
+        #controls-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #controls-info li {
+            margin-bottom: 3px;
+        }
+
+        #start-button, #restart-button {
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            background-color: #3498db; /* Blue button */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #start-button:hover, #restart-button:hover {
+            background-color: #2980b9;
+        }
+        
+        #start-button:active, #restart-button:active {
+            background-color: #2471a3;
+        }
+
+
+        #game-over-message {
+            margin-top: 10px;
+            font-size: 1.5em;
+            color: #e74c3c; /* Red for game over */
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #game-layout {
+                flex-direction: column;
+                align-items: center;
+            }
+            #info-panel {
+                width: 90%;
+                max-width: 300px;
+            }
+            #game-title {
+                font-size: 2em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1 id="game-title">絵文字ぷよぷよ</h1>
+
+    <div id="game-layout">
+        <div id="game-container">
+            <div id="game-board"></div>
+            <div id="game-over-message" style="display:none;">ゲームオーバー！</div>
+        </div>
+
+        <div id="info-panel">
+            <div>
+                <h2>スコア</h2>
+                <div id="score">0</div>
+            </div>
+            <div>
+                <h2>連鎖</h2>
+                <div id="chain-count">0</div>
+            </div>
+            <div>
+                <h2>つぎのぷよ</h2>
+                <div id="next-puyo-display">
+                    <span class="next-emoji" id="next-p1"></span>
+                    <span class="next-emoji" id="next-p2"></span>
+                </div>
+            </div>
+            <div id="controls-info">
+                <h2>操作方法</h2>
+                <ul>
+                    <li>← : 左へ移動</li>
+                    <li>→ : 右へ移動</li>
+                    <li>↓ : 高速落下</li>
+                    <li>↑ : 回転</li>
+                </ul>
+            </div>
+            <button id="start-button">ゲーム開始</button>
+            <button id="restart-button" style="display:none;">リスタート</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const BOARD_COLS = 6;
+        const BOARD_VISIBLE_ROWS = 12;
+        const BOARD_BUFFER_ROWS = 2; // Hidden rows at the top for spawning
+        const BOARD_TOTAL_ROWS = BOARD_VISIBLE_ROWS + BOARD_BUFFER_ROWS;
+        const CELL_SIZE = Math.min(35, Math.floor((window.innerHeight * 0.6) / BOARD_VISIBLE_ROWS), Math.floor((window.innerWidth * 0.5) / BOARD_COLS)); // px
+        
+        const ANIMAL_EMOJIS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+        const SPAWN_COL = Math.floor(BOARD_COLS / 2) -1; 
+        
+        const BASE_FALL_SPEED = 700; // ms
+        const FAST_FALL_SPEED = 50; // ms
+        const CLEAR_ANIMATION_DELAY = 200; // ms
+        const GRAVITY_DELAY = 250; // ms
+
+        // --- Game State Variables ---
+        let board; 
+        let currentPuyo; 
+        let nextPuyo; 
+        let score;
+        let currentChain;
+        let gameOver;
+        let gameLoopInterval;
+        let isProcessingPlacement = false;
+        let currentFallSpeed = BASE_FALL_SPEED;
+
+        // --- HTML Elements ---
+        const gameBoardElement = document.getElementById('game-board');
+        const scoreElement = document.getElementById('score');
+        const chainCountElement = document.getElementById('chain-count');
+        const nextP1Element = document.getElementById('next-p1');
+        const nextP2Element = document.getElementById('next-p2');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const gameOverMessageElement = document.getElementById('game-over-message');
+
+        // --- Utility Functions ---
+        function getRandomEmoji() {
+            return ANIMAL_EMOJIS[Math.floor(Math.random() * ANIMAL_EMOJIS.length)];
+        }
+
+        // --- Game Initialization ---
+        function initGame() {
+            document.documentElement.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+            gameBoardElement.style.gridTemplateColumns = `repeat(${BOARD_COLS}, ${CELL_SIZE}px)`;
+            gameBoardElement.style.gridTemplateRows = `repeat(${BOARD_VISIBLE_ROWS}, ${CELL_SIZE}px)`;
+            
+            const emojiFontSize = `${CELL_SIZE * 0.7}px`;
+            // Apply font size to dynamically created cells later, and existing next-emoji
+            document.querySelectorAll('.next-emoji').forEach(el => el.style.fontSize = emojiFontSize);
+
+            board = Array(BOARD_TOTAL_ROWS).fill(null).map(() => Array(BOARD_COLS).fill(null));
+            score = 0;
+            currentChain = 0;
+            gameOver = false;
+            isProcessingPlacement = false;
+            currentFallSpeed = BASE_FALL_SPEED;
+
+            updateScoreDisplay();
+            updateChainDisplay();
+            gameOverMessageElement.style.display = 'none';
+            restartButton.style.display = 'none';
+            startButton.style.display = 'none'; 
+
+            gameBoardElement.innerHTML = ''; 
+            for (let r = 0; r < BOARD_VISIBLE_ROWS; r++) {
+                for (let c = 0; c < BOARD_COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell');
+                    cell.id = `cell-${r}-${c}`;
+                    cell.style.width = `${CELL_SIZE}px`;
+                    cell.style.height = `${CELL_SIZE}px`;
+                    cell.style.fontSize = emojiFontSize; // Apply font size here
+                    gameBoardElement.appendChild(cell);
+                }
+            }
+            
+            spawnNextPuyo(); 
+            if (!spawnCurrentPuyo()) { // Initial spawn could theoretically be game over if board is too small / spawn invalid
+                return; // Game over handled in spawnCurrentPuyo
+            }
+
+
+            if (gameLoopInterval) clearInterval(gameLoopInterval);
+            gameLoopInterval = setInterval(gameLoop, currentFallSpeed);
+
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // --- Puyo Spawning ---
+        function createPuyoPair() {
+            return {
+                p1: { emoji: getRandomEmoji(), x: SPAWN_COL, y: BOARD_BUFFER_ROWS - 2, id: 'p1' },
+                p2: { emoji: getRandomEmoji(), x: SPAWN_COL, y: BOARD_BUFFER_ROWS - 1, id: 'p2' }
+            };
+        }
+
+        function spawnNextPuyo() {
+            nextPuyo = createPuyoPair();
+            displayNextPuyo();
+        }
+
+        function spawnCurrentPuyo() {
+            currentPuyo = nextPuyo; 
+            spawnNextPuyo(); 
+
+            if (isOccupied(currentPuyo.p1.x, currentPuyo.p1.y) || isOccupied(currentPuyo.p2.x, currentPuyo.p2.y)) {
+                triggerGameOver();
+                return false; 
+            }
+            return true;
+        }
+        
+        function displayNextPuyo() {
+            if (nextPuyo) {
+                nextP1Element.textContent = nextPuyo.p1.emoji;
+                nextP2Element.textContent = nextPuyo.p2.emoji;
+            }
+        }
+
+        // --- Drawing ---
+        function drawBoard() {
+            for (let r = 0; r < BOARD_VISIBLE_ROWS; r++) {
+                for (let c = 0; c < BOARD_COLS; c++) {
+                    const cellElement = document.getElementById(`cell-${r}-${c}`);
+                    if (cellElement) {
+                        const boardRow = r + BOARD_BUFFER_ROWS;
+                        if (board[boardRow] && board[boardRow][c]) {
+                            cellElement.textContent = board[boardRow][c];
+                            cellElement.classList.add('occupied');
+                        } else {
+                            cellElement.textContent = '';
+                            cellElement.classList.remove('occupied');
+                        }
+                    }
+                }
+            }
+
+            if (currentPuyo) {
+                const { p1, p2 } = currentPuyo;
+                if (p1.y >= BOARD_BUFFER_ROWS) {
+                    const visibleRowP1 = p1.y - BOARD_BUFFER_ROWS;
+                    if (visibleRowP1 < BOARD_VISIBLE_ROWS && p1.x >= 0 && p1.x < BOARD_COLS) {
+                        const cellP1 = document.getElementById(`cell-${visibleRowP1}-${p1.x}`);
+                        if (cellP1) cellP1.textContent = p1.emoji;
+                    }
+                }
+                if (p2.y >= BOARD_BUFFER_ROWS) {
+                    const visibleRowP2 = p2.y - BOARD_BUFFER_ROWS;
+                     if (visibleRowP2 < BOARD_VISIBLE_ROWS && p2.x >= 0 && p2.x < BOARD_COLS) {
+                        const cellP2 = document.getElementById(`cell-${visibleRowP2}-${p2.x}`);
+                        if (cellP2) cellP2.textContent = p2.emoji;
+                    }
+                }
+            }
+        }
+
+        // --- Puyo Movement and Collision ---
+        function isOccupied(x, y) {
+            if (x < 0 || x >= BOARD_COLS || y < 0 || y >= BOARD_TOTAL_ROWS) {
+                return true; 
+            }
+            return board[y][x] !== null;
+        }
+
+        function canMove(puyoPair, dx, dy) {
+            const newP1 = { x: puyoPair.p1.x + dx, y: puyoPair.p1.y + dy };
+            const newP2 = { x: puyoPair.p2.x + dx, y: puyoPair.p2.y + dy };
+            return !isOccupied(newP1.x, newP1.y) && !isOccupied(newP2.x, newP2.y);
+        }
+
+        function movePuyo(dx, dy) {
+            if (gameOver || isProcessingPlacement || !currentPuyo) return false;
+
+            if (canMove(currentPuyo, dx, dy)) {
+                currentPuyo.p1.x += dx; currentPuyo.p1.y += dy;
+                currentPuyo.p2.x += dx; currentPuyo.p2.y += dy;
+                drawBoard();
+                return true;
+            }
+            return false;
+        }
+
+        function rotatePuyo() {
+            if (gameOver || isProcessingPlacement || !currentPuyo) return;
+
+            const { p1, p2 } = currentPuyo;
+            const relX = p2.x - p1.x;
+            const relY = p2.y - p1.y;
+            const newRelX = -relY;
+            const newRelY = relX;
+            const newP2X = p1.x + newRelX;
+            const newP2Y = p1.y + newRelY;
+
+            if (!isOccupied(newP2X, newP2Y)) {
+                p2.x = newP2X;
+                p2.y = newP2Y;
+            } else {
+                if (!isOccupied(p1.x - 1, p1.y) && !isOccupied(newP2X - 1, newP2Y)) {
+                    p1.x -= 1;
+                    p2.x = newP2X - 1;
+                    p2.y = newP2Y;
+                } 
+                else if (!isOccupied(p1.x + 1, p1.y) && !isOccupied(newP2X + 1, newP2Y)) {
+                    p1.x += 1;
+                    p2.x = newP2X + 1;
+                    p2.y = newP2Y;
+                }
+            }
+            drawBoard();
+        }
+        
+        function hardDrop() { 
+            if (gameOver || isProcessingPlacement || !currentPuyo) return;
+            if (currentFallSpeed !== FAST_FALL_SPEED) {
+                 currentFallSpeed = FAST_FALL_SPEED;
+                 clearInterval(gameLoopInterval);
+                 gameLoopInterval = setInterval(gameLoop, currentFallSpeed);
+                 gameLoop(); 
+            }
+        }
+
+        function releaseHardDrop() {
+            if (currentFallSpeed !== BASE_FALL_SPEED) {
+                currentFallSpeed = BASE_FALL_SPEED;
+                clearInterval(gameLoopInterval);
+                gameLoopInterval = setInterval(gameLoop, currentFallSpeed);
+            }
+        }
+
+        // --- Placing Puyo and Match Logic ---
+        function placePuyo() {
+            if (!currentPuyo) return;
+            board[currentPuyo.p1.y][currentPuyo.p1.x] = currentPuyo.p1.emoji;
+            board[currentPuyo.p2.y][currentPuyo.p2.x] = currentPuyo.p2.emoji;
+            currentPuyo = null; 
+            isProcessingPlacement = true; 
+            
+            processMatchesAndGravity();
+        }
+
+        async function processMatchesAndGravity() {
+            let chainReaction = true;
+            currentChain = 0; // Reset chain count for this new drop and potential chain sequence
+            // updateChainDisplay(); // Display 0 initially for this turn's chain
+
+            while(chainReaction) {
+                const matches = findMatches();
+                if (matches.length > 0) {
+                    currentChain++;
+                    updateScore(matches.length, currentChain);
+                    updateChainDisplay(); // Update display with the current chain number
+
+                    // Animate removal
+                    matches.forEach(p => { // p is {r, c}
+                        if (p.r >= BOARD_BUFFER_ROWS) {
+                           const visibleRow = p.r - BOARD_BUFFER_ROWS;
+                           const cellEl = document.getElementById(`cell-${visibleRow}-${p.c}`);
+                           if (cellEl) cellEl.style.backgroundColor = '#ffdddd'; 
+                        }
+                    });
+                    
+                    await new Promise(resolve => setTimeout(resolve, CLEAR_ANIMATION_DELAY)); 
+
+                    // Clear from board and reset style
+                    matches.forEach(p => { // p is {r, c}
+                        board[p.r][p.c] = null; 
+                         if (p.r >= BOARD_BUFFER_ROWS) {
+                           const visibleRow = p.r - BOARD_BUFFER_ROWS;
+                           const cellEl = document.getElementById(`cell-${visibleRow}-${p.c}`);
+                           if (cellEl) cellEl.style.backgroundColor = ''; 
+                        }
+                    });
+                    drawBoard(); 
+
+                    await new Promise(resolve => setTimeout(resolve, GRAVITY_DELAY)); 
+                    applyGravity();
+                    drawBoard(); 
+                } else {
+                    chainReaction = false; 
+                }
+            }
+            
+            // Chain display now correctly reflects the completed chain for the drop.
+            // No need to reset currentChain to 0 here, it's done at the start of this function.
+
+            if (!gameOver) {
+                if (!spawnCurrentPuyo()) { 
+                    if (gameOver) { 
+                        drawBoard(); 
+                        return; 
+                    }
+                }
+            }
+
+            if (!gameOver) {
+                isProcessingPlacement = false;
+            }
+            // else, if game is over, isProcessingPlacement remains true, stopping gameLoop.
+            drawBoard(); // Final draw for the turn
+        }
+
+        function findMatches() {
+            const cellsToClear = [];
+            const visited = Array(BOARD_TOTAL_ROWS).fill(null).map(() => Array(BOARD_COLS).fill(false));
+
+            for (let r_coord = 0; r_coord < BOARD_TOTAL_ROWS; r_coord++) {
+                for (let c_coord = 0; c_coord < BOARD_COLS; c_coord++) {
+                    if (board[r_coord][c_coord] && !visited[r_coord][c_coord]) {
+                        const currentEmoji = board[r_coord][c_coord];
+                        const group = [];
+                        const queue = [{ r: r_coord, c: c_coord }]; // Use r, c internally for clarity
+                        visited[r_coord][c_coord] = true;
+                        
+                        let head = 0;
+                        while(head < queue.length) {
+                            const currentCell = queue[head++];
+                            group.push(currentCell);
+
+                            const neighbors = [
+                                { r: currentCell.r + 1, c: currentCell.c }, { r: currentCell.r - 1, c: currentCell.c },
+                                { r: currentCell.r, c: currentCell.c + 1 }, { r: currentCell.r, c: currentCell.c - 1 }
+                            ];
+
+                            for (const neighbor of neighbors) {
+                                if (neighbor.r >= 0 && neighbor.r < BOARD_TOTAL_ROWS &&
+                                    neighbor.c >= 0 && neighbor.c < BOARD_COLS &&
+                                    board[neighbor.r][neighbor.c] === currentEmoji && !visited[neighbor.r][neighbor.c]) {
+                                    visited[neighbor.r][neighbor.c] = true;
+                                    queue.push(neighbor);
+                                }
+                            }
+                        }
+                        if (group.length >= 4) {
+                            cellsToClear.push(...group);
+                        }
+                    }
+                }
+            }
+            return [...new Set(cellsToClear.map(cell => `${cell.r}-${cell.c}`))].map(s => {
+                const [r_val, c_val] = s.split('-').map(Number);
+                return {r: r_val, c: c_val}; // Return objects with r, c
+            });
+        }
+        
+        function applyGravity() {
+            for (let c = 0; c < BOARD_COLS; c++) {
+                let emptyRow = BOARD_TOTAL_ROWS - 1;
+                for (let r = BOARD_TOTAL_ROWS - 1; r >= 0; r--) {
+                    if (board[r][c]) {
+                        if (r !== emptyRow) {
+                            board[emptyRow][c] = board[r][c];
+                            board[r][c] = null;
+                        }
+                        emptyRow--;
+                    }
+                }
+            }
+        }
+
+        // --- Scoring and Game Over ---
+        function updateScore(clearedCount, chain) {
+            let basePoints = clearedCount * 10;
+            let chainBonus = chain > 1 ? Math.pow(2, chain -1) * 10 : 0; // Adjusted chain bonus slightly
+            let groupBonus = 0;
+            if (clearedCount > 4) groupBonus = (clearedCount - 4) * 20; 
+
+            score += basePoints + chainBonus + groupBonus;
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            scoreElement.textContent = score;
+        }
+        function updateChainDisplay() {
+            chainCountElement.textContent = currentChain;
+        }
+
+        function triggerGameOver() {
+            gameOver = true;
+            isProcessingPlacement = true; 
+            clearInterval(gameLoopInterval);
+            gameOverMessageElement.style.display = 'block';
+            restartButton.style.display = 'inline-block';
+            document.removeEventListener('keydown', handleKeyPress); 
+            console.log("Game Over! Score: " + score);
+        }
+
+        // --- Game Loop ---
+        function gameLoop() {
+            if (gameOver || isProcessingPlacement || !currentPuyo) return;
+
+            if (!movePuyo(0, 1)) { 
+                placePuyo();
+            }
+        }
+
+        // --- Event Handling ---
+        function handleKeyPress(event) {
+            if (gameOver || isProcessingPlacement || !currentPuyo) return;
+
+            switch (event.key) {
+                case 'ArrowLeft': case 'a':
+                    movePuyo(-1, 0);
+                    break;
+                case 'ArrowRight': case 'd':
+                    movePuyo(1, 0);
+                    break;
+                case 'ArrowDown': case 's':
+                    hardDrop(); 
+                    break;
+                case 'ArrowUp': case 'w': case ' ': 
+                    rotatePuyo();
+                    break;
+            }
+        }
+        
+        function handleKeyUp(event) { 
+            if (event.key === 'ArrowDown' || event.key === 's') {
+                releaseHardDrop();
+            }
+        }
+
+        // --- Start Button ---
+        startButton.addEventListener('click', () => {
+            initGame();
+        });
+        restartButton.addEventListener('click', () => {
+            initGame();
+        });
+        
+        document.addEventListener('keyup', handleKeyUp);
+
+        function showInitialScreen() {
+            gameBoardElement.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100%; font-size:1.2em; text-align:center; padding:20px; color:#555;">「ゲーム開始」ボタンを押してね！</div>`;
+            gameBoardElement.style.gridTemplateColumns = `1fr`; 
+            gameBoardElement.style.gridTemplateRows = `1fr`;
+            scoreElement.textContent = '0';
+            chainCountElement.textContent = '0';
+            nextP1Element.textContent = '❓';
+            nextP2Element.textContent = '❓';
+        }
+        
+        showInitialScreen();
+
+    </script>
+</body>
+</html>
