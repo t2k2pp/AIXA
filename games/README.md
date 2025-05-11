@@ -18,7 +18,7 @@
 | [📝動物絵文字ぷよぷよゲーム Claude](https://github.com/t2k2pp/AIXA/blob/main/games/animal-puyo-game.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/animal-puyo-game.html)|-|2025/05/10 Claude3.7|
 | [📝動物絵文字ぷよぷよゲーム Gemini](https://github.com/t2k2pp/AIXA/blob/main/games/chrome_puyo.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/chrome_puyo.html)|-|2025/05/10 Gemini 2.5 Pro|
 | [📝Ninja Runner - アクションゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/ninja-runner-game.html)| [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/ninja-runner-game.html)|-|2025/05/10 Claude3.7|
-| [📝ポップなテトリスクローン](https://github.com/t2k2pp/AIXA/blob/main/games/pop-tetris.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/pop-tetris.html)|-|2025/05/10 Claude|
+| [📝ポップなテトリスクローン](https://github.com/t2k2pp/AIXA/blob/main/games/pop-tetris.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/pop-tetris.html)|-|2025/05/10 Claude3.7|
 | [📝電車ゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/train-game.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/train-game.html)|-|2025/05/10 Claude3.7|
 | [📝スネークゲーム](https://github.com/t2k2pp/AIXA/blob/main/games/perplexity_snake.html) | [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/perplexity_snake.html)|-|2025/05/10 Perplexity|
 
