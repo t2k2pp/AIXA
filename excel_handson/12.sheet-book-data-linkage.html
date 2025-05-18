@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シート・ブック間のデータ連携</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Kosugi Maru', sans-serif;
+            background-color: #F8F9FA;
+            color: #202124;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #4285F4;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid #34A853;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: #34A853;
+            margin: 20px 0 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #34A853;
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: #FBBC05;
+            font-weight: bold;
+            margin: 15px 0 10px;
+        }
+        
+        p {
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .annotation {
+            font-size: 13px;
+            color: #5F6368;
+            font-style: italic;
+        }
+        
+        .section {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .challenge {
+            background-color: #F8F9FA;
+            border-left: 5px solid #EA4335;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .benefit {
+            background-color: #e6f4ea;
+            border-left: 5px solid #34A853;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .example {
+            background-color: #fff8e1;
+            border: 2px dashed #FBBC05;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+        
+        .hands-on {
+            background-color: #e8f0fe;
+            border: 2px solid #4285F4;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        .data-table th {
+            background-color: #4285F4;
+            color: white;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        
+        .data-table td {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+        
+        .data-table tr:nth-child(even) td {
+            background-color: #f8f9fa;
+        }
+        
+        .formula {
+            font-family: monospace;
+            background-color: #f1f3f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #EA4335;
+        }
+        
+        .step-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .step {
+            flex-basis: 48%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            background-color: #4285F4;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .benefit-list {
+            list-style: none;
+        }
+        
+        .benefit-list li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .benefit-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #34A853;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .warning {
+            background-color: #fce8e6;
+            border-left: 5px solid #EA4335;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .tip {
+            background-color: #e6f4ea;
+            border: 2px solid #34A853;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .tip::before {
+            content: "ヒント";
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background-color: #34A853;
+            color: white;
+            padding: 0 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .link-types {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .link-type {
+            flex-basis: 45%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .link-type h3 {
+            color: #4285F4;
+            margin-bottom: 10px;
+        }
+        
+        .arrow {
+            text-align: center;
+            font-size: 30px;
+            color: #FBBC05;
+            margin: 10px 0;
+        }
+        
+        footer {
+            background-color: #4285F4;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .character {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: #FBBC05;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>課題12: シート・ブック間のデータ連携</h1>
+            <p>異なるシート・ブック間でデータを効率的に連携させる方法を学びましょう</p>
+        </header>
+        
+        <div class="section">
+            <div class="challenge">
+                <h2>①何が課題か</h2>
+                <p>複数のシートやブック間でデータを連携させる際、多くの場合以下のような問題が発生しています：</p>
+                <ul>
+                    <li>手動コピー＆ペーストによるデータ転記とそのミス</li>
+                    <li>元データ更新時の連携漏れ</li>
+                    <li>参照元の変更（移動・名前変更）によるリンク切れ</li>
+                    <li>複雑な参照式の管理困難</li>
+                    <li>外部データ取り込みの非効率性</li>
+                    <li>ファイル間の整合性維持の難しさ</li>
+                    <li>セキュリティ設定による参照制限</li>
+                </ul>
+                <p class="annotation">これらの問題は、データの一貫性や信頼性を損ない、無駄な作業時間を生み出します。</p>
+            </div>
+            
+            <div class="benefit">
+                <h2>②改善することでどういう良いことがあるか</h2>
+                <h3>スキル・知識面で得られるもの</h3>
+                <p>異なるテーブル間でのデータ参照を自動化する方法を習得できます</p>
+                
+                <h3>個人のメリット</h3>
+                <ul class="benefit-list">
+                    <li><strong>転記ミスからの解放</strong>：手作業でのコピー＆ペーストによるミスがなくなり、精神的な負担が軽減されます</li>
+                    <li><strong>更新作業の自動化</strong>：データが変わっても自動で反映されるため、二度手間から解放されます</li>
+                    <li><strong>時間の大幅節約</strong>：手動での検索・転記作業がなくなり、他の価値ある業務に時間を使えます</li>
+                    <li><strong>データ整合性への信頼</strong>：常に最新・正確なデータを参照しているという安心感が得られます</li>
+                    <li><strong>スキルの市場価値</strong>：実務で重宝されるこの技術の習得により、職場での評価や市場価値が向上します</li>
+                </ul>
+            </div>
+            
+            <div class="example">
+                <h2>③実際の問題データイメージ</h2>
+                <p>複数シートにまたがるデータ管理の例です：</p>
+                
+                <h3>売上データ（Sheet1）</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>店舗</th>
+                            <th>商品コード</th>
+                            <th>売上金額</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>東京店</td>
+                            <td>A001</td>
+                            <td>5000</td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>大阪店</td>
+                            <td>B001</td>
+                            <td>3000</td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/2</td>
+                            <td>名古屋店</td>
+                            <td>A002</td>
+                            <td>4000</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>商品マスター（Sheet2）</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>商品コード</th>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>原価</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>A001</td>
+                            <td>りんご</td>
+                            <td>果物</td>
+                            <td>80</td>
+                        </tr>
+                        <tr>
+                            <td>A002</td>
+                            <td>みかん</td>
+                            <td>果物</td>
+                            <td>60</td>
+                        </tr>
+                        <tr>
+                            <td>B001</td>
+                            <td>キャベツ</td>
+                            <td>野菜</td>
+                            <td>90</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>店舗マスター（Sheet3）</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>店舗コード</th>
+                            <th>店舗名</th>
+                            <th>地域</th>
+                            <th>責任者</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>T01</td>
+                            <td>東京店</td>
+                            <td>東日本</td>
+                            <td>山田</td>
+                        </tr>
+                        <tr>
+                            <td>O01</td>
+                            <td>大阪店</td>
+                            <td>西日本</td>
+                            <td>鈴木</td>
+                        </tr>
+                        <tr>
+                            <td>N01</td>
+                            <td>名古屋店</td>
+                            <td>中部</td>
+                            <td>佐藤</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>月次レポート（別ブック）</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>店舗</th>
+                            <th>地域</th>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>売上金額</th>
+                            <th>原価</th>
+                            <th>粗利</th>
+                            <th>責任者</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>東京店</td>
+                            <td>東日本</td>
+                            <td>りんご</td>
+                            <td>果物</td>
+                            <td>5000</td>
+                            <td>4000</td>
+                            <td>1000</td>
+                            <td>山田</td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>大阪店</td>
+                            <td>西日本</td>
+                            <td>キャベツ</td>
+                            <td>野菜</td>
+                            <td>3000</td>
+                            <td>2700</td>
+                            <td>300</td>
+                            <td>鈴木</td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/2</td>
+                            <td>名古屋店</td>
+                            <td>中部</td>
+                            <td>みかん</td>
+                            <td>果物</td>
+                            <td>4000</td>
+                            <td>3000</td>
+                            <td>1000</td>
+                            <td>佐藤</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="warning">
+                    <h3>問題点</h3>
+                    <ul>
+                        <li>月次レポートのデータが手動でコピー＆集計されている</li>
+                        <li>元データが更新されても自動反映されない</li>
+                        <li>データの不整合が発生しやすい</li>
+                        <li>レポート作成に多大な時間がかかる</li>
+                        <li>シートやブックの関係性が不明確</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example">
+                <h2>④実際の改善データイメージ</h2>
+                <h3>月次レポート（数式による自動連携）</h3>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>店舗</th>
+                            <th>地域</th>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>売上金額</th>
+                            <th>原価</th>
+                            <th>粗利</th>
+                            <th>責任者</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="formula">=Sheet1!A2</td>
+                            <td class="formula">=Sheet1!B2</td>
+                            <td class="formula">=VLOOKUP(B2,Sheet3!B:C,2,FALSE)</td>
+                            <td class="formula">=VLOOKUP(Sheet1!C2,Sheet2!A:B,2,FALSE)</td>
+                            <td class="formula">=VLOOKUP(Sheet1!C2,Sheet2!A:C,3,FALSE)</td>
+                            <td class="formula">=Sheet1!D2</td>
+                            <td class="formula">=VLOOKUP(Sheet1!C2,Sheet2!A:D,4,FALSE)*50</td>
+                            <td class="formula">=F2-G2</td>
+                            <td class="formula">=VLOOKUP(B2,Sheet3!B:D,3,FALSE)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p class="annotation">または外部ブックへの参照: <span class="formula">='[売上データ.xlsx]Sheet1'!A2</span></p>
+                
+                <div class="benefit">
+                    <h3>改善されたデータ連携の特徴</h3>
+                    <ul>
+                        <li>セル参照やVLOOKUP関数による自動データ連携</li>
+                        <li>元データ更新時の自動反映</li>
+                        <li>手動転記の排除によるミス防止</li>
+                        <li>レポート作成の大幅な時間短縮</li>
+                        <li>データの整合性維持</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="link-types">
+                <div class="link-type">
+                    <h3>シート間参照</h3>
+                    <p><span class="formula">Sheet1!A1</span></p>
+                    <p>同じブック内の他シートを参照</p>
+                </div>
+                <div class="link-type">
+                    <h3>ブック間参照</h3>
+                    <p><span class="formula">='[ファイル名.xlsx]Sheet1'!A1</span></p>
+                    <p>別のブックのシートを参照</p>
+                </div>
+            </div>
+            
+            <div class="hands-on">
+                <h2>ハンズオン実習</h2>
+                
+                <div class="step-container">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>シート間参照の基本</h3>
+                        <ul>
+                            <li>基本的なセル参照（Sheet1!A1）</li>
+                            <li>名前付き範囲の活用</li>
+                            <li>シート間での計算式の作成</li>
+                            <li>3D参照（複数シートの同じセルを参照）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>ブック間参照の方法</h3>
+                        <ul>
+                            <li>外部ブックへの参照方法</li>
+                            <li>絶対パスと相対パスの使い分け</li>
+                            <li>リンクの更新と管理</li>
+                            <li>リンク切れの対処法</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>データの統合テクニック</h3>
+                        <ul>
+                            <li>VLOOKUP/XLOOKUPによる複数シートからのデータ取得</li>
+                            <li>INDIRECT関数の活用</li>
+                            <li>SUMIFS/COUNTIFS関数でのクロスシート集計</li>
+                            <li>ピボットテーブルでの複数シートデータ分析</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <h3>外部データソースとの連携</h3>
+                        <ul>
+                            <li>Webデータの取り込み</li>
+                            <li>テキスト/CSVファイルのインポート</li>
+                            <li>データ接続の管理</li>
+                            <li>データの自動更新設定</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>実習内容</h3>
+                <ol>
+                    <li>サンプルの複数シートデータを使って自動レポートを作成</li>
+                    <li>リンク管理の方法を学ぶ</li>
+                    <li>自社データでの効果的な連携方法を検討する</li>
+                    <li>メンテナンス性を考慮したデータ構造の設計</li>
+                </ol>
+                
+                <div class="tip">
+                    <p>VLOOKUP関数は左側の列から右側の列の値を取得しますが、XLOOKUP関数は任意の方向でデータを検索できます。複雑なデータ参照の場合はXLOOKUPの使用を検討してみましょう！</p>
+                </div>
+            </div>
+            
+            <div class="challenge">
+                <h3>確認ポイント</h3>
+                <ul>
+                    <li>「これで同じデータを何度も更新する手間がなくなる」と実感できたか</li>
+                    <li>「ファイル間の整合性を心配する必要がなくなった」と安心感を得られたか</li>
+                </ul>
+                
+                <h3>参加者への問いかけ例</h3>
+                <ul>
+                    <li>「シート・ブック間連携を活用すると、あなたの定期的な報告作業はどう変わりそうですか？」</li>
+                    <li>「この技術を使って解決したい、現在の業務上の課題はありますか？」</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>ビジネスパーソンのためのデータリテラシー入門 - Excel ハンズオン研修</p>
+            <p>© 2023 データ活用促進委員会</p>
+        </footer>
+    </div>
+</body>
+</html>

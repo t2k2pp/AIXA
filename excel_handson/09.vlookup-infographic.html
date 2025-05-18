@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLOOKUP/XLOOKUPによるデータ参照</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+
+        :root {
+            --main-color: #4285F4;
+            --sub1-color: #34A853;
+            --sub2-color: #FBBC05;
+            --accent-color: #EA4335;
+            --back-color: #F8F9FA;
+            --text-color: #202124;
+            --light-gray: #EEEEEE;
+            --medium-gray: #DADCE0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--back-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--main-color);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            z-index: 2;
+            position: relative;
+        }
+
+        header p {
+            font-size: 18px;
+            opacity: 0.9;
+            z-index: 2;
+            position: relative;
+        }
+
+        .header-decoration {
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 200px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .header-decoration:before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            color: var(--sub1-color);
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            background-color: var(--sub1-color);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: normal;
+        }
+
+        .subsection-title {
+            color: var(--sub2-color);
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+        }
+
+        .highlight-box {
+            background-color: var(--light-gray);
+            border-left: 4px solid var(--main-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .accent-text {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .comparison {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .comparison-column {
+            flex: 1;
+            min-width: 300px;
+            margin: 10px;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .comparison-column.bad {
+            background-color: rgba(234, 67, 53, 0.1);
+            border: 1px solid var(--accent-color);
+        }
+
+        .comparison-column.good {
+            background-color: rgba(52, 168, 83, 0.1);
+            border: 1px solid var(--sub1-color);
+        }
+
+        .label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background-color: white;
+            padding: 0 10px;
+            font-weight: bold;
+            border-radius: 15px;
+        }
+
+        .label.bad {
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .label.good {
+            color: var(--sub1-color);
+            border: 1px solid var(--sub1-color);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+            border: 1px solid var(--medium-gray);
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background-color: var(--main-color);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .data-table td {
+            padding: 8px 10px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .formula-cell {
+            background-color: #E6F4EA;
+            color: var(--sub1-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-explanation {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .formula-code {
+            flex: 1;
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--main-color);
+            font-size: 14px;
+        }
+
+        .formula-parts {
+            flex: 2;
+        }
+
+        .part {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .part-name {
+            width: 120px;
+            font-weight: bold;
+            color: var(--main-color);
+        }
+
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .step {
+            width: 48%;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background-color: var(--sub2-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .tips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .tip {
+            width: 48%;
+            background-color: rgba(251, 188, 5, 0.1);
+            border-left: 4px solid var(--sub2-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .tip-title {
+            font-weight: bold;
+            color: var(--sub2-color);
+            margin-bottom: 5px;
+        }
+
+        .review-points {
+            background-color: rgba(66, 133, 244, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .review-title {
+            font-weight: bold;
+            color: var(--main-color);
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .review-title i {
+            margin-right: 10px;
+        }
+
+        .review-points ul {
+            margin-left: 30px;
+        }
+
+        .character {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(251, 188, 5, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .speech-bubble {
+            position: absolute;
+            right: 110px;
+            bottom: 50px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 200px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        .speech-bubble:after {
+            content: "";
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            margin-top: -10px;
+            border-left: 10px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        .quiz {
+            background-color: rgba(52, 168, 83, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .quiz-title {
+            font-weight: bold;
+            color: var(--sub1-color);
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .quiz-option:hover {
+            background-color: var(--light-gray);
+        }
+
+        footer {
+            background-color: var(--main-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+            font-size: 14px;
+        }
+
+        .footer-links {
+            margin-top: 10px;
+        }
+
+        .footer-links a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .arrows {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .arrow {
+            position: relative;
+            width: 70%;
+            height: 60px;
+            margin: 0 auto;
+        }
+
+        .arrow:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 4px;
+            background-color: var(--main-color);
+        }
+
+        .arrow:after {
+            content: "";
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid var(--main-color);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        .data-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+
+        .data-block {
+            width: 45%;
+            border: 2px solid var(--medium-gray);
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+            position: relative;
+        }
+
+        .data-block-title {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background-color: white;
+            padding: 0 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .flow-arrow {
+            width: 10%;
+            text-align: center;
+            font-size: 24px;
+            color: var(--main-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .comparison-column {
+                min-width: 100%;
+                margin: 10px 0;
+            }
+            
+            .step, .tip {
+                width: 100%;
+            }
+            
+            .formula-explanation {
+                flex-direction: column;
+            }
+            
+            .formula-code {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VLOOKUP/XLOOKUPによるデータ参照</h1>
+            <p>異なるテーブル間のデータを自動で連携させる魔法の関数</p>
+            <div class="header-decoration"></div>
+        </header>
+
+        <div class="section">
+            <div class="section-title"><i>1</i>何が課題か</div>
+            <p>異なるテーブル間でのデータ参照や統合は、多くの場合、手作業で行われており、以下のような問題が生じています：</p>
+            
+            <div class="highlight-box">
+                <ul>
+                    <li>手動でのデータ転記によるミスの発生</li>
+                    <li>データ更新時の再転記の手間</li>
+                    <li>大量データの参照に膨大な時間がかかる</li>
+                    <li>複数条件での検索が難しい</li>
+                    <li>検索条件が厳密すぎて柔軟性に欠ける</li>
+                    <li>検索方向の制限（VLOOKUPは左から右のみ）</li>
+                    <li>エラー処理が適切でない</li>
+                </ul>
+            </div>
+            
+            <p>手作業でのデータ参照は時間の無駄であり、<span class="accent-text">人為的ミスの原因</span>となります。</p>
+            
+            <div class="character">🔍</div>
+            <div class="speech-bubble">関数を使えば、データ参照を自動化できるよ！</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><i>2</i>改善することでどういう良いことがあるか</div>
+            
+            <p>VLOOKUP/XLOOKUPなどの検索関数を活用することで：</p>
+            
+            <div class="comparison">
+                <div class="comparison-column bad">
+                    <div class="label bad">問題点</div>
+                    <ul>
+                        <li>手動転記によるミス</li>
+                        <li>データ更新時の再転記の手間</li>
+                        <li>大量データ処理の時間ロス</li>
+                        <li>検索の柔軟性不足</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-column good">
+                    <div class="label good">メリット</div>
+                    <ul>
+                        <li>データ参照の自動化によるミスの排除</li>
+                        <li>データ更新時の自動反映</li>
+                        <li>作業時間の大幅な短縮</li>
+                        <li>複雑な条件でも正確なデータ取得</li>
+                        <li>マスターデータとトランザクションデータの柔軟な連携</li>
+                        <li>エラー時の適切な処理と表示</li>
+                        <li>大量データでも効率的に処理可能</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>結果として、データ処理の正確性と効率が向上し、より高度な分析が可能になります。</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><i>3</i>実際の問題データイメージ</div>
+            
+            <p>以下は、手動でデータを参照・転記している例です：</p>
+            
+            <div class="subsection-title">商品マスター</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>商品コード</th>
+                        <th>商品名</th>
+                        <th>カテゴリ</th>
+                        <th>仕入価格</th>
+                        <th>標準売価</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A001</td>
+                        <td>りんご</td>
+                        <td>果物</td>
+                        <td>80</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>A002</td>
+                        <td>みかん</td>
+                        <td>果物</td>
+                        <td>60</td>
+                        <td>80</td>
+                    </tr>
+                    <tr>
+                        <td>A003</td>
+                        <td>バナナ</td>
+                        <td>果物</td>
+                        <td>40</td>
+                        <td>50</td>
+                    </tr>
+                    <tr>
+                        <td>B001</td>
+                        <td>キャベツ</td>
+                        <td>野菜</td>
+                        <td>90</td>
+                        <td>120</td>
+                    </tr>
+                    <tr>
+                        <td>B002</td>
+                        <td>トマト</td>
+                        <td>野菜</td>
+                        <td>100</td>
+                        <td>130</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="subsection-title">売上データ（手動転記）</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>店舗</th>
+                        <th>商品コード</th>
+                        <th>数量</th>
+                        <th>売上金額</th>
+                        <th>商品名</th>
+                        <th>仕入価格</th>
+                        <th>粗利</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023/6/1</td>
+                        <td>東京店</td>
+                        <td>A001</td>
+                        <td>10</td>
+                        <td>1000</td>
+                        <td>りんご</td>
+                        <td>80</td>
+                        <td>200</td>
+                    </tr>
+                    <tr>
+                        <td>2023/6/1</td>
+                        <td>大阪店</td>
+                        <td>B001</td>
+                        <td>5</td>
+                        <td>600</td>
+                        <td>キャベツ</td>
+                        <td>90</td>
+                        <td>150</td>
+                    </tr>
+                    <tr>
+                        <td>2023/6/2</td>
+                        <td>名古屋店</td>
+                        <td>A002</td>
+                        <td>8</td>
+                        <td>640</td>
+                        <td>みかん</td>
+                        <td>60</td>
+                        <td>160</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <p><strong>問題点：</strong></p>
+                <ul>
+                    <li>商品名、仕入価格などを手動で商品マスターから転記している</li>
+                    <li>粗利も手計算で入力している</li>
+                    <li>マスターデータが更新された場合、すべて再転記が必要</li>
+                    <li>転記ミスによるデータ不整合の可能性</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><i>4</i>実際の改善データイメージ</div>
+            
+            <p>検索関数を活用した例：</p>
+            
+            <div class="subsection-title">商品マスター（変更なし）</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>商品コード</th>
+                        <th>商品名</th>
+                        <th>カテゴリ</th>
+                        <th>仕入価格</th>
+                        <th>標準売価</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A001</td>
+                        <td>りんご</td>
+                        <td>果物</td>
+                        <td>80</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>A002</td>
+                        <td>みかん</td>
+                        <td>果物</td>
+                        <td>60</td>
+                        <td>80</td>
+                    </tr>
+                    <tr>
+                        <td>A003</td>
+                        <td>バナナ</td>
+                        <td>果物</td>
+                        <td>40</td>
+                        <td>50</td>
+                    </tr>
+                    <tr>
+                        <td>B001</td>
+                        <td>キャベツ</td>
+                        <td>野菜</td>
+                        <td>90</td>
+                        <td>120</td>
+                    </tr>
+                    <tr>
+                        <td>B002</td>
+                        <td>トマト</td>
+                        <td>野菜</td>
+                        <td>100</td>
+                        <td>130</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="subsection-title">売上データ（VLOOKUP関数使用）</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>店舗</th>
+                        <th>商品コード</th>
+                        <th>数量</th>
+                        <th>売上金額</th>
+                        <th>商品名</th>
+                        <th>仕入価格</th>
+                        <th>粗利</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023/6/1</td>
+                        <td>東京店</td>
+                        <td>A001</td>
+                        <td>10</td>
+                        <td>1000</td>
+                        <td class="formula-cell">=VLOOKUP(C2,商品マスター!A:B,2,FALSE)</td>
+                        <td class="formula-cell">=VLOOKUP(C2,商品マスター!A:D,4,FALSE)</td>
+                        <td class="formula-cell">=E2-F2*D2</td>
+                    </tr>
+                    <tr>
+                        <td>2023/6/1</td>
+                        <td>大阪店</td>
+                        <td>B001</td>
+                        <td>5</td>
+                        <td>600</td>
+                        <td class="formula-cell">=VLOOKUP(C3,商品マスター!A:B,2,FALSE)</td>
+                        <td class="formula-cell">=VLOOKUP(C3,商品マスター!A:D,4,FALSE)</td>
+                        <td class="formula-cell">=E3-F3*D3</td>
+                    </tr>
+                    <tr>
+                        <td>2023/6/2</td>
+                        <td>名古屋店</td>
+                        <td>A002</td>
+                        <td>8</td>
+                        <td>640</td>
+                        <td class="formula-cell">=VLOOKUP(C4,商品マスター!A:B,2,FALSE)</td>
+                        <td class="formula-cell">=VLOOKUP(C4,商品マスター!A:D,4,FALSE)</td>
+                        <td class="formula-cell">=E4-F4*D4</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="subsection-title">XLOOKUP を使った場合（より柔軟な検索）</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>日付</th>
+                        <th>店舗</th>
+                        <th>商品コード</th>
+                        <th>数量</th>
+                        <th>売上金額</th>
+                        <th>商品名</th>
+                        <th>仕入価格</th>
+                        <th>粗利</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023/6/1</td>
+                        <td>東京店</td>
+                        <td>A001</td>
+                        <td>10</td>
+                        <td>1000</td>
+                        <td class="formula-cell">=XLOOKUP(C2,商品マスター!A:A,商品マスター!B:B,"未登録")</td>
+                        <td class="formula-cell">=XLOOKUP(C2,商品マスター!A:A,商品マスター!D:D,0)</td>
+                        <td class="formula-cell">=E2-F2*D2</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <p><strong>この改善されたデータの特徴：</strong></p>
+                <ul>
+                    <li>VLOOKUPまたはXLOOKUPによる自動データ参照</li>
+                    <li>商品マスターが更新されても自動的に反映</li>
+                    <li>計算式による粗利の自動計算</li>
+                    <li>エラー時の適切な表示（「未登録」、0など）</li>
+                    <li>人為的ミスの排除</li>
+                </ul>
+            </div>
+            
+            <div class="data-flow">
+                <div class="data-block">
+                    <div class="data-block-title">商品マスター</div>
+                    <p>商品コード、商品名、カテゴリ、価格などの基本情報</p>
+                </div>
+                <div class="flow-arrow">
+                    <i>→</i>
+                </div>
+                <div class="data-block">
+                    <div class="data-block-title">売上データ</div>
+                    <p>VLOOKUP/XLOOKUPで<br>自動参照・計算</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title"><i>5</i>関数の仕組みと使い方</div>
+            
+            <div class="subsection-title">VLOOKUP関数の基本</div>
+            
+            <div class="formula-explanation">
+                <div class="formula-code">
+                    =VLOOKUP(検索値, 検索範囲, 列番号, 検索方法)
+                </div>
+                <div class="formula-parts">
+                    <div class="part">
+                        <div class="part-name">検索値：</div>
+                        <div>探したい値（例：商品コード）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">検索範囲：</div>
+                        <div>検索する表全体（最初の列に検索値が含まれる範囲）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">列番号：</div>
+                        <div>取り出したい値が含まれる列の番号（検索範囲の左端を1として数える）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">検索方法：</div>
+                        <div>FALSE：完全一致のみ（推奨）、TRUE：近似一致も可</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="subsection-title">XLOOKUP関数の基本（Excel 2019以降）</div>
+            
+            <div class="formula-explanation">
+                <div class="formula-code">
+                    =XLOOKUP(検索値, 検索範囲, 戻り値範囲, 見つからない場合, 一致モード, 検索モード)
+                </div>
+                <div class="formula-parts">
+                    <div class="part">
+                        <div class="part-name">検索値：</div>
+                        <div>探したい値（例：商品コード）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">検索範囲：</div>
+                        <div>検索する列（商品コードの列など）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">戻り値範囲：</div>
+                        <div>取り出したい値が含まれる列（商品名の列など）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">見つからない場合：</div>
+                        <div>検索値が見つからない場合に表示する値（例："未登録"）</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">一致モード：</div>
+                        <div>0:完全一致（デフォルト）、-1:より小さい、1:より大きい</div>
+                    </div>
+                    <div class="part">
+                        <div class="part-name">検索モード：</div>
+                        <div>検索方向や方法（省略可能）</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="subsection-title">VLOOKUPとXLOOKUPの比較</div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>機能</th>
+                        <th>VLOOKUP</th>
+                        <th>XLOOKUP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>検索方向</td>
+                        <td>常に左から右</td>
+                        <td>任意方向（左右どちらも可能）</td>
+                    </tr>
+                    <tr>
+                        <td>複数値の返却</td>
+                        <td>不可</td>
+                        <td>可能</td>
+                    </tr>
+                    <tr>
+                        <td>エラー処理</td>
+                        <td>外部関数（IFERRORなど）が必要</td>
+                        <td>組み込み引数あり</td>
+                    </tr>
+                    <tr>
+                        <td>検索オプション</td>
+                        <td>完全一致か近似一致のみ</td>
+                        <td>多様な一致モードあり</td>
+                    </tr>
+                    <tr>
+                        <td>使用可能なExcelバージョン</td>
+                        <td>すべてのバージョン</td>
+                        <td>Excel 2019以降</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-title"><i>6</i>ハンズオン実習ステップ</div>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>VLOOKUP関数の基本を学ぶ</strong>
+                        <p>構文：VLOOKUP(検索値, 範囲, 列番号, 完全一致)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>完全一致と近似一致の違いを理解する</strong>
+                        <p>完全一致（FALSE）と近似一致（TRUE）の使い分け</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>エラー処理を習得する</strong>
+                        <p>IFERROR関数との組み合わせによるエラー処理</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>XLOOKUP関数を活用する</strong>
+                        <p>より柔軟な検索と返値の設定方法を学ぶ</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <strong>複数条件での検索を習得する</strong>
+                        <p>INDEX+MATCH関数の組み合わせやXLOOKUPの活用</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <strong>実務データでの活用を考える</strong>
+                        <p>自社のマスターデータとトランザクションデータへの応用</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="subsection-title">実習のポイント</div>
+            
+            <div class="tips">
+                <div class="tip">
+                    <div class="tip-title">検索値の型に注意</div>
+                    <p>数値と文字列は区別されます。検索値と検索範囲の先頭列のデータ型が一致しているか確認しましょう。</p>
+                </div>
+                <div class="tip">
+                    <div class="tip-title">検索範囲の指定方法</div>
+                    <p>検索範囲の最初の列に検索値が含まれている必要があります。範囲は必要な列すべてを含めましょう。</p>
+                </div>
+                <div class="tip">
+                    <div class="tip-title">列番号の数え方</div>
+                    <p>列番号は検索範囲の左端を1として数えます。指定した範囲内での相対的な位置です。</p>
+                </div>
+                <div class="tip">
+                    <div class="tip-title">完全一致の推奨</div>
+                    <p>特別な理由がない限り、完全一致（FALSE）を使用しましょう。近似一致は思わぬエラーの原因になります。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title"><i>7</i>よくあるエラーと対処法</div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>エラー表示</th>
+                        <th>考えられる原因</th>
+                        <th>対処法</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#N/A</td>
+                        <td>検索値が検索範囲内に見つからない</td>
+                        <td>検索値が正確か確認する<br>IFERROR関数で適切なメッセージに置き換える</td>
+                    </tr>
+                    <tr>
+                        <td>#REF!</td>
+                        <td>列番号が検索範囲の列数を超えている</td>
+                        <td>検索範囲と列番号の指定を確認する</td>
+                    </tr>
+                    <tr>
+                        <td>#VALUE!</td>
+                        <td>引数の型が不適切</td>
+                        <td>検索値と検索範囲のデータ型を確認する</td>
+                    </tr>
+                    <tr>
+                        <td>予期しない結果</td>
+                        <td>近似一致（TRUE）を使用している</td>
+                        <td>完全一致（FALSE）に変更する</td>
+                    </tr>
+                    <tr>
+                        <td>期待と異なる値</td>
+                        <td>検索範囲が固定されていない</td>
+                        <td>範囲参照に$を使用して固定する（例：$A$1:$D$100）</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <p><strong>エラー処理のベストプラクティス：</strong></p>
+                <pre>
+=IFERROR(VLOOKUP(A2,商品マスター!A:D,2,FALSE), "未登録")
+</pre>
+                <p>または XLOOKUP の場合：</p>
+                <pre>
+=XLOOKUP(A2, 商品マスター!A:A, 商品マスター!B:B, "未登録")
+</pre>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title"><i>8</i>応用テクニック</div>
+            
+            <div class="subsection-title">複数条件での検索（INDEX+MATCH）</div>
+            <div class="formula-explanation">
+                <div class="formula-code">
+                    =INDEX(返す値の範囲, MATCH(検索値1&検索値2, 検索列1&検索列2, 0))
+                </div>
+                <div class="formula-parts">
+                    <p>例：商品コードと店舗の組み合わせで価格を検索する場合</p>
+                </div>
+            </div>
+            
+            <div class="subsection-title">XLOOKUP での複数条件</div>
+            <div class="formula-explanation">
+                <div class="formula-code">
+                    =XLOOKUP(A2&B2, 検索列1&検索列2, 戻り値範囲, "見つかりません")
+                </div>
+                <div class="formula-parts">
+                    <p>XLOOKUPなら複数条件の組み合わせがより簡単です</p>
+                </div>
+            </div>
+            
+            <div class="subsection-title">動的参照範囲の構築</div>
+            <div class="formula-explanation">
+                <div class="formula-code">
+                    =VLOOKUP(A2, INDIRECT("シート名!A:D"), 2, FALSE)
+                </div>
+                <div class="formula-parts">
+                    <p>INDIRECT関数を使うと、シート名を動的に変更できます</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="review-points">
+                <div class="review-title"><i>📝</i> 復習ポイント</div>
+                <ul>
+                    <li>VLOOKUP/XLOOKUPはテーブル間のデータ参照を自動化する関数</li>
+                    <li>データ転記の手間とミスを大幅に削減できる</li>
+                    <li>マスターデータの更新が自動的に反映される</li>
+                    <li>VLOOKUP：左から右への検索のみ、Excel全バージョンで使用可能</li>
+                    <li>XLOOKUP：より柔軟で多機能、Excel 2019以降で使用可能</li>
+                    <li>エラー処理をしっかり行うことで、堅牢なシステムを構築できる</li>
+                </ul>
+            </div>
+            
+            <div class="quiz">
+                <div class="quiz-title">理解度チェック！</div>
+                <p>VLOOKUP関数で検索範囲の5列目の値を取得するには、列番号に何を指定すべきですか？</p>
+                <div class="quiz-option">A: 5</div>
+                <div class="quiz-option">B: 4</div>
+                <div class="quiz-option">C: E</div>
+                <div class="quiz-option">D: "5列目"</div>
+                <p style="margin-top:15px; font-size:14px; color:#666;">※正解は「A: 5」です。列番号は検索範囲の左端を1として数えます。</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>ビジネスパーソンのためのデータリテラシー入門</p>
+            <p>課題9: VLOOKUP/XLOOKUPによるデータ参照</p>
+            <div class="footer-links">
+                <a href="#">発展資料</a>
+                <a href="#">練習問題</a>
+                <a href="#">質問フォーム</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

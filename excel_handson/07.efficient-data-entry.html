@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>効率的なデータ入力テクニック</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        :root {
+            --main-color: #4285F4;
+            --sub1-color: #34A853;
+            --sub2-color: #FBBC05;
+            --accent-color: #EA4335;
+            --back-color: #F8F9FA;
+            --text-color: #202124;
+            --grey-color: #5F6368;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--back-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--main-color);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: var(--sub1-color);
+            border-bottom: 2px solid var(--sub1-color);
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: var(--sub2-color);
+            font-weight: bold;
+        }
+        
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .target-info {
+            font-size: 14px;
+            background-color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+        }
+        
+        .problem-section, .benefit-section, .example-section, .technique-section, .practice-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .problem-section {
+            border-left: 5px solid var(--accent-color);
+        }
+        
+        .benefit-section {
+            border-left: 5px solid var(--sub1-color);
+        }
+        
+        .example-section {
+            border-left: 5px solid var(--sub2-color);
+        }
+        
+        .technique-section {
+            border-left: 5px solid var(--main-color);
+        }
+        
+        .practice-section {
+            border-left: 5px solid var(--sub1-color);
+        }
+        
+        .benefit-item, .problem-item, .technique-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            background-color: var(--main-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .problem-item .icon {
+            background-color: var(--accent-color);
+        }
+        
+        .benefit-item .icon {
+            background-color: var(--sub1-color);
+        }
+        
+        .technique-item .icon {
+            background-color: var(--sub2-color);
+        }
+        
+        .content {
+            flex-grow: 1;
+        }
+        
+        .note {
+            background-color: #FFF9C4;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        
+        .note::before {
+            content: "💡 ";
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .excel-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        
+        .excel-table th, .excel-table td {
+            border: 1px solid #d1d1d1;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .excel-table th {
+            background-color: #f1f3f4;
+            font-weight: bold;
+        }
+        
+        .excel-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .excel-formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f1f3f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .key-combo {
+            display: inline-block;
+            background-color: #f1f3f4;
+            border: 1px solid #d1d1d1;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin: 0 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .key-section {
+            margin: 25px 0;
+        }
+        
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .key-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .key-title {
+            color: var(--main-color);
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .key-desc {
+            font-size: 13px;
+            flex-grow: 1;
+        }
+        
+        .key-buttons {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .character {
+            position: absolute;
+            width: 100px;
+            right: 20px;
+            top: -40px;
+        }
+        
+        .section-header {
+            position: relative;
+        }
+        
+        .quiz-section {
+            background-color: #E8F0FE;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .quiz-title {
+            color: var(--main-color);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-question {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-options {
+            margin-bottom: 20px;
+        }
+        
+        .quiz-option {
+            margin: 5px 0;
+            padding: 8px 15px;
+            background-color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .animated-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            color: var(--sub1-color);
+            font-weight: bold;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            margin: 0 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 13px;
+            color: var(--grey-color);
+        }
+        
+        .checklist {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 10px;
+        }
+        
+        .checklist li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--sub1-color);
+            border-radius: 4px;
+        }
+        
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .resource-link {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: var(--main-color);
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .resource-link:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>効率的なデータ入力テクニック</h1>
+            <div class="target-info">対象：ビジネスパーソンのためのデータリテラシー入門</div>
+        </header>
+        
+        <div class="problem-section">
+            <div class="section-header">
+                <h2>①何が課題か</h2>
+                <img src="/api/placeholder/100/120" alt="困っている人のイラスト" class="character">
+            </div>
+            <p>データ入力は時間がかかり、ミスが発生しやすい作業です。多くの場合、以下のような非効率な方法で行われています：</p>
+            
+            <div class="problem-item">
+                <div class="icon">1</div>
+                <div class="content">
+                    <strong>マウスとキーボードの切り替え</strong><br>
+                    入力と操作の度に手を動かすため、時間のロスが大きい
+                </div>
+            </div>
+            
+            <div class="problem-item">
+                <div class="icon">2</div>
+                <div class="content">
+                    <strong>繰り返しデータの手動入力</strong><br>
+                    同じようなデータを何度も入力することによる時間の浪費
+                </div>
+            </div>
+            
+            <div class="problem-item">
+                <div class="icon">3</div>
+                <div class="content">
+                    <strong>コピー＆ペーストの多用</strong><br>
+                    単純作業の繰り返しによる集中力の低下とミスの増加
+                </div>
+            </div>
+            
+            <div class="problem-item">
+                <div class="icon">4</div>
+                <div class="content">
+                    <strong>自動入力機能の未活用</strong><br>
+                    Excelの便利な入力支援機能を使わないことによる非効率
+                </div>
+            </div>
+            
+            <div class="problem-item">
+                <div class="icon">5</div>
+                <div class="content">
+                    <strong>手計算結果の入力</strong><br>
+                    数式を使わず計算結果を手入力することによるミスのリスク
+                </div>
+            </div>
+            
+            <div class="note">
+                こうした非効率な入力方法は、時間の浪費だけでなく、集中力低下によるミスの原因にもなります。
+            </div>
+        </div>
+        
+        <div class="benefit-section">
+            <h2>②改善することでどういう良いことがあるか</h2>
+            <p>効率的なデータ入力テクニックを習得することで、次のようなメリットが得られます：</p>
+            
+            <div class="benefit-item">
+                <div class="icon">⏱️</div>
+                <div class="content">
+                    <strong>入力時間の大幅な短縮</strong><br>
+                    ショートカットや自動入力機能により、同じ作業が半分以下の時間で完了
+                </div>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="icon">✓</div>
+                <div class="content">
+                    <strong>入力ミスの減少</strong><br>
+                    自動化による人為的ミスの排除と一貫性の向上
+                </div>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="icon">😌</div>
+                <div class="content">
+                    <strong>作業の疲労軽減</strong><br>
+                    効率的な操作による身体的・精神的負荷の削減
+                </div>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="icon">🔄</div>
+                <div class="content">
+                    <strong>定型作業の自動化</strong><br>
+                    繰り返し作業の効率化により、創造的な業務に時間を使える
+                </div>
+            </div>
+            
+            <div class="benefit-item">
+                <div class="icon">⚡</div>
+                <div class="content">
+                    <strong>作業の一貫性向上</strong><br>
+                    標準化された入力方法による品質の均一化
+                </div>
+            </div>
+        </div>
+        
+        <div class="example-section">
+            <h2>③実際の問題データイメージ</h2>
+            <p>以下は、効率的でないデータ入力の例です：</p>
+            
+            <div class="table-container">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>氏名</th>
+                            <th>所属部署</th>
+                            <th>6月売上</th>
+                            <th>7月売上</th>
+                            <th>8月売上</th>
+                            <th>四半期合計</th>
+                            <th>前年同期比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>山田太郎</td>
+                            <td>営業1課</td>
+                            <td>520000</td>
+                            <td>480000</td>
+                            <td>550000</td>
+                            <td>1550000</td>
+                            <td>108%</td>
+                        </tr>
+                        <tr>
+                            <td>鈴木次郎</td>
+                            <td>営業1課</td>
+                            <td>480000</td>
+                            <td>500000</td>
+                            <td>510000</td>
+                            <td>1490000</td>
+                            <td>105%</td>
+                        </tr>
+                        <tr>
+                            <td>佐藤三郎</td>
+                            <td>営業2課</td>
+                            <td>510000</td>
+                            <td>490000</td>
+                            <td>520000</td>
+                            <td>1520000</td>
+                            <td>110%</td>
+                        </tr>
+                        <tr>
+                            <td>田中四郎</td>
+                            <td>営業2課</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>伊藤五郎</td>
+                            <td>営業3課</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="note">
+                <strong>問題点:</strong>
+                <ul>
+                    <li>四半期合計を手動で計算して入力している</li>
+                    <li>前年同期比も手動計算で入力している</li>
+                    <li>新しい行のデータ入力が効率的でない</li>
+                    <li>所属部署などの繰り返しデータを個別に入力している</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="example-section">
+            <h2>④実際の改善データイメージ</h2>
+            <p>効率的な入力テクニックを活用すると：</p>
+            
+            <div class="table-container">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>氏名</th>
+                            <th>所属部署</th>
+                            <th>6月売上</th>
+                            <th>7月売上</th>
+                            <th>8月売上</th>
+                            <th>四半期合計</th>
+                            <th>前年同期比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>山田太郎</td>
+                            <td>営業1課</td>
+                            <td>520000</td>
+                            <td>480000</td>
+                            <td>550000</td>
+                            <td><span class="excel-formula">=SUM(C2:E2)</span></td>
+                            <td><span class="excel-formula">=F2/1435000</span></td>
+                        </tr>
+                        <tr>
+                            <td>鈴木次郎</td>
+                            <td>営業1課</td>
+                            <td>480000</td>
+                            <td>500000</td>
+                            <td>510000</td>
+                            <td><span class="excel-formula">=SUM(C3:E3)</span></td>
+                            <td><span class="excel-formula">=F3/1419000</span></td>
+                        </tr>
+                        <tr>
+                            <td>佐藤三郎</td>
+                            <td>営業2課</td>
+                            <td>510000</td>
+                            <td>490000</td>
+                            <td>520000</td>
+                            <td><span class="excel-formula">=SUM(C4:E4)</span></td>
+                            <td><span class="excel-formula">=F4/1382000</span></td>
+                        </tr>
+                        <tr>
+                            <td>田中四郎</td>
+                            <td>営業2課</td>
+                            <td>470000</td>
+                            <td>460000</td>
+                            <td>490000</td>
+                            <td><span class="excel-formula">=SUM(C5:E5)</span></td>
+                            <td><span class="excel-formula">=F5/1350000</span></td>
+                        </tr>
+                        <tr>
+                            <td>伊藤五郎</td>
+                            <td>営業3課</td>
+                            <td>450000</td>
+                            <td>470000</td>
+                            <td>480000</td>
+                            <td><span class="excel-formula">=SUM(C6:E6)</span></td>
+                            <td><span class="excel-formula">=F6/1320000</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="note">
+                <strong>改善点:</strong>
+                <ul>
+                    <li>四半期合計は数式で自動計算（手入力不要）</li>
+                    <li>前年同期比も数式で自動計算</li>
+                    <li>オートフィルで効率的にデータを拡張</li>
+                    <li>入力規則やフラッシュフィルの活用</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="technique-section">
+            <h2>効率的なデータ入力テクニック</h2>
+            
+            <div class="key-section">
+                <h3>1. ショートカットキーの活用</h3>
+                <p>マウス操作よりもキーボード操作の方が格段に速いため、以下のショートカットキーを覚えましょう：</p>
+                
+                <div class="key-grid">
+                    <div class="key-item">
+                        <div class="key-title">セル間の移動</div>
+                        <div class="key-desc">効率的にセル間を移動する方法</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Tab</span>
+                            <span class="key-combo">Enter</span>
+                            <span class="key-combo">↑↓→←</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">高速移動</div>
+                        <div class="key-desc">データの端まで一気に移動</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Ctrl+↑↓→←</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">セル編集</div>
+                        <div class="key-desc">セル内容を素早く編集</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">F2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">現在日付の入力</div>
+                        <div class="key-desc">今日の日付をワンタッチで入力</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Ctrl+;</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">セル内改行</div>
+                        <div class="key-desc">セル内で改行する</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Alt+Enter</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">下方向コピー</div>
+                        <div class="key-desc">上のセルの内容を下にコピー</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Ctrl+D</span>
+                        </div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">右方向コピー</div>
+                        <div class="key-desc">左のセルの内容を右にコピー</div>
+                        <div class="key-buttons">
+                            <span class="key-combo">Ctrl+R</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="key-section">
+                <h3>2. オートフィルの活用方法</h3>
+                <p>オートフィルを使うと、パターンのあるデータを瞬時に生成できます：</p>
+                
+                <div class="animated-arrow">
+                    <div>1, 2, 3</div>
+                    <div class="arrow">→</div>
+                    <div>4, 5, 6, 7, 8...</div>
+                </div>
+                
+                <div class="key-grid">
+                    <div class="key-item">
+                        <div class="key-title">連番データの生成</div>
+                        <div class="key-desc">1, 2, 3... や 10, 20, 30... などの連番を自動生成</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">日付の連続データ</div>
+                        <div class="key-desc">1/1, 1/2, 1/3... などの日付の連続を自動生成</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">曜日パターン</div>
+                        <div class="key-desc">月, 火, 水... のような曜日の繰り返しを自動生成</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">カスタムリスト</div>
+                        <div class="key-desc">自分で定義したリストを使った連続データの作成</div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>テクニック:</strong> オートフィルハンドルをダブルクリックすると、隣接するデータの最後まで自動的に入力されます。
+                </div>
+            </div>
+            
+            <div class="key-section">
+                <h3>3. フラッシュフィルの使い方</h3>
+                <p>フラッシュフィルは、パターンを認識して自動的にデータを埋めてくれる魔法のような機能です：</p>
+                
+                <div class="key-grid">
+                    <div class="key-item">
+                        <div class="key-title">氏名の分割</div>
+                        <div class="key-desc">「山田 太郎」→「山田」「太郎」に自動分割</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">メールアドレスの生成</div>
+                        <div class="key-desc">氏名からメールアドレスを自動生成</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">日付の形式変換</div>
+                        <div class="key-desc">「2023/5/1」→「2023年5月1日」など</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">データ抽出</div>
+                        <div class="key-desc">長い文章から特定部分を抽出</div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>使い方:</strong> パターンの例を1つ入力し、Ctrl+Eを押すか、[データ]タブの[フラッシュフィル]をクリックします。
+                </div>
+            </div>
+            
+            <div class="key-section">
+                <h3>4. 大量データの効率的な入力方法</h3>
+                <p>大量のデータを扱う場合は、以下の方法が効果的です：</p>
+                
+                <div class="key-grid">
+                    <div class="key-item">
+                        <div class="key-title">テンプレートの活用</div>
+                        <div class="key-desc">よく使う形式の表をテンプレート化して再利用</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">データの一括処理</div>
+                        <div class="key-desc">同じ操作を複数のセルに一度に適用</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">入力規則の設定</div>
+                        <div class="key-desc">ドロップダウンリストなどを使って入力を標準化</div>
+                    </div>
+                    
+                    <div class="key-item">
+                        <div class="key-title">データフォームの利用</div>
+                        <div class="key-desc">フォーム形式で効率的にデータを入力</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="quiz-section">
+            <div class="quiz-title">理解度チェック</div>
+            
+            <div class="quiz-question">Q1: セル内で改行するためのショートカットキーは？</div>
+            <div class="quiz-options">
+                <div class="quiz-option">A. Ctrl+Enter</div>
+                <div class="quiz-option">B. Shift+Enter</div>
+                <div class="quiz-option">C. Alt+Enter</div>
+                <div class="quiz-option">D. Enter</div>
+            </div>
+            
+            <div class="quiz-question">Q2: 上のセルの内容を下方向にコピーするショートカットは？</div>
+            <div class="quiz-options">
+                <div class="quiz-option">A. Ctrl+C → Ctrl+V</div>
+                <div class="quiz-option">B. Ctrl+R</div>
+                <div class="quiz-option">C. Ctrl+D</div>
+                <div class="quiz-option">D. F4</div>
+            </div>
+            
+            <div class="quiz-question">Q3: フラッシュフィルを実行するショートカットキーは？</div>
+            <div class="quiz-options">
+                <div class="quiz-option">A. Ctrl+F</div>
+                <div class="quiz-option">B. Ctrl+E</div>
+                <div class="quiz-option">C. Ctrl+H</div>
+                <div class="quiz-option">D. F5</div>
+            </div>
+        </div>
+        
+        <div class="practice-section">
+            <h2>ハンズオン実習</h2>
+            
+            <ol class="checklist">
+                <li>効率的なデータ入力のためのショートカットキーを実践してみましょう</li>
+                <li>オートフィルを使って連番、曜日、日付のシリーズを作成してみましょう</li>
+                <li>フラッシュフィルを使って氏名の分割や形式変換を試してみましょう</li>
+                <li>大量データ入力のための効率的な方法を試してみましょう</li>
+                <li>実際の業務データでどのように入力効率を高められるか考えてみましょう</li>
+            </ol>
+            
+            <div class="note">
+                これらのテクニックを習得することで、日々のExcel作業が格段に効率化されます。繰り返し練習して身につけましょう！
+            </div>
+        </div>
+        
+        <footer>
+            <p>このインフォグラフィックは「ビジネスパーソンのためのデータリテラシー入門」ハンズオン研修の一部です。</p>
+            <p>© 2025 データリテラシー研修チーム</p>
+        </footer>
+    </div>
+</body>
+</html>

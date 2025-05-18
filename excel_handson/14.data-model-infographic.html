@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データモデルとビジネスへの応用</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        :root {
+            --main-color: #4285F4;
+            --sub1-color: #34A853;
+            --sub2-color: #FBBC05;
+            --accent-color: #EA4335;
+            --back-color: #F8F9FA;
+            --text-color: #202124;
+            --sub-text-color: #5F6368;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Kosugi Maru', sans-serif;
+            background-color: var(--back-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            background-color: var(--main-color);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: var(--sub1-color);
+            font-size: 20px;
+            margin: 30px 0 15px;
+            padding-left: 15px;
+            border-left: 5px solid var(--sub1-color);
+        }
+        
+        h3 {
+            color: var(--sub2-color);
+            font-size: 16px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .mascot {
+            position: absolute;
+            top: -20px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .mascot-icon {
+            font-size: 50px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .intro-box {
+            background-color: #E8F0FE;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--main-color);
+        }
+        
+        .problem-solution {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .problem, .solution {
+            flex: 1;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .problem {
+            background-color: #FDEAEB;
+            border: 2px solid var(--accent-color);
+        }
+        
+        .solution {
+            background-color: #E6F4EA;
+            border: 2px solid var(--sub1-color);
+        }
+        
+        .box-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .problem .box-title::before {
+            content: "✘ ";
+            color: var(--accent-color);
+        }
+        
+        .solution .box-title::before {
+            content: "✓ ";
+            color: var(--sub1-color);
+        }
+        
+        .benefits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .benefit-card {
+            flex: 1 1 calc(33.333% - 20px);
+            min-width: 250px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .benefit-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--sub2-color);
+            color: white;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+        }
+        
+        .benefit-title {
+            text-align: center;
+            color: var(--sub1-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .data-table th {
+            background-color: var(--main-color);
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        
+        .data-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: #E8F0FE;
+        }
+        
+        .steps {
+            counter-reset: step;
+            margin: 30px 0;
+        }
+        
+        .step {
+            margin-bottom: 20px;
+            padding-left: 70px;
+            position: relative;
+        }
+        
+        .step::before {
+            counter-increment: step;
+            content: "STEP " counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: var(--sub2-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--sub1-color);
+        }
+        
+        .review-points {
+            background-color: #FFF8E1;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px dashed var(--sub2-color);
+        }
+        
+        .review-title {
+            text-align: center;
+            color: var(--sub2-color);
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .review-list {
+            list-style-type: none;
+        }
+        
+        .review-item {
+            margin-bottom: 10px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .review-item::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--sub1-color);
+            font-weight: bold;
+        }
+        
+        .quiz-box {
+            background-color: #E8F0FE;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px solid var(--main-color);
+        }
+        
+        .quiz-title {
+            text-align: center;
+            color: var(--main-color);
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .personal-benefits {
+            background-color: #E6F4EA;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .note {
+            font-size: 13px;
+            color: var(--sub-text-color);
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        footer {
+            background-color: var(--main-color);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .footer-links {
+            margin-top: 10px;
+        }
+        
+        .footer-links a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: underline;
+        }
+        
+        .diagram {
+            width: 100%;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .diagram img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .arrow-connector {
+            text-align: center;
+            font-size: 30px;
+            color: var(--main-color);
+            margin: 15px 0;
+        }
+        
+        .highlight-box {
+            background-color: #FFF8E1;
+            border-left: 4px solid var(--sub2-color);
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .highlight-title {
+            font-weight: bold;
+            color: var(--sub2-color);
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .problem-solution {
+                flex-direction: column;
+            }
+            
+            .benefit-card {
+                flex: 1 1 100%;
+            }
+            
+            .mascot {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>データモデルとビジネスへの応用</h1>
+            <div class="subtitle">ビジネスデータを構造化して最大限の価値を引き出す</div>
+            <div class="mascot">
+                <div class="mascot-icon">📊</div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="intro-box">
+                <h2>データモデルとは何か？</h2>
+                <p>データモデルとは、ビジネスデータの構造と関連性を整理して表現したものです。単なる表の集まりではなく、情報同士の繋がりや階層関係を設計図のように示すことで、データの持つ本来の価値を最大化します。</p>
+                <p>この課題では、Excelを単なる表計算ツールから一歩進めて、ビジネス全体を俯瞰するためのデータ活用法を学びます。</p>
+            </div>
+            
+            <h2>①何が課題か</h2>
+            <div class="problem-solution">
+                <div class="problem">
+                    <div class="box-title">現状の問題点</div>
+                    <ul>
+                        <li>単一目的での利用に留まり、データの潜在的価値を活かせていない</li>
+                        <li>部分最適化された個別のファイルが乱立し、全体像が見えない</li>
+                        <li>分析視点が固定化され、多角的な洞察が得られない</li>
+                        <li>データと表示が混在し、データの再利用性が低い</li>
+                        <li>将来の拡張や変更に対する柔軟性に欠ける</li>
+                        <li>ビジネス意思決定との結びつきが弱い</li>
+                        <li>データの価値が十分に引き出されていない</li>
+                    </ul>
+                </div>
+                
+                <div class="solution">
+                    <div class="box-title">解決の方向性</div>
+                    <ul>
+                        <li>データの関連性と構造を明確化する</li>
+                        <li>個別最適から全体最適へ視点を転換する</li>
+                        <li>様々な角度からデータを分析できる柔軟性を確保する</li>
+                        <li>データソースと表示を分離し再利用性を高める</li>
+                        <li>変化に対応できる拡張性の高いモデルを設計する</li>
+                        <li>ビジネス目標との連携を強化する</li>
+                        <li>データからより多くの価値を引き出す仕組みを構築する</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h2>②改善することでどういう良いことがあるか</h2>
+            <div class="benefits">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔄</div>
+                    <div class="benefit-title">柔軟性と拡張性</div>
+                    <p>変化するビジネス要件に迅速に対応できる柔軟なデータ構造を実現できます。新たな項目やカテゴリが追加されても、モデル全体を作り直す必要がありません。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔍</div>
+                    <div class="benefit-title">多角的な分析</div>
+                    <p>同じデータを様々な切り口から分析することで、これまで気づかなかった洞察や傾向を発見できます。意思決定の質が向上します。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">🔀</div>
+                    <div class="benefit-title">再利用性の向上</div>
+                    <p>データソースと分析・表示を分離することで、同じデータを複数の目的で活用できるようになります。二重管理が解消されます。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎯</div>
+                    <div class="benefit-title">一貫した意思決定</div>
+                    <p>共通のデータ基盤に基づいて意思決定することで、部門間の認識のずれを防ぎ、一貫性のある判断ができるようになります。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">⚡</div>
+                    <div class="benefit-title">迅速な対応</div>
+                    <p>変化するビジネス環境や要件に素早く対応でき、競争優位性を維持できます。データ更新の手間も大きく削減されます。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">💎</div>
+                    <div class="benefit-title">価値の最大化</div>
+                    <p>データが持つ本来の価値を最大限に引き出し、ビジネスの成長や改善につなげることができます。埋もれていた洞察を発見できます。</p>
+                </div>
+            </div>
+            
+            <div class="personal-benefits">
+                <h3>個人のメリット</h3>
+                <ul>
+                    <li><strong>俯瞰的な視点獲得</strong>：データ間の関連性を理解し、ビジネス全体を見渡せる視点が身につく</li>
+                    <li><strong>問題解決力の向上</strong>：複雑な課題も構造化して捉えられるようになり、解決策の質が向上する</li>
+                    <li><strong>適応力の強化</strong>：変化するビジネス要件にも柔軟に対応できるデータ構造を設計できるようになる</li>
+                    <li><strong>キャリアの幅拡大</strong>：単なるExcelスキルを超えた、データモデリングの知識が身につき、市場価値が高まる</li>
+                    <li><strong>創造的活用の可能性</strong>：既存データから新たな価値や洞察を見出せるようになり、イノベーションに貢献できる</li>
+                </ul>
+            </div>
+            
+            <h2>③実際の問題データイメージ</h2>
+            <p>以下は、データモデルの考え方が欠けている例です。すべての情報が単一のテーブルに詰め込まれています：</p>
+            
+            <div class="highlight-box">
+                <div class="highlight-title">単一シートでの販売管理（問題例）</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>店舗</th>
+                            <th>担当者</th>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>単価</th>
+                            <th>数量</th>
+                            <th>売上</th>
+                            <th>顧客名</th>
+                            <th>顧客ランク</th>
+                            <th>メモ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>東京店</td>
+                            <td>田中</td>
+                            <td>りんご</td>
+                            <td>果物</td>
+                            <td>100</td>
+                            <td>50</td>
+                            <td>5000</td>
+                            <td>A社</td>
+                            <td>ゴールド</td>
+                            <td>特売品</td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/1</td>
+                            <td>東京店</td>
+                            <td>田中</td>
+                            <td>バナナ</td>
+                            <td>果物</td>
+                            <td>80</td>
+                            <td>30</td>
+                            <td>2400</td>
+                            <td>A社</td>
+                            <td>ゴールド</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>2023/6/2</td>
+                            <td>大阪店</td>
+                            <td>鈴木</td>
+                            <td>キャベツ</td>
+                            <td>野菜</td>
+                            <td>120</td>
+                            <td>25</td>
+                            <td>3000</td>
+                            <td>B社</td>
+                            <td>シルバー</td>
+                            <td>予約品</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="highlight-box">
+                <div class="highlight-title">問題点</div>
+                <ul>
+                    <li>情報の重複（店舗、担当者、顧客情報などが複数行に重複して記載されている）</li>
+                    <li>単一視点での固定的な構造（異なる分析視点に対応しづらい）</li>
+                    <li>データと表示の混在（表示のための加工が必要）</li>
+                    <li>拡張性の低さ（新しい属性を追加すると全体構造の変更が必要）</li>
+                    <li>マスターデータとトランザクションデータの区別がない</li>
+                    <li>異なる種類の情報（店舗、商品、顧客など）が混在している</li>
+                </ul>
+            </div>
+            
+            <div class="arrow-connector">↓</div>
+            
+            <h2>④実際の改善データイメージ</h2>
+            <p>データモデルの考え方を適用すると、以下のように情報を複数のテーブルに分解して関連付けることができます：</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-title">マスターデータとトランザクションデータを分離する</div>
+                    <p>まず、頻繁に変わらない「マスターデータ」（店舗、商品、顧客など）と日々発生する「トランザクションデータ」（売上記録など）を分離します。</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">関連するテーブル間にリレーションシップを設定する</div>
+                    <p>テーブル間の関連性を明確にするために、共通のキー項目（IDなど）を使って関連付けます。これにより、データの整合性を保ちながら柔軟な分析が可能になります。</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">データと表示を分離する</div>
+                    <p>元データは整理された形で保持し、必要な表示や分析はピボットテーブルなどを使って動的に生成します。これにより、様々な視点からの分析が容易になります。</p>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <div class="highlight-title">改善例：複数テーブルでのデータモデル</div>
+                
+                <h3>商品マスター</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>商品ID</th>
+                            <th>商品名</th>
+                            <th>カテゴリ</th>
+                            <th>単価</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>P001</td>
+                            <td>りんご</td>
+                            <td>果物</td>
+                            <td>100</td>
+                        </tr>
+                        <tr>
+                            <td>P002</td>
+                            <td>バナナ</td>
+                            <td>果物</td>
+                            <td>80</td>
+                        </tr>
+                        <tr>
+                            <td>P003</td>
+                            <td>キャベツ</td>
+                            <td>野菜</td>
+                            <td>120</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>店舗マスター</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>店舗ID</th>
+                            <th>店舗名</th>
+                            <th>地域</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>S001</td>
+                            <td>東京店</td>
+                            <td>関東</td>
+                        </tr>
+                        <tr>
+                            <td>S002</td>
+                            <td>大阪店</td>
+                            <td>関西</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>担当者マスター</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>担当者ID</th>
+                            <th>担当者名</th>
+                            <th>所属店舗ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>E001</td>
+                            <td>田中</td>
+                            <td>S001</td>
+                        </tr>
+                        <tr>
+                            <td>E002</td>
+                            <td>鈴木</td>
+                            <td>S002</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>顧客マスター</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>顧客ID</th>
+                            <th>顧客名</th>
+                            <th>顧客ランク</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>C001</td>
+                            <td>A社</td>
+                            <td>ゴールド</td>
+                        </tr>
+                        <tr>
+                            <td>C002</td>
+                            <td>B社</td>
+                            <td>シルバー</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>売上トランザクション</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>取引ID</th>
+                            <th>日付</th>
+                            <th>店舗ID</th>
+                            <th>担当者ID</th>
+                            <th>商品ID</th>
+                            <th>数量</th>
+                            <th>売上</th>
+                            <th>顧客ID</th>
+                            <th>メモ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>T001</td>
+                            <td>2023/6/1</td>
+                            <td>S001</td>
+                            <td>E001</td>
+                            <td>P001</td>
+                            <td>50</td>
+                            <td>5000</td>
+                            <td>C001</td>
+                            <td>特売品</td>
+                        </tr>
+                        <tr>
+                            <td>T002</td>
+                            <td>2023/6/1</td>
+                            <td>S001</td>
+                            <td>E001</td>
+                            <td>P002</td>
+                            <td>30</td>
+                            <td>2400</td>
+                            <td>C001</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>T003</td>
+                            <td>2023/6/2</td>
+                            <td>S002</td>
+                            <td>E002</td>
+                            <td>P003</td>
+                            <td>25</td>
+                            <td>3000</td>
+                            <td>C002</td>
+                            <td>予約品</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="highlight-box">
+                <div class="highlight-title">改善後のメリット</div>
+                <ul>
+                    <li>データの重複が最小限に抑えられる</li>
+                    <li>各テーブルが単一の情報管理に集中できる</li>
+                    <li>関連するテーブルを結合することで、様々な視点からの分析が可能</li>
+                    <li>新しい項目の追加が容易（例：商品マスターに原価を追加するだけで済む）</li>
+                    <li>データの整合性が保たれる（例：存在しない店舗IDは入力できない）</li>
+                    <li>将来の拡張に柔軟に対応できる（例：新しい分析軸の追加が容易）</li>
+                </ul>
+            </div>
+            
+            <div class="quiz-box">
+                <div class="quiz-title">理解度チェック</div>
+                <p><strong>質問：</strong>以下のうち、データモデルを活用する最大のメリットはどれでしょうか？</p>
+                <ol>
+                    <li>すべてのデータを一つの表に集約できる</li>
+                    <li>異なる視点からの分析が容易になり、多角的な洞察が得られる</li>
+                    <li>データ入力の手間を減らすことができる</li>
+                    <li>見た目が美しい表を自動的に作成できる</li>
+                </ol>
+                <p class="note">答えは「2. 異なる視点からの分析が容易になり、多角的な洞察が得られる」です。データモデルは情報の関連性を明確にし、様々な視点からの分析を可能にすることで、データの価値を最大化します。</p>
+            </div>
+            
+            <div class="review-points">
+                <div class="review-title">重要ポイントまとめ</div>
+                <ul class="review-list">
+                    <li class="review-item">データモデルとは、データの構造と関連性を体系的に表現したものである</li>
+                    <li class="review-item">マスターデータとトランザクションデータを分離することで、データの重複を減らし整合性を高める</li>
+                    <li class="review-item">テーブル間の関連性を明確にすることで、多角的な分析が可能になる</li>
+                    <li class="review-item">データと表示を分離することで、同じデータから様々な視点での分析・報告が可能になる</li>
+                    <li class="review-item">適切なデータモデルは、将来の変化に柔軟に対応でき、データの価値を最大化する</li>
+                    <li class="review-item">データモデルの考え方は、Excelだけでなく様々なデータ処理・分析に応用できる</li>
+                </ul>
+            </div>
+            
+            <h2>実践へのステップ</h2>
+            <p>実際の業務データにデータモデルの考え方を適用するには、以下のステップを考えてみましょう：</p>
+            
+            <ol>
+                <li><strong>業務フローの把握：</strong>まず、対象業務の流れとデータの発生ポイントを理解します</li>
+                <li><strong>エンティティの特定：</strong>データの主要な対象（商品、顧客、取引など）を洗い出します</li>
+                <li><strong>関連性の整理：</strong>各エンティティ間の関係性を明確にします</li>
+                <li><strong>属性の整理：</strong>各エンティティに必要な属性（項目）を決定します</li>
+                <li><strong>キー項目の設定：</strong>各テーブルを一意に識別するキー項目を決定します</li>
+                <li><strong>モデルの実装：</strong>Excelのテーブル機能やPower Queryなどを活用して実装します</li>
+                <li><strong>分析視点の設計：</strong>ピボットテーブルなどを使って、様々な分析視点を設計します</li>
+                <li><strong>検証と改善：</strong>実際のデータで検証し、必要に応じてモデルを改善します</li>
+            </ol>
+        </div>
+        
+        <footer>
+            <p>ビジネスパーソンのためのデータリテラシー入門 © 2023</p>
+            <div class="footer-links">
+                <a href="#">参考資料</a>
+                <a href="#">発展学習</a>
+                <a href="#">質問・フィードバック</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

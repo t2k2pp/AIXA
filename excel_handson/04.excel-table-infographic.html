@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テーブル機能による構造化データ管理</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+    
+    :root {
+      --main-color: #4285F4;
+      --sub1-color: #34A853;
+      --sub2-color: #FBBC05;
+      --accent-color: #EA4335;
+      --back-color: #F8F9FA;
+      --text-color: #202124;
+      --note-color: #5F6368;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'M PLUS Rounded 1c', 'Kosugi Maru', sans-serif;
+      background-color: var(--back-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    header {
+      background-color: var(--main-color);
+      color: white;
+      padding: 20px 30px;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    h2 {
+      font-size: 20px;
+      color: var(--sub1-color);
+      margin: 25px 0 15px;
+      border-left: 5px solid var(--sub1-color);
+      padding-left: 10px;
+    }
+    
+    h3 {
+      font-size: 16px;
+      color: var(--sub2-color);
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+    
+    p, li {
+      font-size: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .note {
+      font-size: 13px;
+      color: var(--note-color);
+      font-style: italic;
+    }
+    
+    .split-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .split-item {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .highlight-box {
+      background-color: rgba(66, 133, 244, 0.1);
+      border-left: 4px solid var(--main-color);
+      padding: 15px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    
+    .problem-box {
+      background-color: rgba(234, 67, 53, 0.1);
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .solution-box {
+      background-color: rgba(52, 168, 83, 0.1);
+      border: 1px solid var(--sub1-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .steps-container {
+      margin: 25px 0;
+    }
+    
+    .step {
+      display: flex;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    
+    .step-number {
+      background-color: var(--sub2-color);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    .step-content {
+      flex: 1;
+    }
+    
+    .table-example {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .normal-table th, .normal-table td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    .normal-table thead th {
+      background-color: #f2f2f2;
+    }
+    
+    .excel-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .excel-table th {
+      background-color: #4472C4;
+      color: white;
+      border: 1px solid #2F528F;
+      padding: 8px 12px;
+      text-align: left;
+      position: relative;
+    }
+    
+    .excel-table th::after {
+      content: "▼";
+      position: absolute;
+      right: 8px;
+      font-size: 12px;
+    }
+    
+    .excel-table td {
+      border: 1px solid #B4C6E7;
+      padding: 8px 12px;
+      background-color: white;
+    }
+    
+    .excel-table tr:nth-child(even) td {
+      background-color: #EDF2F9;
+    }
+    
+    .excel-table tfoot td {
+      background-color: #D9E1F2;
+      font-weight: bold;
+    }
+    
+    .quiz-container {
+      background-color: rgba(251, 188, 5, 0.1);
+      border: 1px solid var(--sub2-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+    }
+    
+    .quiz-title {
+      color: var(--sub2-color);
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .benefit-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      border-top: 4px solid var(--sub1-color);
+    }
+    
+    .benefit-title {
+      font-weight: bold;
+      color: var(--sub1-color);
+      margin-bottom: 10px;
+    }
+    
+    .mnemonic-box {
+      background-color: rgba(251, 188, 5, 0.15);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .mnemonic-title {
+      color: var(--sub2-color);
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    
+    .character {
+      text-align: center;
+      margin: 30px 0;
+    }
+    
+    .character img {
+      max-width: 120px;
+    }
+    
+    .speech-bubble {
+      position: relative;
+      background-color: white;
+      border-radius: 15px;
+      padding: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      margin-left: 140px;
+    }
+    
+    .speech-bubble::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 20px;
+      border-top: 10px solid transparent;
+      border-right: 10px solid white;
+      border-bottom: 10px solid transparent;
+    }
+    
+    .table-conversion {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 30px 0;
+    }
+    
+    .arrow-down {
+      color: var(--main-color);
+      font-size: 32px;
+      margin: 15px 0;
+    }
+    
+    .code-block {
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      padding: 12px;
+      font-family: monospace;
+      margin: 15px 0;
+      overflow-x: auto;
+    }
+    
+    .footer {
+      background-color: var(--text-color);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    .footer a {
+      color: var(--sub2-color);
+      text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+      .split-section {
+        flex-direction: column;
+      }
+      
+      .container {
+        border-radius: 8px;
+      }
+      
+      .speech-bubble {
+        margin-left: 0;
+      }
+      
+      .speech-bubble::before {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>テーブル機能による構造化データ管理</h1>
+      <div class="subtitle">Excel効率化ハンズオン 課題4</div>
+    </header>
+    
+    <div class="content">
+      <div class="character">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="#34A853" />
+          <circle cx="35" cy="40" r="5" fill="white" />
+          <circle cx="65" cy="40" r="5" fill="white" />
+          <path d="M 35 65 Q 50 80 65 65" stroke="white" stroke-width="3" fill="none" />
+        </svg>
+        <div class="speech-bubble">
+          <p>Excelのテーブル機能を使いこなせば、データ管理がもっと楽になりますよ！今日はテーブル機能の魅力と使い方を学びましょう。</p>
+        </div>
+      </div>
+
+      <h2>①何が課題か</h2>
+      
+      <p>多くのExcelユーザーは単なるセル範囲としてデータを管理しているため、以下のような問題が生じています：</p>
+      
+      <div class="problem-box">
+        <h3>よくある問題点</h3>
+        <ul>
+          <li>データ範囲の追加時に<strong>手動で数式や書式を拡張</strong>する必要がある</li>
+          <li>フィルターやソートの設定を<strong>繰り返し行う必要</strong>がある</li>
+          <li>列の追加や削除後に<strong>データ参照がずれる</strong></li>
+          <li>データの構造が<strong>視覚的に分かりにくい</strong></li>
+          <li>機能の<strong>一貫した適用が難しい</strong></li>
+          <li>データの範囲が<strong>明確に定義されていない</strong></li>
+        </ul>
+      </div>
+
+      <h2>②改善することでどういう良いことがあるか</h2>
+      
+      <p>Excelのテーブル機能を活用することで：</p>
+      
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-title">自動拡張</div>
+          <p>データ範囲が自動的に認識・拡張され、新しい行にも数式が適用される</p>
+        </div>
+        
+        <div class="benefit-card">
+          <div class="benefit-title">フィルター維持</div>
+          <p>一度設定したフィルターやソートが常に維持される</p>
+        </div>
+        
+        <div class="benefit-card">
+          <div class="benefit-title">自動集計</div>
+          <p>トータル行による自動集計が可能になる</p>
+        </div>
+        
+        <div class="benefit-card">
+          <div class="benefit-title">参照の自動調整</div>
+          <p>列の追加・削除時も参照が自動調整される</p>
+        </div>
+        
+        <div class="benefit-card">
+          <div class="benefit-title">視覚的明確さ</div>
+          <p>データ範囲が視覚的に明確になる</p>
+        </div>
+        
+        <div class="benefit-card">
+          <div class="benefit-title">構造化参照</div>
+          <p>列名を使った直感的な数式参照ができる</p>
+        </div>
+      </div>
+      
+      <div class="highlight-box">
+        <p>結果として、データ管理が格段に効率化され、ミスも大幅に減少します。一度テーブル機能に慣れると、通常のセル範囲に戻れなくなるほど便利なのです！</p>
+      </div>
+
+      <h2>③実際の問題データイメージ</h2>
+      
+      <p>以下は、通常のセル範囲として管理されているデータの例です：</p>
+      
+      <table class="table-example normal-table">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>商品名</th>
+            <th>カテゴリ</th>
+            <th>単価</th>
+            <th>在庫数</th>
+            <th>金額</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A001</td>
+            <td>りんご</td>
+            <td>果物</td>
+            <td>100</td>
+            <td>150</td>
+            <td>=D2*E2</td>
+          </tr>
+          <tr>
+            <td>A002</td>
+            <td>みかん</td>
+            <td>果物</td>
+            <td>80</td>
+            <td>200</td>
+            <td>=D3*E3</td>
+          </tr>
+          <tr>
+            <td>A003</td>
+            <td>バナナ</td>
+            <td>果物</td>
+            <td>50</td>
+            <td>300</td>
+            <td>=D4*E4</td>
+          </tr>
+          <tr>
+            <td>B001</td>
+            <td>トマト</td>
+            <td>野菜</td>
+            <td>120</td>
+            <td>100</td>
+            <td>=D5*E5</td>
+          </tr>
+          <tr>
+            <td>B002</td>
+            <td>きゅうり</td>
+            <td>野菜</td>
+            <td>60</td>
+            <td>250</td>
+            <td>=D6*E6</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div class="problem-box">
+        <h3>このデータの問題点</h3>
+        <ul>
+          <li>新しい行を追加すると<strong>数式を手動でコピー</strong>する必要がある</li>
+          <li>データ範囲が視覚的に明確でない</li>
+          <li>フィルターやソートを毎回設定する必要がある</li>
+          <li>数式が具体的なセル参照(D2*E2など)を使用しているため柔軟性に欠ける</li>
+        </ul>
+      </div>
+
+      <h2>④実際の改善データイメージ</h2>
+      
+      <p>同じデータをテーブル機能で管理すると：</p>
+      
+      <table class="table-example excel-table">
+        <thead>
+          <tr>
+            <th>商品ID</th>
+            <th>商品名</th>
+            <th>カテゴリ</th>
+            <th>単価</th>
+            <th>在庫数</th>
+            <th>金額</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A001</td>
+            <td>りんご</td>
+            <td>果物</td>
+            <td>100</td>
+            <td>150</td>
+            <td>15000</td>
+          </tr>
+          <tr>
+            <td>A002</td>
+            <td>みかん</td>
+            <td>果物</td>
+            <td>80</td>
+            <td>200</td>
+            <td>16000</td>
+          </tr>
+          <tr>
+            <td>A003</td>
+            <td>バナナ</td>
+            <td>果物</td>
+            <td>50</td>
+            <td>300</td>
+            <td>15000</td>
+          </tr>
+          <tr>
+            <td>B001</td>
+            <td>トマト</td>
+            <td>野菜</td>
+            <td>120</td>
+            <td>100</td>
+            <td>12000</td>
+          </tr>
+          <tr>
+            <td>B002</td>
+            <td>きゅうり</td>
+            <td>野菜</td>
+            <td>60</td>
+            <td>250</td>
+            <td>15000</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">合計</td>
+            <td>73000</td>
+          </tr>
+        </tfoot>
+      </table>
+      
+      <div class="solution-box">
+        <h3>改善されたデータの特徴</h3>
+        <ul>
+          <li>テーブルとして定義され、<strong>視覚的に区別</strong>できる（異なる背景色など）</li>
+          <li>列名を使った<strong>構造化参照</strong>で数式が直感的かつ柔軟 (例: =[単価]*[在庫数])</li>
+          <li>新しい行を追加すると<strong>数式が自動的に適用</strong>される</li>
+          <li>フィルターが各列のヘッダーに<strong>自動的に設定</strong>される</li>
+          <li><strong>合計行が簡単に追加</strong>でき、集計関数が自動的に適用される</li>
+          <li>データ範囲の外側に表示されるヘッダーで列の識別が容易</li>
+        </ul>
+      </div>
+
+      <div class="mnemonic-box">
+        <div class="mnemonic-title">テーブル機能の特長：「自動KAIZEN」</div>
+        <ul>
+          <li><strong>K</strong>olumn(列)名参照で直感的な数式</li>
+          <li><strong>A</strong>uto(自動)拡張でデータ追加が楽々</li>
+          <li><strong>I</strong>nstant(即時)フィルターで素早い分析</li>
+          <li><strong>Z</strong>en(全体)表示で視覚的に明確</li>
+          <li><strong>E</strong>asy(簡単)集計でトータル行も自動計算</li>
+          <li><strong>N</strong>o(ない)手間で参照が自動調整</li>
+        </ul>
+      </div>
+
+      <h2>ハンズオン実習</h2>
+      
+      <div class="steps-container">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>問題データのサンプルを開いてください</h3>
+            <p>通常のセル範囲で作成された商品データのサンプルを確認しましょう。</p>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>以下の操作を試みてみましょう</h3>
+            <ul>
+              <li>新しい商品データを数行追加する</li>
+              <li>カテゴリでフィルターをかける</li>
+              <li>単価順にソートする</li>
+              <li>各カテゴリの在庫金額合計を求める</li>
+            </ul>
+            <p>通常のセル範囲での作業の手間を確認しましょう。</p>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>テーブルへの変換</h3>
+            <p>同じデータをテーブルに変換してみましょう：</p>
+            <ol>
+              <li>データ範囲内のセルを選択</li>
+              <li>[挿入]タブをクリック</li>
+              <li>[テーブル]ボタンをクリック</li>
+              <li>「先頭行をテーブルの見出しとして使用する」にチェックが入っていることを確認</li>
+              <li>[OK]をクリック</li>
+            </ol>
+            <div class="table-conversion">
+              <img src="/api/placeholder/400/200" alt="テーブル変換前の通常データ" />
+              <div class="arrow-down">↓</div>
+              <img src="/api/placeholder/400/200" alt="テーブル変換後のデータ" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>テーブル機能を体験する</h3>
+            <p>テーブルに変換した後、同じ操作を行ってみましょう：</p>
+            <ul>
+              <li>新しい行を追加し、数式が自動的に適用されることを確認</li>
+              <li>ヘッダーのドロップダウンを使ってカテゴリでフィルター</li>
+              <li>単価列を右クリックして並べ替え</li>
+              <li>テーブルのデザインタブから「集計行」を追加</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>構造化参照を使ってみよう</h3>
+            <p>テーブルの特長である構造化参照を試してみましょう。金額列の数式を：</p>
+            <div class="code-block">
+              =D2*E2 (通常のセル参照)
+            </div>
+            <p>から以下のように変更：</p>
+            <div class="code-block">
+              =[単価]*[在庫数] (構造化参照)
+            </div>
+            <p>この数式がテーブル内の新しい行にも自動的に適用されることを確認しましょう。</p>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <h3>テーブルスタイルを適用</h3>
+            <p>テーブルの「デザイン」タブから様々なスタイルを適用し、視覚的な明確さを体験しましょう。縞模様の行や強調表示されたヘッダーなど、データの可読性が向上します。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-container">
+        <div class="quiz-title">確認クイズ：テーブル機能の理解度チェック</div>
+        <ol>
+          <li>テーブル機能の最大のメリットは何ですか？</li>
+          <li>通常のセル範囲の数式(=D2*E2)と、テーブルの構造化参照(=[単価]*[在庫数])ではどちらが優れていますか？その理由は？</li>
+          <li>テーブルに新しい列を追加した場合、既存の数式はどうなりますか？</li>
+          <li>あなたの業務ではどのようなデータに対してテーブル機能を活用できそうですか？</li>
+        </ol>
+      </div>
+
+      <div class="highlight-box">
+        <h3>まとめ：テーブル機能のパワー</h3>
+        <p>テーブル機能は単なる見た目の変更ではなく、Excelデータを「構造化」することで、より効率的なデータ管理を実現します。テーブル機能を使いこなすことで、日々のデータ処理時間が大幅に短縮され、ミスも減少します。</p>
+        <p>特に重要な機能：</p>
+        <ul>
+          <li>データの自動拡張</li>
+          <li>構造化参照による直感的な数式</li>
+          <li>フィルター・ソートの常時有効化</li>
+          <li>トータル行による自動集計</li>
+        </ul>
+        <p>一度テーブル機能に慣れれば、通常のセル範囲には戻れなくなるでしょう！</p>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>ビジネスパーソンのためのデータリテラシー入門 | Excel ハンズオン研修 © 2025</p>
+      <p><a href="#">次のステップ: データ型を理解する →</a></p>
+    </div>
+  </div>
+</body>
+</html>

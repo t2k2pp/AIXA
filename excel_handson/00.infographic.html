@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データリテラシー研修：学びの本質と実践ガイド</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Kosugi Maru', sans-serif;
+            background-color: #F8F9FA;
+            color: #202124;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #4285F4;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .sub-header {
+            font-size: 18px;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .target {
+            background-color: #34A853;
+            color: white;
+            font-size: 16px;
+            padding: 8px 20px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 15px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: #34A853;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        h2::before {
+            content: "";
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #34A853;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 18px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: #FBBC05;
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        
+        p {
+            font-size: 15px;
+            color: #202124;
+            margin-bottom: 15px;
+        }
+        
+        .note {
+            font-size: 13px;
+            color: #5F6368;
+        }
+        
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .card {
+            background-color: white;
+            border: 1px solid #E8EAED;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: calc(50% - 15px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+        
+        .card.start::after {
+            background-color: #4285F4;
+        }
+        
+        .card.end::after {
+            background-color: #EA4335;
+        }
+        
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+        
+        .card.start .card-title {
+            color: #4285F4;
+        }
+        
+        .card.end .card-title {
+            color: #EA4335;
+        }
+        
+        .card-content {
+            padding-left: 10px;
+        }
+        
+        .highlight-box {
+            background-color: #F1F3F4;
+            border-left: 4px solid #FBBC05;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .highlight-box h4 {
+            color: #FBBC05;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        
+        .highlight-box ul {
+            padding-left: 20px;
+        }
+        
+        .highlight-box li {
+            margin-bottom: 5px;
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .steps::before {
+            content: "";
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #E8EAED;
+            z-index: 1;
+        }
+        
+        .step {
+            width: 19%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4285F4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .step:nth-child(2) .step-icon {
+            background-color: #EA4335;
+        }
+        
+        .step:nth-child(3) .step-icon {
+            background-color: #FBBC05;
+        }
+        
+        .step:nth-child(4) .step-icon {
+            background-color: #34A853;
+        }
+
+        .step:nth-child(5) .step-icon {
+            background-color: #4285F4;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .step-desc {
+            font-size: 13px;
+            color: #5F6368;
+        }
+        
+        .balance-section {
+            background-color: #F1F3F4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .balance-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #202124;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .balance-scales {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .scale {
+            width: 45%;
+            text-align: center;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .scale-left {
+            background-color: #FEF2F2;
+            border: 1px solid #FDCFCF;
+        }
+        
+        .scale-right {
+            background-color: #ECFDF1;
+            border: 1px solid #BDECD1;
+        }
+        
+        .scale-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .scale-left .scale-title {
+            color: #EA4335;
+        }
+        
+        .scale-right .scale-title {
+            color: #34A853;
+        }
+        
+        .balance-middle {
+            width: 10%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .balance-arrow {
+            width: 40px;
+            height: 40px;
+            background-color: #FBBC05;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px 0;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .quiz-box {
+            background-color: #E8F0FE;
+            border: 1px solid #AECBFA;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .quiz-box h3 {
+            color: #4285F4;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4285F4;
+            border-radius: 4px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .final-message {
+            background-color: #E5F5EB;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #34A853;
+        }
+        
+        .final-message h3 {
+            color: #34A853;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        footer {
+            background-color: #F8F9FA;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #5F6368;
+            border-top: 1px solid #E8EAED;
+        }
+        
+        .ref-links {
+            margin-top: 10px;
+        }
+        
+        .ref-links a {
+            color: #4285F4;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .ref-links a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                width: 100%;
+            }
+            
+            .steps {
+                flex-direction: column;
+            }
+            
+            .steps::before {
+                display: none;
+            }
+            
+            .step {
+                width: 100%;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                text-align: left;
+            }
+            
+            .step-icon {
+                margin: 0 15px 0 0;
+            }
+            
+            .step-content {
+                flex: 1;
+            }
+            
+            .balance-scales {
+                flex-direction: column;
+            }
+            
+            .scale {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .balance-middle {
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                margin: 10px 0;
+            }
+            
+            .balance-arrow {
+                margin: 0 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>データリテラシー研修：学びの本質と実践ガイド「はじめに」</h1>
+            <div class="sub-header">効果的なデータ活用のための思想とバランス</div>
+            <div class="target">ビジネスパーソンのためのデータリテラシー講座</div>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2>研修の本質と目的</h2>
+                <p>データリテラシーは単なるテクニックの習得ではなく、ビジネスデータの扱い方に関する「思考の道具」を身につけることです。この研修では、Excel活用の技術的側面だけでなく、データ活用の本質的な考え方を学びます。</p>
+                
+                <div class="cards-container">
+                    <div class="card start">
+                        <div class="card-title">研修の基本的な考え方</div>
+                        <div class="card-content">
+                            <p>「データリテラシーの原則は、すべての場面で機械的に適用すべき『絶対的なルール』ではありません。それぞれのアプローチには『適切な使いどころ』があります。大切なのは、目的に適した方法を選択できる判断力を身につけることです。」</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card end">
+                        <div class="card-title">研修を通じて得られる視点</div>
+                        <div class="card-content">
+                            <p>「データリテラシーの原則は、『すべきこと・すべきでないこと』という固定的なルールではなく、より良い判断をするための『思考の道具』です。目的と状況に応じて最適な方法を選択できる『判断力』と、少しずつでも継続的に改善していく『姿勢』が大切です。」</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>データリテラシーの5つの重要な考え方</h2>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-icon">1</div>
+                        <div class="step-content">
+                            <div class="step-title">目的適合性</div>
+                            <div class="step-desc">絶対的なルールではなく、目的に合った手法の選択</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">2</div>
+                        <div class="step-content">
+                            <div class="step-title">データと表示の分離</div>
+                            <div class="step-desc">管理機能と表現機能の適切な使い分け</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <div class="step-content">
+                            <div class="step-title">段階的移行</div>
+                            <div class="step-desc">既存資産との共存と計画的な改善</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">4</div>
+                        <div class="step-content">
+                            <div class="step-title">実務バランス</div>
+                            <div class="step-desc">理想と現実の賢明な折り合い</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-icon">5</div>
+                        <div class="step-content">
+                            <div class="step-title">組織文化</div>
+                            <div class="step-desc">個人から組織への波及と定着</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <h4>データリテラシー向上で得られるメリット</h4>
+                    <ul>
+                        <li><strong>時間節約</strong>：後からの修正や集計作業が劇的に減少</li>
+                        <li><strong>ストレス軽減</strong>：「あのデータどこ？」というイライラから解放</li>
+                        <li><strong>信頼獲得</strong>：他の人が理解しやすい資料で評価向上</li>
+                        <li><strong>自動化の基盤</strong>：他のツールとの連携や自動処理が容易に</li>
+                        <li><strong>分析力向上</strong>：データから新たな洞察を得られる</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>データ活用の賢明なバランス</h2>
+                
+                <div class="balance-section">
+                    <div class="balance-title">実務で最適なバランスポイントを見つける</div>
+                    
+                    <div class="balance-scales">
+                        <div class="scale scale-left">
+                            <div class="scale-title">極端な理想論</div>
+                            <p>すべてのファイルを完璧な理想構造に作り変える</p>
+                            <p class="note">→ 現実的ではなく、業務が滞る</p>
+                        </div>
+                        
+                        <div class="balance-middle">
+                            <div class="balance-arrow">↔</div>
+                        </div>
+                        
+                        <div class="scale scale-right">
+                            <div class="scale-title">賢明なバランス</div>
+                            <p>目的と状況に応じた最適解を選択する</p>
+                            <p class="note">→ 効率と実用性の両立</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>原則に従うべき重要な場面</h3>
+                <ul>
+                    <li>定期的に更新・参照されるデータ</li>
+                    <li>複数人で共有・編集するファイル</li>
+                    <li>意思決定の基盤となる重要データ</li>
+                    <li>将来的に分析や加工が必要になる可能性があるデータ</li>
+                    <li>100行以上の比較的大量のデータを扱う場合</li>
+                </ul>
+                
+                <h3>簡易な方法でも問題ない場面</h3>
+                <ul>
+                    <li>個人的な一時的メモや簡易な確認用の表</li>
+                    <li>即時的な使用で終わり、再利用や分析の予定がない資料</li>
+                    <li>少量データ（10行×5列程度）の単純な一覧</li>
+                    <li>その場限りの単発の集計</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>段階的な実践と組織への展開</h2>
+                
+                <h3>現実的な実践アプローチ</h3>
+                <p>既存ファイルへの対応方法：</p>
+                <ol>
+                    <li><strong>優先順位付け</strong>：高頻度・高重要度のファイルから改善を検討する</li>
+                    <li><strong>機会を捉えた改善</strong>：大幅な更新が必要になったタイミングで構造を見直す</li>
+                    <li><strong>並行運用</strong>：重要なファイルは改善版と従来版を一定期間併用する</li>
+                    <li><strong>部分的改善の許容</strong>：完璧を求めず、一部分だけでも改善を評価する</li>
+                </ol>
+                                
+                <h3>組織文化醸成のステップ</h3>
+                <ol>
+                    <li><strong>自分の担当業務から始める</strong>：新規ファイル作成時に原則を適用する</li>
+                    <li><strong>共有と対話</strong>：改善の効果や時間節約を具体的な数字で共有する</li>
+                    <li><strong>支援と協力</strong>：同僚のファイル改善を手伝い、互いに学び合う</li>
+                    <li><strong>標準化と教育</strong>：部門内の標準テンプレートに原則を反映する</li>
+                </ol>
+                
+                <div class="final-message">
+                    <h3>実践へのステップ：小さな一歩から始める</h3>
+                    <p>すべてを一度に変える必要はありません。まずは新しく作るものから、次に定期的に更新するものから、そして余裕があれば既存のものも少しずつ見直していきましょう。その小さな一歩の積み重ねが、やがて大きな変化となって、あなた自身と組織全体の生産性と創造性を高めていくでしょう。</p>
+                    <p>データリテラシーという「考え方」を身につけたあなたは、すでに変化の担い手です。その知識と視点を、ぜひ日々の業務に活かしてください。</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>ビジネスパーソンのためのデータリテラシー講座</p>
+        </footer>
+    </div>
+</body>
+</html>

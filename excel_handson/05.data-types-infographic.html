@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>データ型を理解する 〜効率的なデータ処理の鍵〜</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #202124;
+      background-color: #F8F9FA;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      background-color: #4285F4;
+      color: white;
+      border-radius: 15px 15px 0 0;
+      position: relative;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      font-size: 16px;
+    }
+    
+    .character {
+      position: absolute;
+      right: 30px;
+      top: 20px;
+      width: 100px;
+      height: 100px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4285F4;
+      font-weight: bold;
+      font-size: 40px;
+      border: 4px solid #FBBC05;
+    }
+    
+    .main-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 0 0 15px 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .section {
+      margin-bottom: 40px;
+    }
+    
+    h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #34A853;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid #34A853;
+    }
+    
+    h3 {
+      font-size: 16px;
+      font-weight: bold;
+      color: #FBBC05;
+      margin-bottom: 10px;
+    }
+    
+    .problem-box, .benefit-box {
+      background-color: #F8F9FA;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .problem-icon, .benefit-icon {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      background-color: #EA4335;
+      color: white;
+      border-radius: 50%;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    
+    .benefit-icon {
+      background-color: #34A853;
+    }
+    
+    .problem-item, .benefit-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    
+    .data-table th {
+      background-color: #4285F4;
+      color: white;
+      padding: 10px;
+      text-align: left;
+    }
+    
+    .data-table td {
+      padding: 10px;
+      border: 1px solid #E0E0E0;
+    }
+    
+    .data-table tr:nth-child(even) {
+      background-color: #F8F9FA;
+    }
+    
+    .data-type-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin: 20px 0;
+    }
+    
+    .data-type-box {
+      width: 48%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .data-type-box.problem {
+      background-color: #FFEBE6;
+      border-left: 5px solid #EA4335;
+    }
+    
+    .data-type-box.improved {
+      background-color: #E6F4EA;
+      border-left: 5px solid #34A853;
+    }
+    
+    .data-type-box h3 {
+      margin-top: 0;
+    }
+    
+    .highlight {
+      background-color: #FFFF00;
+      padding: 0 3px;
+    }
+    
+    .note {
+      font-size: 13px;
+      color: #5F6368;
+      font-style: italic;
+      margin-top: 5px;
+    }
+    
+    .practice-steps {
+      counter-reset: step;
+      margin: 20px 0;
+    }
+    
+    .practice-step {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 15px;
+    }
+    
+    .practice-step:before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      background-color: #4285F4;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+    }
+    
+    .data-example {
+      font-family: monospace;
+      background-color: #F8F9FA;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    
+    .quiz-box {
+      background-color: #E6F4EA;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 30px;
+    }
+    
+    .quiz-title {
+      color: #34A853;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .data-type-comparison {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin: 20px 0;
+    }
+    
+    .data-type-column {
+      width: 48%;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    
+    .data-type-column.problem {
+      background-color: #FFEBE6;
+    }
+    
+    .data-type-column.improved {
+      background-color: #E6F4EA;
+    }
+    
+    .data-type-cell {
+      padding: 10px;
+      margin: 5px 0;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .data-type-cell.error {
+      border-left: 3px solid #EA4335;
+    }
+    
+    .data-type-cell.success {
+      border-left: 3px solid #34A853;
+    }
+    
+    .data-type-label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .tips-box {
+      background-color: #E8F0FE;
+      border-left: 5px solid #4285F4;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 10px 10px 0;
+    }
+    
+    .tips-title {
+      color: #4285F4;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #E0E0E0;
+      font-size: 13px;
+      color: #5F6368;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>データ型を理解する</h1>
+      <p>〜効率的なデータ処理の鍵〜</p>
+      <div class="character">D</div>
+    </div>
+    
+    <div class="main-content">
+      <div class="section">
+        <h2>1. データ型とは何か？</h2>
+        <p>Excelでは、セルに入力された値は「数値」「文字列」「日付」などの<strong>データ型</strong>として認識されます。このデータ型が正しく設定されていないと、計算や並べ替えなどの操作で問題が発生します。</p>
+        
+        <div class="data-type-container">
+          <div class="data-type-box">
+            <h3>主なデータ型</h3>
+            <ul>
+              <li><strong>数値型</strong>: 計算に使える数字 (例: 100, 3.14)</li>
+              <li><strong>文字列型</strong>: テキスト (例: "東京", "A001")</li>
+              <li><strong>日付型</strong>: 日付として認識される値 (例: 2023/06/01)</li>
+              <li><strong>論理型</strong>: TRUE/FALSE値</li>
+              <li><strong>エラー型</strong>: #N/A, #DIV/0!などのエラー値</li>
+            </ul>
+          </div>
+          
+          <div class="data-type-box">
+            <h3>なぜ重要なの？</h3>
+            <p>データ型によって...</p>
+            <ul>
+              <li>計算ができるかどうかが決まる</li>
+              <li>並べ替えの結果が変わる</li>
+              <li>検索や抽出の精度に影響する</li>
+              <li>日付の計算ができるかどうか決まる</li>
+              <li>関数の動作に大きく影響する</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>2. 何が課題か？</h2>
+        
+        <div class="problem-box">
+          <div class="problem-item">
+            <span class="problem-icon">!</span>
+            <p>数値が文字列として認識され、計算ができない</p>
+          </div>
+          <div class="problem-item">
+            <span class="problem-icon">!</span>
+            <p>日付が正しく認識されず、日付関数が使えない</p>
+          </div>
+          <div class="problem-item">
+            <span class="problem-icon">!</span>
+            <p>文字列として扱いたい数値（郵便番号など）が数値になってしまう</p>
+          </div>
+          <div class="problem-item">
+            <span class="problem-icon">!</span>
+            <p>異なるデータ型が混在し、並べ替えの結果が予想外になる</p>
+          </div>
+          <div class="problem-item">
+            <span class="problem-icon">!</span>
+            <p>データ形式の自動変換による意図しない変更（例：「1-1」が「1月1日」になる）</p>
+          </div>
+        </div>
+        
+        <div class="tips-box">
+          <div class="tips-title">データ型の見分け方</div>
+          <p>Excelでは、セルの表示だけでデータ型を判断するのは難しいことがあります。以下の方法で確認できます：</p>
+          <ul>
+            <li>数値は右揃え、文字列は左揃えで表示される</li>
+            <li>セルを選択して書式設定ダイアログを開く</li>
+            <li>数式バーの「数式の評価」機能を使う</li>
+            <li>ISTEXT, ISNUMBER, ISDATE関数で判定する</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>3. 改善することでどういう良いことがあるか？</h2>
+        
+        <div class="benefit-box">
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>計算や集計が正確に行える</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>日付の比較や計算が正しく機能する</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>並べ替えが意図した通りに動作する</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>特殊な書式（郵便番号や電話番号など）も正しく扱える</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>データ処理の一貫性と信頼性が向上する</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>データの移行や連携がスムーズになる</p>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon">✓</span>
+            <p>エラーの発生頻度が減少する</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>4. 実際の問題データイメージ</h2>
+        
+        <div class="data-example">
+          <table class="data-table">
+            <tr>
+              <th>社員番号</th>
+              <th>氏名</th>
+              <th>入社日</th>
+              <th>基本給</th>
+              <th>電話番号</th>
+              <th>郵便番号</th>
+            </tr>
+            <tr>
+              <td>1001</td>
+              <td>鈴木一郎</td>
+              <td>2020/4/1</td>
+              <td>280000</td>
+              <td>03-1234-5678</td>
+              <td>100-0001</td>
+            </tr>
+            <tr>
+              <td>EMP1002</td>
+              <td>田中二郎</td>
+              <td>2020-05-01</td>
+              <td>"290000"</td>
+              <td>0312345679</td>
+              <td>160-0022</td>
+            </tr>
+            <tr>
+              <td>1003</td>
+              <td>山田三郎</td>
+              <td>1-6-2020</td>
+              <td>270,000</td>
+              <td>070-1234-5678</td>
+              <td>1700013</td>
+            </tr>
+            <tr>
+              <td>"1004"</td>
+              <td>佐藤四郎</td>
+              <td>R2.7.1</td>
+              <td>\300000</td>
+              <td>080(1234)5678</td>
+              <td>150-0001</td>
+            </tr>
+            <tr>
+              <td>1005</td>
+              <td>高橋五郎</td>
+              <td>2020年8月1日</td>
+              <td>三十万円</td>
+              <td>090-1234-5678</td>
+              <td>03-1234-5678</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="data-type-comparison">
+          <div class="data-type-column problem">
+            <h3>問題点</h3>
+            <div class="data-type-cell error">
+              <div class="data-type-label">社員番号の混在</div>
+              <p>数値（1001）と文字列（"1004"、EMP1002）が混在</p>
+            </div>
+            <div class="data-type-cell error">
+              <div class="data-type-label">入社日のフォーマット不統一</div>
+              <p>2020/4/1、2020-05-01、1-6-2020、R2.7.1、2020年8月1日など様々</p>
+            </div>
+            <div class="data-type-cell error">
+              <div class="data-type-label">基本給の表記混在</div>
+              <p>数値、"文字列"、カンマ付き、通貨記号付き、漢字表記など</p>
+            </div>
+            <div class="data-type-cell error">
+              <div class="data-type-label">電話番号のフォーマット不統一</div>
+              <p>ハイフンあり/なし、括弧使用など</p>
+            </div>
+            <div class="data-type-cell error">
+              <div class="data-type-label">誤ったデータ入力</div>
+              <p>最後の行の郵便番号欄に電話番号が入力されている</p>
+            </div>
+          </div>
+          
+          <div class="data-type-column improved">
+            <h3>これらが引き起こす問題</h3>
+            <div class="data-type-cell success">
+              <div class="data-type-label">計算エラー</div>
+              <p>基本給の合計や平均が正しく計算できない</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">並べ替えの問題</div>
+              <p>入社日順に並べ替えると予想外の順序になる</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">日付計算の障害</div>
+              <p>勤続年数や入社後期間の計算ができない</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">検索・抽出の問題</div>
+              <p>特定パターンでの検索が効かない</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">データ連携の障害</div>
+              <p>他システムとの連携時にエラーが発生する</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>5. 実際の改善データイメージ</h2>
+        
+        <div class="data-example">
+          <table class="data-table">
+            <tr>
+              <th>社員番号</th>
+              <th>氏名</th>
+              <th>入社日</th>
+              <th>基本給</th>
+              <th>電話番号</th>
+              <th>郵便番号</th>
+            </tr>
+            <tr>
+              <td>EMP1001</td>
+              <td>鈴木一郎</td>
+              <td>2020-04-01</td>
+              <td>280000</td>
+              <td>03-1234-5678</td>
+              <td>100-0001</td>
+            </tr>
+            <tr>
+              <td>EMP1002</td>
+              <td>田中二郎</td>
+              <td>2020-05-01</td>
+              <td>290000</td>
+              <td>03-1234-5679</td>
+              <td>160-0022</td>
+            </tr>
+            <tr>
+              <td>EMP1003</td>
+              <td>山田三郎</td>
+              <td>2020-06-01</td>
+              <td>270000</td>
+              <td>070-1234-5678</td>
+              <td>170-0013</td>
+            </tr>
+            <tr>
+              <td>EMP1004</td>
+              <td>佐藤四郎</td>
+              <td>2020-07-01</td>
+              <td>300000</td>
+              <td>080-1234-5678</td>
+              <td>150-0001</td>
+            </tr>
+            <tr>
+              <td>EMP1005</td>
+              <td>高橋五郎</td>
+              <td>2020-08-01</td>
+              <td>300000</td>
+              <td>090-1234-5678</td>
+              <td>未登録</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="data-type-comparison">
+          <div class="data-type-column improved">
+            <h3>改善点</h3>
+            <div class="data-type-cell success">
+              <div class="data-type-label">社員番号の統一</div>
+              <p>すべて文字列型で統一（EMPプレフィックス付き）</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">入社日のフォーマット統一</div>
+              <p>すべてYYYY-MM-DD形式の日付型</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">基本給の数値型統一</div>
+              <p>すべて数値型（カンマや通貨記号なし）</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">電話番号の形式統一</div>
+              <p>すべて文字列型で統一フォーマット</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">エラーデータの適切な処理</div>
+              <p>誤りは明示的に「未登録」と表記</p>
+            </div>
+          </div>
+          
+          <div class="data-type-column improved">
+            <h3>得られるメリット</h3>
+            <div class="data-type-cell success">
+              <div class="data-type-label">正確な計算</div>
+              <p>基本給の合計・平均が簡単に計算可能</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">正しい並べ替え</div>
+              <p>入社日順に正確に並べ替えができる</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">日付関数の活用</div>
+              <p>勤続年数の計算などが可能</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">視覚的一貫性</div>
+              <p>データの見た目も統一され分かりやすい</p>
+            </div>
+            <div class="data-type-cell success">
+              <div class="data-type-label">外部連携の容易さ</div>
+              <p>他システムとの連携がスムーズに</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>6. ハンズオン実習ポイント</h2>
+        
+        <div class="practice-steps">
+          <div class="practice-step">
+            <h3>問題データでの計算を試してみる</h3>
+            <p>サンプルデータを使って以下を試してみましょう：</p>
+            <ul>
+              <li>基本給の合計と平均を計算する</li>
+              <li>入社日が古い順に並べ替える</li>
+              <li>入社後3か月の日付を計算する</li>
+              <li>電話番号の一部を検索する</li>
+            </ul>
+            <p class="note">→ どのような問題が発生するか観察してください</p>
+          </div>
+          
+          <div class="practice-step">
+            <h3>データ型を確認する方法を学ぶ</h3>
+            <ul>
+              <li>セルを選択して書式設定ダイアログを開く</li>
+              <li>数式バーの「数式の評価」を使う</li>
+              <li>ISTEXT、ISNUMBER、ISDATE関数を使う</li>
+            </ul>
+          </div>
+          
+          <div class="practice-step">
+            <h3>適切なデータ型への変換方法</h3>
+            <ul>
+              <li>文字列として扱いたい数値の前にアポストロフィ(')を付ける</li>
+              <li>日付の統一フォーマットを設定する</li>
+              <li>数値の書式設定をカスタマイズする</li>
+              <li>VALUE関数で文字列を数値に変換する</li>
+              <li>TEXT関数で数値を整形された文字列に変換する</li>
+            </ul>
+          </div>
+          
+          <div class="practice-step">
+            <h3>実際のデータで検証する</h3>
+            <p>実際の業務データでデータ型の問題がないか確認し、必要な修正を行ってみましょう。特に以下に注意します：</p>
+            <ul>
+              <li>計算に使用する列は数値型になっているか</li>
+              <li>日付として扱う列は日付型になっているか</li>
+              <li>郵便番号や電話番号などは適切に文字列として保存されているか</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="quiz-box">
+        <div class="quiz-title">確認クイズ＆ポイント</div>
+        <p><strong>Q1:</strong> 数値として扱いたいのに計算できないデータがあります。考えられる原因は？</p>
+        <p><strong>Q2:</strong> 日付順に並べ替えたのに、正しい順序にならない場合の対処法は？</p>
+        <p><strong>Q3:</strong> 郵便番号の先頭のゼロが消えてしまう問題の解決方法は？</p>
+        
+        <div class="tips-box" style="margin-top: 20px;">
+          <div class="tips-title">実務での活用ポイント</div>
+          <ul>
+            <li><strong>データ入力時から気をつける</strong>：最初から正しいデータ型で入力することが最も効率的です</li>
+            <li><strong>一貫したフォーマットの使用</strong>：データの種類ごとに統一されたフォーマットを決めておきましょう</li>
+            <li><strong>テンプレートの活用</strong>：あらかじめデータ型が設定されたテンプレートを用意しておくと便利です</li>
+            <li><strong>データ検証機能の活用</strong>：入力規則を設定して不適切なデータ型の入力を防ぎましょう</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <p>データ型を正しく理解することで、Excelでのデータ処理がより確実で効率的になります。</p>
+        <p>© ビジネスパーソンのためのデータリテラシー入門</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

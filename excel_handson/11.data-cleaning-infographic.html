@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基本的なデータクリーニング</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        :root {
+            --main-color: #4285F4;
+            --sub1-color: #34A853;
+            --sub2-color: #FBBC05;
+            --accent-color: #EA4335;
+            --back-color: #F8F9FA;
+            --text-color: #202124;
+            --light-gray: #E8EAED;
+            --dark-gray: #5F6368;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--back-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        header {
+            background-color: var(--main-color);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: var(--sub1-color);
+            border-bottom: 3px solid var(--sub1-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: var(--sub2-color);
+            margin-bottom: 15px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .point-block {
+            background-color: #E3F2FD;
+            border-left: 5px solid var(--main-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .danger-block {
+            background-color: #FFEBEE;
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .tip-block {
+            background-color: #E8F5E9;
+            border-left: 5px solid var(--sub1-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .example-block {
+            background-color: #FFF8E1;
+            border: 1px solid var(--sub2-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .example-title {
+            display: inline-block;
+            background-color: var(--sub2-color);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .data-table th {
+            background-color: var(--main-color);
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        
+        .data-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: var(--back-color);
+        }
+        
+        .highlights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .highlight-card {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+            border-top: 5px solid var(--main-color);
+        }
+        
+        .highlight-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #E3F2FD;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            color: var(--main-color);
+            font-size: 24px;
+        }
+        
+        .highlight-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--main-color);
+        }
+        
+        .steps {
+            counter-reset: step-counter;
+            margin-bottom: 30px;
+        }
+        
+        .step-item {
+            position: relative;
+            padding-left: 70px;
+            margin-bottom: 30px;
+            min-height: 60px;
+        }
+        
+        .step-item:before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50px;
+            height: 50px;
+            background-color: var(--sub1-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--sub1-color);
+        }
+        
+        .quiz-section {
+            background-color: #E3F2FD;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .quiz-title {
+            font-weight: bold;
+            color: var(--main-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .quiz-title:before {
+            content: "Q";
+            width: 30px;
+            height: 30px;
+            background-color: var(--main-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        }
+        
+        .error-highlight {
+            color: var(--accent-color);
+            font-weight: bold;
+            background-color: #FFEBEE;
+            padding: 0 3px;
+        }
+        
+        .correct-highlight {
+            color: var(--sub1-color);
+            font-weight: bold;
+            background-color: #E8F5E9;
+            padding: 0 3px;
+        }
+        
+        .function-box {
+            background-color: #E8F5E9;
+            border: 1px solid var(--sub1-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+        }
+        
+        .function-name {
+            color: var(--sub1-color);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .function-syntax {
+            font-family: monospace;
+            background-color: #F5F5F5;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background-color: var(--main-color);
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .mascot {
+            position: absolute;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: #FFF8E1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .speech-bubble {
+            position: relative;
+            background-color: #FFF8E1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-left: 60px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .speech-bubble:before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            border: 10px solid transparent;
+            border-right-color: #FFF8E1;
+        }
+        
+        .problem-cell {
+            position: relative;
+        }
+        
+        .problem-highlight {
+            position: relative;
+            background-color: #FFEBEE;
+        }
+        
+        .correct-cell {
+            background-color: #E8F5E9;
+        }
+        
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .flex-column {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .flex-container {
+                flex-direction: column;
+            }
+            
+            .highlights {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>課題11: 基本的なデータクリーニング</h1>
+            <p>「汚れた」データを効率的に整える方法と、データクリーニング関数の活用法を学びましょう</p>
+        </header>
+        
+        <div class="content">
+            <section>
+                <h2>① データクリーニングの課題とは？</h2>
+                
+                <div class="speech-bubble">
+                    <p>実際の業務データには、様々な「汚れ」が含まれていることが多いんだ。この「汚れ」が分析やデータ処理の障害になっているよ！</p>
+                </div>
+                
+                <div class="highlights">
+                    <div class="highlight-card">
+                        <div class="highlight-icon">💬</div>
+                        <div class="highlight-title">余分な空白や特殊文字</div>
+                        <p>半角/全角空白の混在、制御文字などが混入</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🔄</div>
+                        <div class="highlight-title">重複データの存在</div>
+                        <p>同一人物や同一取引の重複レコード</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">📊</div>
+                        <div class="highlight-title">不要な書式や表示形式</div>
+                        <p>通貨記号、カンマ、単位などが混在</p>
+                    </div>
+                </div>
+                
+                <div class="highlights">
+                    <div class="highlight-card">
+                        <div class="highlight-icon">⚠️</div>
+                        <div class="highlight-title">異常値や欠損値</div>
+                        <p>空白セル、明らかに通常範囲外の値</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🔤</div>
+                        <div class="highlight-title">一貫性のない表記</div>
+                        <p>全角/半角の混在、表記ゆれ</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🔗</div>
+                        <div class="highlight-title">不要な要素</div>
+                        <p>非表示データ、ハイパーリンク、残存数式</p>
+                    </div>
+                </div>
+                
+                <div class="danger-block">
+                    <p><strong>注意!</strong> これらの「汚れ」は、データ分析や処理の際にエラーや不正確な結果を引き起こす原因となります。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>② データクリーニングのメリット</h2>
+                
+                <div class="highlights">
+                    <div class="highlight-card">
+                        <div class="highlight-icon">✅</div>
+                        <div class="highlight-title">正確な分析結果</div>
+                        <p>クリーンなデータは正確な集計と予測を実現</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">⚡</div>
+                        <div class="highlight-title">処理速度の向上</div>
+                        <p>余分なデータや書式がなく処理が高速化</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🛡️</div>
+                        <div class="highlight-title">エラー削減</div>
+                        <p>予期せぬエラーや不具合の大幅減少</p>
+                    </div>
+                </div>
+                
+                <div class="highlights">
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🔄</div>
+                        <div class="highlight-title">システム連携の円滑化</div>
+                        <p>他システムとのデータ交換がスムーズに</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">💾</div>
+                        <div class="highlight-title">ファイルサイズの最適化</div>
+                        <p>不要な書式や計算式が削除され軽量化</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🚀</div>
+                        <div class="highlight-title">後続作業の効率化</div>
+                        <p>後工程の処理や分析が容易になる</p>
+                    </div>
+                </div>
+                
+                <div class="point-block">
+                    <p><strong>ポイント!</strong> クリーンなデータは信頼性の高い意思決定につながります。データクリーニングは「時間の浪費」ではなく「価値ある投資」です。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>③ 問題データの例</h2>
+                
+                <div class="example-block">
+                    <div class="example-title">「汚れ」を含むデータの例</div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <tr>
+                                <th>顧客ID</th>
+                                <th>顧客名</th>
+                                <th>電話番号</th>
+                                <th>メールアドレス</th>
+                                <th>購入金額</th>
+                                <th>購入日</th>
+                            </tr>
+                            <tr>
+                                <td class="problem-highlight">00001</td>
+                                <td class="problem-highlight">山田 太郎</td>
+                                <td>03-1234-5678</td>
+                                <td>yamada@example.com</td>
+                                <td class="problem-highlight">¥10,000</td>
+                                <td>2023/6/1</td>
+                            </tr>
+                            <tr>
+                                <td class="problem-highlight">1</td>
+                                <td class="problem-highlight">鈴木　花子</td>
+                                <td class="problem-highlight">03 1234 5679</td>
+                                <td>suzuki@example.com</td>
+                                <td class="problem-highlight">12000円</td>
+                                <td class="problem-highlight">2023/6/2</td>
+                            </tr>
+                            <tr>
+                                <td class="problem-highlight">00001</td>
+                                <td class="problem-highlight">山田太郎</td>
+                                <td class="problem-highlight">03(1234)5678</td>
+                                <td class="problem-highlight"></td>
+                                <td class="problem-highlight">\10,000</td>
+                                <td class="problem-highlight">2023-06-01</td>
+                            </tr>
+                            <tr>
+                                <td class="problem-highlight">002</td>
+                                <td class="problem-highlight">佐藤　次郎</td>
+                                <td class="problem-highlight"></td>
+                                <td>sato@example.com</td>
+                                <td>15,000</td>
+                                <td class="problem-highlight">6/3/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="problem-highlight">2</td>
+                                <td class="problem-highlight">鈴木花子</td>
+                                <td>090-1234-5678</td>
+                                <td class="problem-highlight">szk@example.com</td>
+                                <td>12000</td>
+                                <td class="problem-highlight">2日前</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <h3>データの問題点</h3>
+                    <ul>
+                        <li>顧客IDのフォーマットが不統一（「00001」と「1」など）</li>
+                        <li>顧客名の空白（半角/全角）の混在</li>
+                        <li>同一人物の重複（山田太郎、鈴木花子）</li>
+                        <li>電話番号の形式が統一されていない</li>
+                        <li>欠損値（空白セル）の存在</li>
+                        <li>購入金額の表記が不統一（通貨記号、カンマ、「円」など）</li>
+                        <li>購入日の形式が様々（「2023/6/1」、「2023-06-01」、「6/3/2023」、「2日前」）</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <section>
+                <h2>④ 改善データの例</h2>
+                
+                <div class="example-block">
+                    <div class="example-title">クリーニング後のデータ</div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <tr>
+                                <th>顧客ID</th>
+                                <th>顧客名</th>
+                                <th>電話番号</th>
+                                <th>メールアドレス</th>
+                                <th>購入金額</th>
+                                <th>購入日</th>
+                            </tr>
+                            <tr>
+                                <td class="correct-cell">00001</td>
+                                <td class="correct-cell">山田太郎</td>
+                                <td class="correct-cell">03-1234-5678</td>
+                                <td class="correct-cell">yamada@example.com</td>
+                                <td class="correct-cell">10000</td>
+                                <td class="correct-cell">2023-06-01</td>
+                            </tr>
+                            <tr>
+                                <td class="correct-cell">00002</td>
+                                <td class="correct-cell">鈴木花子</td>
+                                <td class="correct-cell">03-1234-5679</td>
+                                <td class="correct-cell">suzuki@example.com</td>
+                                <td class="correct-cell">12000</td>
+                                <td class="correct-cell">2023-06-02</td>
+                            </tr>
+                            <tr>
+                                <td class="correct-cell">00003</td>
+                                <td class="correct-cell">佐藤次郎</td>
+                                <td class="correct-cell">不明</td>
+                                <td class="correct-cell">sato@example.com</td>
+                                <td class="correct-cell">15000</td>
+                                <td class="correct-cell">2023-06-03</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <h3>改善後のデータの特徴</h3>
+                    <ul>
+                        <li>重複が排除され、一意のレコードになっている</li>
+                        <li>顧客IDが統一されたフォーマット</li>
+                        <li>名前から余分な空白が削除され、表記が統一</li>
+                        <li>電話番号の形式が統一（不明は明示的に表記）</li>
+                        <li>購入金額が純粋な数値として統一</li>
+                        <li>購入日が標準形式（YYYY-MM-DD）で統一</li>
+                    </ul>
+                </div>
+                
+                <div class="tip-block">
+                    <p><strong>ワンポイント!</strong> データクリーニングにおいては、「削除する」より「標準化する」という考え方が重要です。欠損値も「空白」ではなく「不明」など明示的な表現に変換しましょう。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>⑤ データクリーニングの主な関数と使い方</h2>
+                
+                <div class="flex-container">
+                    <div class="flex-column">
+                        <div class="function-box">
+                            <div class="function-name">TRIM関数</div>
+                            <div class="function-syntax">=TRIM(テキスト)</div>
+                            <p>テキストの前後および中間の余分な空白を削除します。</p>
+                            <p>例: <code>=TRIM("  山田  太郎  ")</code> → <code>"山田 太郎"</code></p>
+                        </div>
+                        
+                        <div class="function-box">
+                            <div class="function-name">CLEAN関数</div>
+                            <div class="function-syntax">=CLEAN(テキスト)</div>
+                            <p>印刷できない制御文字を削除します。</p>
+                            <p>例: <code>=CLEAN("データ[改行]表示")</code> → <code>"データ表示"</code></p>
+                        </div>
+                        
+                        <div class="function-box">
+                            <div class="function-name">SUBSTITUTE関数</div>
+                            <div class="function-syntax">=SUBSTITUTE(テキスト, 検索文字列, 置換文字列, [出現番号])</div>
+                            <p>テキスト内の特定の文字列を別の文字列に置換します。</p>
+                            <p>例: <code>=SUBSTITUTE("鈴木　花子", "　", " ")</code> → <code>"鈴木 花子"</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-column">
+                        <div class="function-box">
+                            <div class="function-name">UPPER/LOWER/PROPER関数</div>
+                            <div class="function-syntax">=UPPER(テキスト)
+=LOWER(テキスト)
+=PROPER(テキスト)</div>
+                            <p>テキストを大文字、小文字、または先頭大文字に変換します。</p>
+                            <p>例: <code>=PROPER("john smith")</code> → <code>"John Smith"</code></p>
+                        </div>
+                        
+                        <div class="function-box">
+                            <div class="function-name">VALUE関数</div>
+                            <div class="function-syntax">=VALUE(テキスト)</div>
+                            <p>数字を表すテキストを数値に変換します。</p>
+                            <p>例: <code>=VALUE("1,234")</code> → <code>1234</code></p>
+                        </div>
+                        
+                        <div class="function-box">
+                            <div class="function-name">TEXT関数</div>
+                            <div class="function-syntax">=TEXT(数値, 書式)</div>
+                            <p>数値を指定した書式のテキストに変換します。</p>
+                            <p>例: <code>=TEXT(20230601, "yyyy-mm-dd")</code> → <code>"2023-06-01"</code></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>⑥ データクリーニングの実践ステップ</h2>
+                
+                <div class="steps">
+                    <div class="step-item">
+                        <div class="step-title">データの現状を把握する</div>
+                        <p>まずはデータの全体像と問題点を把握します。どのような「汚れ」があるか確認しましょう。</p>
+                        <ul>
+                            <li>重複の有無をチェック</li>
+                            <li>欠損値の確認</li>
+                            <li>データ型の一貫性を確認</li>
+                            <li>表記ゆれや形式の違いを確認</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-title">クリーニング計画を立てる</div>
+                        <p>問題点に応じたクリーニング方法を選択し、実行順序を決めます。</p>
+                        <ul>
+                            <li>最初に重複処理を行うか</li>
+                            <li>どの列から処理するか</li>
+                            <li>使用する関数や方法の選択</li>
+                            <li>標準形式の定義</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-title">基本的なクリーニングを実行する</div>
+                        <p>一般的なデータの「汚れ」に対処します。</p>
+                        <ul>
+                            <li>TRIM関数で余分な空白を削除</li>
+                            <li>SUBSTITUTE関数で不要な文字を置換</li>
+                            <li>VALUE関数で数値に変換</li>
+                            <li>テキスト区切り機能で複合データを分割</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-title">標準化と一貫性の確保</div>
+                        <p>データの形式を統一し、一貫性を持たせます。</p>
+                        <ul>
+                            <li>日付形式の統一</li>
+                            <li>名前の表記統一</li>
+                            <li>コードやIDの形式統一</li>
+                            <li>欠損値の適切な処理</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-title">重複の処理</div>
+                        <p>同一データの重複を特定し、適切に処理します。</p>
+                        <ul>
+                            <li>重複の条件を定義</li>
+                            <li>条件付き書式で重複をハイライト</li>
+                            <li>重複の統合または削除</li>
+                            <li>重複処理後の整合性確認</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-title">検証と確認</div>
+                        <p>クリーニング結果を検証し、問題が解決されたことを確認します。</p>
+                        <ul>
+                            <li>データの件数確認</li>
+                            <li>形式の一貫性チェック</li>
+                            <li>サンプルデータの詳細確認</li>
+                            <li>想定される集計や分析のテスト実行</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section>
+                <h2>⑦ 実践！データクリーニングテクニック</h2>
+                
+                <div class="quiz-section">
+                    <div class="quiz-title">考えてみよう</div>
+                    <p>次のような顧客名データがあります。これを「姓」と「名」に分けるにはどうしたらよいでしょうか？</p>
+                    <div class="example-block">
+                        <table class="data-table">
+                            <tr>
+                                <th>顧客名</th>
+                            </tr>
+                            <tr>
+                                <td>山田 太郎</td>
+                            </tr>
+                            <tr>
+                                <td>鈴木　花子</td>
+                            </tr>
+                            <tr>
+                                <td>佐藤次郎</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <h3>解決方法</h3>
+                
+                <div class="function-box">
+                    <div class="function-name">テキスト区切り機能の活用</div>
+                    <ol>
+                        <li>「データ」タブの「区切り位置」を選択</li>
+                        <li>区切り文字として「スペース」を選択</li>
+                        <li>プレビューを確認して「完了」をクリック</li>
+                    </ol>
+                    <p>または</p>
+                    <div class="function-name">LEFT/RIGHT/MID関数の組み合わせ</div>
+                    <p>例：半角スペースで区切られている場合</p>
+                    <p>姓 = <code>=LEFT(A2, FIND(" ", A2)-1)</code></p>
+                    <p>名 = <code>=RIGHT(A2, LEN(A2)-FIND(" ", A2))</code></p>
+                </div>
+                
+                <div class="tip-block">
+                    <p><strong>応用テクニック!</strong> フラッシュフィルを使うと、いくつかの例を入力するだけでパターンを認識し、残りを自動で埋めてくれます。複雑なデータ形式の分割にも効果的です。</p>
+                </div>
+                
+                <h3>重複データの処理</h3>
+                
+                <div class="function-box">
+                    <div class="function-name">重複の特定と削除</div>
+                    <ol>
+                        <li>「データ」タブの「重複の削除」を選択</li>
+                        <li>重複判定に使用する列を指定（例：顧客ID, 氏名など）</li>
+                        <li>「OK」をクリックして重複を削除</li>
+                    </ol>
+                    <p>事前確認には「条件付き書式」の「重複する値」が便利です。</p>
+                </div>
+                
+                <div class="danger-block">
+                    <p><strong>注意!</strong> 重複を削除する前に、どのレコードを残すべきか（最新のもの、最も情報が多いものなど）を判断基準として明確にしておきましょう。また、元データのバックアップを取っておくことも重要です。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>⑧ データクリーニングのチェックリスト</h2>
+                
+                <div class="card">
+                    <h3>データ形式のチェック</h3>
+                    <ul>
+                        <li>数値データは数値型になっているか</li>
+                        <li>日付データは日付型になっているか</li>
+                        <li>テキストデータに余分な空白がないか</li>
+                        <li>表記の統一がされているか（全角/半角など）</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>データ整合性のチェック</h3>
+                    <ul>
+                        <li>重複データがないか</li>
+                        <li>欠損値は適切に処理されているか</li>
+                        <li>異常値や外れ値がないか</li>
+                        <li>コードや識別子は一貫しているか</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>データ構造のチェック</h3>
+                    <ul>
+                        <li>不要な書式や条件付き書式がないか</li>
+                        <li>非表示の行や列がないか</li>
+                        <li>ハイパーリンクや数式が不要に残っていないか</li>
+                        <li>セル結合されていないか</li>
+                    </ul>
+                </div>
+                
+                <div class="point-block">
+                    <p><strong>ポイント!</strong> データクリーニングは一度で完璧にする必要はありません。継続的な改善のプロセスとして取り組むことが大切です。小さなステップから始めて、徐々に習慣化していきましょう。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>まとめ：データクリーニングの効果</h2>
+                
+                <div class="speech-bubble">
+                    <p>データクリーニングは単なる「手間」ではなく、データの「価値」を高める重要な作業です。クリーンなデータがあれば、分析の質が向上し、意思決定の精度も高まります！</p>
+                </div>
+                
+                <div class="highlights">
+                    <div class="highlight-card">
+                        <div class="highlight-icon">⏱️</div>
+                        <div class="highlight-title">時間の大幅削減</div>
+                        <p>手作業での修正作業から解放され、精神的・肉体的な疲労が軽減される</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🎯</div>
+                        <div class="highlight-title">時間の有効活用</div>
+                        <p>クリーニング作業が効率化され、分析などの本質的な作業に集中できる</p>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-icon">🔄</div>
+                        <div class="highlight-title">一貫したプロセス</div>
+                        <p>場当たり的ではない、再現性のあるクリーニング手法を身につけられる</p>
+                    </div>
+                </div>
+                
+                <div class="quiz-section">
+                    <div class="quiz-title">自己チェック</div>
+                    <p>あなたの業務データで最も多い「汚れ」は何ですか？それを解決するためにどの関数やテクニックが使えそうですか？</p>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>データリテラシー入門：Excel ハンズオン研修資料 © 2025</p>
+            <p>基本的なデータクリーニングを習得して、データの価値を最大化しましょう！</p>
+        </footer>
+    </div>
+</body>
+</html>

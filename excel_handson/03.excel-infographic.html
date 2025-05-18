@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>セル結合と見た目の罠を避ける</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+    
+    :root {
+      --main-color: #4285F4;
+      --sub1-color: #34A853;
+      --sub2-color: #FBBC05;
+      --accent-color: #EA4335;
+      --back-color: #F8F9FA;
+      --text-color: #202124;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: var(--back-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: var(--main-color);
+      color: white;
+      padding: 30px 0;
+      text-align: center;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    h2 {
+      font-size: 20px;
+      color: var(--sub1-color);
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--sub1-color);
+      padding-bottom: 5px;
+    }
+    
+    h3 {
+      font-size: 16px;
+      color: var(--sub2-color);
+      margin: 15px 0 10px;
+      font-weight: bold;
+    }
+    
+    p {
+      font-size: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .note {
+      font-size: 13px;
+      color: #5F6368;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      border-top: 4px solid var(--main-color);
+      height: 100%;
+    }
+    
+    .highlight {
+      background-color: rgba(251, 188, 5, 0.1);
+      border-left: 4px solid var(--sub2-color);
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 0 10px 10px 0;
+    }
+    
+    .icon {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background-color: var(--main-color);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 40px;
+      margin-right: 10px;
+      vertical-align: middle;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .step-container {
+      counter-reset: step;
+      margin: 20px 0;
+    }
+    
+    .step {
+      position: relative;
+      padding-left: 50px;
+      margin-bottom: 20px;
+      counter-increment: step;
+    }
+    
+    .step::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      background-color: var(--main-color);
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .excel-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 15px 0;
+      background: white;
+    }
+    
+    .excel-table th,
+    .excel-table td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    
+    .excel-table th {
+      background-color: #f1f3f4;
+      font-weight: bold;
+    }
+    
+    .excel-table.problem {
+      border: 2px solid var(--accent-color);
+    }
+    
+    .excel-table.solution {
+      border: 2px solid var(--sub1-color);
+    }
+    
+    .compare {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    @media (min-width: 768px) {
+      .compare {
+        flex-direction: row;
+      }
+      
+      .compare-item {
+        flex: 1;
+      }
+    }
+    
+    .compare-item {
+      position: relative;
+    }
+    
+    .badge {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      background-color: var(--accent-color);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      z-index: 1;
+    }
+    
+    .badge.good {
+      background-color: var(--sub1-color);
+    }
+    
+    .merged-cell {
+      background-color: rgba(251, 188, 5, 0.2);
+    }
+    
+    .highlight-box {
+      border: 2px solid var(--main-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      background-color: rgba(66, 133, 244, 0.05);
+    }
+    
+    .benefit-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid var(--sub1-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .benefit-title {
+      font-weight: bold;
+      color: var(--sub1-color);
+      margin-bottom: 5px;
+    }
+    
+    .arrow-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    
+    .arrow {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 20px solid var(--main-color);
+    }
+    
+    .excel-cell {
+      height: 25px;
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+    }
+    
+    .excel-merged {
+      background-color: #e6f0ff;
+      border: 1px solid #4285F4;
+      color: #4285F4;
+      text-align: center;
+      grid-column: span 3;
+    }
+    
+    .excel-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background-color: #f1f1f1;
+      padding: 5px;
+      border: 1px solid #ddd;
+      margin: 15px 0;
+    }
+    
+    .conclusion {
+      background-color: var(--main-color);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .quiz-box {
+      background-color: rgba(52, 168, 83, 0.1);
+      border: 1px solid var(--sub1-color);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    
+    .quiz-question {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .mascot {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: white;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 100;
+      font-size: 40px;
+    }
+    
+    /* スマホ対応 */
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>セル結合と見た目の罠を避ける</h1>
+      <p style="color: white; font-size: 16px;">ビジネスパーソンのためのデータリテラシー入門 - 課題3</p>
+      <p style="color: white; font-size: 16px;">データの活用と見た目の両立を目指す</p>
+    </header>
+    
+    <div class="section">
+      <h2>①何が課題か</h2>
+      <p>Excelでは見た目を整えるためにセル結合やセンタリングなどの書式設定がよく使われますが、これらは実はデータ処理の大きな障害となります。</p>
+      
+      <div class="highlight">
+        <h3>セル結合が引き起こす問題点</h3>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">🔍</div>
+            <p><strong>データ構造の崩壊</strong></p>
+            <p>セル結合によって本来の行と列の関係性が失われ、データの構造が壊れます</p>
+          </div>
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">🔄</div>
+            <p><strong>機能制限</strong></p>
+            <p>フィルターやソートが使えなくなり、データの分析や整理が困難になります</p>
+          </div>
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">📝</div>
+            <p><strong>編集トラブル</strong></p>
+            <p>行の挿入や削除でレイアウトが崩れ、メンテナンスが煩雑になります</p>
+          </div>
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">❓</div>
+            <p><strong>意味の曖昧さ</strong></p>
+            <p>空白セルの意味が曖昧（データなしなのか、上のセルに含まれるのか判断できない）</p>
+          </div>
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">🧮</div>
+            <p><strong>数式の複雑化</strong></p>
+            <p>数式やピボットテーブルでの参照が困難になり、計算ミスの原因になります</p>
+          </div>
+          <div class="card">
+            <div style="font-size: 24px; color: var(--accent-color); text-align: center; margin-bottom: 10px;">📊</div>
+            <p><strong>分析の制限</strong></p>
+            <p>データ抽出や分析が複雑化し、業務効率が低下します</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="quiz-box">
+        <div class="quiz-question">考えてみよう！</div>
+        <p>あなたが以前作成したExcelファイルで、後から修正や分析が難しくなってしまった経験はありませんか？その原因はセル結合かもしれません。</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>②改善することでどういう良いことがあるか</h2>
+      <p>セル結合を避け、適切なデータ構造を維持することで、多くのメリットが得られます。</p>
+      
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="benefit-card">
+          <div class="benefit-title">Excel機能の最大活用</div>
+          <p>フィルター、ソート、ピボットテーブルなどのすべての機能を存分に活用できるようになります。</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-title">編集の簡素化</div>
+          <p>データの更新や編集が容易になり、変更に柔軟に対応できます。</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-title">自動化の促進</div>
+          <p>マクロや自動化の適用が簡単になり、反復作業から解放されます。</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-title">データの一貫性</div>
+          <p>データの一貫性と整合性が保たれ、信頼性の高い分析が可能になります。</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-title">連携の容易さ</div>
+          <p>他システムやAIツールとの連携がスムーズになり、データの活用範囲が広がります。</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-title">長期的な保守性</div>
+          <p>将来のメンテナンスや拡張が容易になり、長期的に使えるファイルになります。</p>
+        </div>
+      </div>
+      
+      <div class="highlight-box">
+        <h3 style="color: var(--main-color);">ポイント</h3>
+        <p>見た目の美しさは、条件付き書式や別シートでの表示用レポートなど、データ構造を損なわない方法で実現できます。</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>③実際の問題データイメージ</h2>
+      <p>以下は、セル結合を多用した典型的な表の例です。一見きれいに見えますが、データ活用の観点では多くの問題を含んでいます。</p>
+      
+      <div class="compare-item">
+        <div class="badge">問題のある表</div>
+        <table class="excel-table problem">
+          <tr>
+            <td></td>
+            <td colspan="3" style="text-align: center; background-color: #e6f0ff;">2023年</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td style="text-align: center;">第1四半期</td>
+            <td style="text-align: center;">第2四半期</td>
+            <td style="text-align: center;">第3四半期</td>
+          </tr>
+          <tr>
+            <td>製品A</td>
+            <td>320,000円</td>
+            <td>350,000円</td>
+            <td>380,000円</td>
+          </tr>
+          <tr>
+            <td>製品B</td>
+            <td>280,000円</td>
+            <td>290,000円</td>
+            <td>310,000円</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="text-align: center; background-color: #f5f5f5;">地域別売上</td>
+          </tr>
+          <tr>
+            <td>東京</td>
+            <td>450,000円</td>
+            <td>470,000円</td>
+            <td>490,000円</td>
+          </tr>
+          <tr>
+            <td>大阪</td>
+            <td>150,000円</td>
+            <td>170,000円</td>
+            <td>200,000円</td>
+          </tr>
+        </table>
+      </div>
+      
+      <h3>この表の問題点:</h3>
+      <ul style="list-style-type: none; padding-left: 20px;">
+        <li style="margin-bottom: 10px;">✖️ 年度と四半期の情報がセル結合されている</li>
+        <li style="margin-bottom: 10px;">✖️ 表の途中に見出し行（地域別売上）が挿入されている</li>
+        <li style="margin-bottom: 10px;">✖️ データとヘッダーの関係が不明確</li>
+        <li style="margin-bottom: 10px;">✖️ フィルターやソートが適用できない構造</li>
+        <li style="margin-bottom: 10px;">✖️ データの追加や更新が困難</li>
+      </ul>
+      
+      <div class="note">
+        <p>このような表は見た目は整っていても、データ分析や加工には適していません。例えば「第2四半期の売上が最も高い製品は？」という質問に答えるためのソートや、「東京の売上合計」を計算する際に障壁となります。</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>④実際の改善データイメージ</h2>
+      <p>同じ情報を結合なしで適切に構造化すると、以下のようになります。</p>
+      
+      <div class="compare">
+        <div class="compare-item">
+          <div class="badge good">製品売上データ（改善後）</div>
+          <table class="excel-table solution">
+            <tr>
+              <th>年度</th>
+              <th>四半期</th>
+              <th>製品</th>
+              <th>売上(円)</th>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第1四半期</td>
+              <td>製品A</td>
+              <td>320000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第1四半期</td>
+              <td>製品B</td>
+              <td>280000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第2四半期</td>
+              <td>製品A</td>
+              <td>350000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第2四半期</td>
+              <td>製品B</td>
+              <td>290000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第3四半期</td>
+              <td>製品A</td>
+              <td>380000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第3四半期</td>
+              <td>製品B</td>
+              <td>310000</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="compare-item">
+          <div class="badge good">地域売上データ（改善後）</div>
+          <table class="excel-table solution">
+            <tr>
+              <th>年度</th>
+              <th>四半期</th>
+              <th>地域</th>
+              <th>売上(円)</th>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第1四半期</td>
+              <td>東京</td>
+              <td>450000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第1四半期</td>
+              <td>大阪</td>
+              <td>150000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第2四半期</td>
+              <td>東京</td>
+              <td>470000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第2四半期</td>
+              <td>大阪</td>
+              <td>170000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第3四半期</td>
+              <td>東京</td>
+              <td>490000</td>
+            </tr>
+            <tr>
+              <td>2023</td>
+              <td>第3四半期</td>
+              <td>大阪</td>
+              <td>200000</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      
+      <h3>改善されたデータ構造の特徴:</h3>
+      <ul style="list-style-type: none; padding-left: 20px;">
+        <li style="margin-bottom: 10px;">✅ セル結合がなく、すべての情報が明示的に各行に記載</li>
+        <li style="margin-bottom: 10px;">✅ 関連する情報が分離されず、同じテーブル内に配置</li>
+        <li style="margin-bottom: 10px;">✅ 製品データと地域データが別々のテーブルに分離（混在を避ける）</li>
+        <li style="margin-bottom: 10px;">✅ すべての値が適切な列に配置され、データ型が統一</li>
+        <li style="margin-bottom: 10px;">✅ フィルター、ソート、ピボットテーブルなどが使用可能な構造</li>
+      </ul>
+      
+      <div class="highlight-box">
+        <h3 style="color: var(--main-color);">見た目と機能性の両立</h3>
+        <p>データは「データ」としてきれいに保ち、見た目の良さを求める場合は、ピボットテーブルやピボットグラフなどを活用して、元データを守りながら美しいレポートを作成しましょう。</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>ハンズオン実習</h2>
+      <div class="step-container">
+        <div class="step">
+          <h3>問題データのサンプルを開く</h3>
+          <p>配布された練習用Excelファイルを開いて、セル結合が多用された表を確認してください。</p>
+        </div>
+        
+        <div class="step">
+          <h3>問題点を体感する</h3>
+          <p>以下の操作を試みて、どのような問題が発生するか確認しましょう：</p>
+          <ul style="padding-left: 20px;">
+            <li>製品別の四半期比較グラフを作成する</li>
+            <li>地域と製品を組み合わせた集計表を作る</li>
+            <li>新しい製品や地域、四半期のデータを追加する</li>
+          </ul>
+          <p>操作が困難であったり、エラーが発生したりする箇所に注目してください。</p>
+        </div>
+        
+        <div class="step">
+          <h3>改善データを確認する</h3>
+          <p>次に改善データのサンプルを開き、同じ操作を行い、どのように簡単になるか体感してください。</p>
+        </div>
+        
+        <div class="step">
+          <h3>ピボットテーブルで見た目を整える</h3>
+          <p>ピボットテーブルを使って同じ見た目の表を作成し、データ構造を維持しながら見栄えの良いレポートを作成する方法を学びましょう。</p>
+        </div>
+        
+        <div class="step">
+          <h3>業務への適用を考える</h3>
+          <p>実際の業務データでセル結合を使用している例を特定し、どのように改善できるか考えてみましょう。</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>あなたが得られるメリット</h2>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="card" style="border-top-color: var(--sub1-color);">
+          <div style="text-align: center; margin-bottom: 15px;">🕒</div>
+          <h3 style="color: var(--sub1-color);">未来の自分への優しさ</h3>
+          <p>「過去の自分が作ったファイルを開いて愕然とする」経験から卒業できます。</p>
+        </div>
+        
+        <div class="card" style="border-top-color: var(--sub1-color);">
+          <div style="text-align: center; margin-bottom: 15px;">🔄</div>
+          <h3 style="color: var(--sub1-color);">修正の容易さ</h3>
+          <p>小さな変更でも全体を作り直す必要がなくなり、柔軟に対応できます。</p>
+        </div>
+        
+        <div class="card" style="border-top-color: var(--sub1-color);">
+          <div style="text-align: center; margin-bottom: 15px;">🚀</div>
+          <h3 style="color: var(--sub1-color);">機能活用の広がり</h3>
+          <p>Excelの便利な機能を思う存分活用できるようになります。</p>
+        </div>
+        
+        <div class="card" style="border-top-color: var(--sub1-color);">
+          <div style="text-align: center; margin-bottom: 15px;">⏱️</div>
+          <h3 style="color: var(--sub1-color);">作業時間短縮</h3>
+          <p>データの更新や加工が効率化され、残業時間の削減につながります。</p>
+        </div>
+        
+        <div class="card" style="border-top-color: var(--sub1-color);">
+          <div style="text-align: center; margin-bottom: 15px;">😌</div>
+          <h3 style="color: var(--sub1-color);">ストレス軽減</h3>
+          <p>「なぜかうまくいかない」というフラストレーションから解放されます。</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="quiz-box">
+      <div class="quiz-question">振り返りの質問</div>
+      <p>セル結合をやめることで、あなたの業務のどんな部分が楽になりそうですか？</p>
+      <p>以前は見た目のために時間をかけていた作業はありますか？それが効率化されるとどう感じますか？</p>
+    </div>
+    
+    <div class="conclusion">
+      <h2 style="color: white; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; margin-bottom: 15px;">まとめ</h2>
+      <p style="color: white;">セル結合は一時的な見た目の良さと引き換えに、データの活用可能性を大きく制限します。適切なデータ構造を意識し、必要に応じてピボットテーブルなどの機能を活用することで、見た目の美しさとデータの活用しやすさを両立させましょう。</p>
+    </div>
+  </div>
+  
+  <div class="mascot">📊</div>
+</body>
+</html>

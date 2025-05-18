@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>きれいなデータの条件と重要性</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+        
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #F8F9FA;
+            color: #202124;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #4285F4;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 28px;
+            color: white;
+            margin: 0;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #F8F9FA;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .level-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+            margin: 0 5px;
+        }
+        
+        .level-dot.active {
+            background-color: white;
+        }
+        
+        section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: #34A853;
+            margin-top: 0;
+            font-family: 'Kosugi Maru', sans-serif;
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: #FBBC05;
+            font-weight: bold;
+        }
+        
+        p {
+            font-size: 15px;
+            color: #202124;
+        }
+        
+        .problem-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .problem-item {
+            flex: 1 1 calc(33% - 20px);
+            min-width: 250px;
+            background-color: #FFF4E5;
+            border-left: 5px solid #FBBC05;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .benefits-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .benefit-item {
+            flex: 1 1 calc(33% - 15px);
+            min-width: 250px;
+            background-color: #E8F5E9;
+            border-left: 5px solid #34A853;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .data-comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+        
+        .data-box {
+            flex: 1 1 calc(50% - 15px);
+            min-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .data-header {
+            padding: 15px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .icon {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .problem-data .data-header {
+            background-color: #EA4335;
+        }
+        
+        .clean-data .data-header {
+            background-color: #34A853;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            background-color: #F8F9FA;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #DFE1E5;
+        }
+        
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #DFE1E5;
+        }
+        
+        .problem-data td {
+            background-color: #FEEFE9;
+        }
+        
+        .problem-highlight {
+            background-color: #FFCDD2 !important;
+            font-weight: bold;
+        }
+        
+        .clean-data td {
+            background-color: #F1F8E9;
+        }
+        
+        .clean-highlight {
+            background-color: #C8E6C9 !important;
+            font-weight: bold;
+        }
+        
+        .practice-steps {
+            counter-reset: step;
+            margin: 25px 0;
+        }
+        
+        .step-item {
+            position: relative;
+            padding-left: 60px;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+        
+        .step-item:before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background-color: #4285F4;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #4285F4;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            font-size: 14px;
+        }
+        
+        .tips-container {
+            background-color: #E8F0FE;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .tips-title {
+            display: flex;
+            align-items: center;
+            color: #4285F4;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .tips-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .tips-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+        }
+        
+        .tips-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #34A853;
+            font-weight: bold;
+        }
+        
+        .character {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: #4285F4;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .review-box {
+            background-color: #EDE7F6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #673AB7;
+        }
+        
+        .review-title {
+            color: #673AB7;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-question {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-options {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .quiz-options li {
+            margin-bottom: 5px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background-color: #F3F2F1;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-options li:hover {
+            background-color: #E1D5F5;
+        }
+        
+        .data-problem-highlight {
+            position: relative;
+        }
+        
+        .problem-note {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #EA4335;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .problem-item, .benefit-item {
+                flex: 1 1 100%;
+            }
+            
+            .data-box {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>きれいなデータの条件と重要性</h1>
+            <div class="subtitle">ビジネスパーソンのためのデータリテラシー入門 - 課題2</div>
+        </header>
+        
+        <section>
+            <h2>①「汚いデータ」の問題点</h2>
+            <p>見た目には整っているように見えるデータでも、内部的には様々な問題を抱えていることがよくあります。このような「汚いデータ」は後の分析や処理に大きな影響を与えてしまいます。</p>
+            
+            <div class="problem-container">
+                <div class="problem-item">
+                    <h3>データ型の不統一</h3>
+                    <p>数値が文字列として入力されているなど、データ型が混在していると計算や集計が正しく行えません。</p>
+                </div>
+                
+                <div class="problem-item">
+                    <h3>表記の不統一</h3>
+                    <p>日付や数値の表記が統一されていない（2023/4/1、2023-04-01、4/1/2023など）と、並べ替えや検索が正しく機能しません。</p>
+                </div>
+                
+                <div class="problem-item">
+                    <h3>同義語の混在</h3>
+                    <p>同じ意味の値が異なる表記で入力されている（「はい/YES/1/〇」など）と、集計が正確にできなくなります。</p>
+                </div>
+                
+                <div class="problem-item">
+                    <h3>不要な空白や特殊文字</h3>
+                    <p>余計な空白や特殊文字が含まれていると、検索やマッチングが困難になります。</p>
+                </div>
+                
+                <div class="problem-item">
+                    <h3>複数情報の混在</h3>
+                    <p>複数の情報が一つのセルに入力されている（名前と所属、姓と名など）と、部分的な検索や抽出ができません。</p>
+                </div>
+                
+                <div class="problem-item">
+                    <h3>互換性の問題</h3>
+                    <p>他のシステムとのデータ連携やAI活用を考える際に大きな障壁となります。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>②「きれいなデータ」のメリット</h2>
+            <p>「きれいなデータ」の条件を満たすことで、多くのメリットが得られ、業務効率と分析精度が大幅に向上します。</p>
+            
+            <div class="benefits-container">
+                <div class="benefit-item">
+                    <h3>正確な集計と分析</h3>
+                    <p>データが整理されていると、集計や分析が正確に行え、より質の高い洞察が得られます。</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <h3>検索・抽出の容易さ</h3>
+                    <p>必要な情報をすぐに見つけ出すことができ、業務の効率が大幅に向上します。</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <h3>エラーの減少</h3>
+                    <p>データ処理時のエラーやバグが減少し、作業のやり直しが減ります。</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <h3>処理速度の向上</h3>
+                    <p>クリーンなデータは処理が速く、大量データでも快適に作業できます。</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <h3>自動化の実現</h3>
+                    <p>データ連携や自動処理がスムーズになり、定型作業から解放されます。</p>
+                </div>
+                
+                <div class="benefit-item">
+                    <h3>高度な活用</h3>
+                    <p>AIや高度な分析ツールを活用でき、データからより多くの価値を引き出せます。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>③問題データと改善データの比較</h2>
+            <p>実際のデータの例を見ながら、「汚いデータ」と「きれいなデータ」の違いを理解しましょう。</p>
+            
+            <div class="data-comparison">
+                <div class="data-box problem-data">
+                    <div class="data-header">
+                        <span class="icon">⚠️</span> 問題データの例
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>顧客名</th>
+                                    <th>購入日</th>
+                                    <th>購入金額</th>
+                                    <th>支払方法</th>
+                                    <th>顧客ランク</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="data-problem-highlight">山田 太郎<span class="problem-note">1</span></td>
+                                    <td class="data-problem-highlight">2023/4/1<span class="problem-note">2</span></td>
+                                    <td class="data-problem-highlight">¥10,000<span class="problem-note">3</span></td>
+                                    <td>現金</td>
+                                    <td>ゴールド</td>
+                                </tr>
+                                <tr>
+                                    <td class="data-problem-highlight">鈴木　花子<span class="problem-note">1</span></td>
+                                    <td class="data-problem-highlight">2023-04-02<span class="problem-note">2</span></td>
+                                    <td class="data-problem-highlight">10500円<span class="problem-note">3</span></td>
+                                    <td class="data-problem-highlight">クレジット<span class="problem-note">4</span></td>
+                                    <td>ゴールド</td>
+                                </tr>
+                                <tr>
+                                    <td>佐藤 次郎</td>
+                                    <td class="data-problem-highlight">4/3/2023<span class="problem-note">2</span></td>
+                                    <td class="data-problem-highlight">12000<span class="problem-note">3</span></td>
+                                    <td class="data-problem-highlight">CREDIT<span class="problem-note">4</span></td>
+                                    <td class="data-problem-highlight">シルバー<span class="problem-note">5</span></td>
+                                </tr>
+                                <tr>
+                                    <td>田中 優子</td>
+                                    <td class="data-problem-highlight">4月4日<span class="problem-note">2</span></td>
+                                    <td class="data-problem-highlight">¥ 9800<span class="problem-note">3</span></td>
+                                    <td class="data-problem-highlight">Cash<span class="problem-note">4</span></td>
+                                    <td class="data-problem-highlight"><span class="problem-note">5</span></td>
+                                </tr>
+                                <tr>
+                                    <td>伊藤 誠</td>
+                                    <td class="data-problem-highlight">4/5<span class="problem-note">2</span></td>
+                                    <td class="data-problem-highlight">8,700円<span class="problem-note">3</span></td>
+                                    <td class="data-problem-highlight">credit<span class="problem-note">4</span></td>
+                                    <td>ブロンズ</td>
+                                </tr>
+                                <tr>
+                                    <td>渡辺 愛</td>
+                                    <td>2023/04/6</td>
+                                    <td class="data-problem-highlight"><span class="problem-note">6</span></td>
+                                    <td>未払い</td>
+                                    <td class="data-problem-highlight">シルバ<span class="problem-note">5</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="padding: 15px; font-size: 14px; color: #5F6368;">
+                        <p><strong>問題点：</strong></p>
+                        <ol style="padding-left: 20px; margin-top: 5px;">
+                            <li>名前の間のスペースが半角と全角で混在</li>
+                            <li>日付の形式が統一されていない</li>
+                            <li>金額の表記に単位や記号が混在</li>
+                            <li>支払方法が統一されていない</li>
+                            <li>顧客ランクの表記ゆれや空欄</li>
+                            <li>金額の欠損値</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="data-box clean-data">
+                    <div class="data-header">
+                        <span class="icon">✅</span> 改善データの例
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>姓</th>
+                                    <th>名</th>
+                                    <th>購入日</th>
+                                    <th>購入金額</th>
+                                    <th>支払方法</th>
+                                    <th>顧客ランク</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="clean-highlight">山田</td>
+                                    <td class="clean-highlight">太郎</td>
+                                    <td class="clean-highlight">2023-04-01</td>
+                                    <td class="clean-highlight">10000</td>
+                                    <td class="clean-highlight">現金</td>
+                                    <td>ゴールド</td>
+                                </tr>
+                                <tr>
+                                    <td class="clean-highlight">鈴木</td>
+                                    <td class="clean-highlight">花子</td>
+                                    <td class="clean-highlight">2023-04-02</td>
+                                    <td class="clean-highlight">10500</td>
+                                    <td class="clean-highlight">クレジット</td>
+                                    <td>ゴールド</td>
+                                </tr>
+                                <tr>
+                                    <td>佐藤</td>
+                                    <td>次郎</td>
+                                    <td class="clean-highlight">2023-04-03</td>
+                                    <td class="clean-highlight">12000</td>
+                                    <td class="clean-highlight">クレジット</td>
+                                    <td>シルバー</td>
+                                </tr>
+                                <tr>
+                                    <td>田中</td>
+                                    <td>優子</td>
+                                    <td class="clean-highlight">2023-04-04</td>
+                                    <td class="clean-highlight">9800</td>
+                                    <td class="clean-highlight">現金</td>
+                                    <td class="clean-highlight">未設定</td>
+                                </tr>
+                                <tr>
+                                    <td>伊藤</td>
+                                    <td>誠</td>
+                                    <td class="clean-highlight">2023-04-05</td>
+                                    <td class="clean-highlight">8700</td>
+                                    <td class="clean-highlight">クレジット</td>
+                                    <td>ブロンズ</td>
+                                </tr>
+                                <tr>
+                                    <td>渡辺</td>
+                                    <td>愛</td>
+                                    <td>2023-04-06</td>
+                                    <td class="clean-highlight">0</td>
+                                    <td>未払い</td>
+                                    <td class="clean-highlight">シルバー</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="padding: 15px; font-size: 14px; color: #5F6368;">
+                        <p><strong>改善ポイント：</strong></p>
+                        <ol style="padding-left: 20px; margin-top: 5px;">
+                            <li>姓と名が別の列に分かれている</li>
+                            <li>日付が統一された形式（YYYY-MM-DD）</li>
+                            <li>金額は単位なしの数値型</li>
+                            <li>支払方法が統一された表記</li>
+                            <li>顧客ランクの表記統一と欠損値の処理</li>
+                            <li>金額の欠損値を0として明示</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>④ハンズオン実習</h2>
+            <p>実際のデータを使って、「きれいなデータ」の重要性を体感してみましょう。</p>
+            
+            <div class="practice-steps">
+                <div class="step-item">
+                    <div class="step-title">問題データの確認</div>
+                    <div class="step-desc">サンプルの問題データを開き、どのような「汚れ」があるか確認しましょう。</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-title">基本操作の試行</div>
+                    <div class="step-desc">以下の操作を試みて、どのような問題が発生するか確認しましょう。</div>
+                    <ul style="font-size: 14px;">
+                        <li>購入日の古い順に並べ替える</li>
+                        <li>購入金額の合計を計算する</li>
+                        <li>クレジット払いの総額を求める</li>
+                        <li>顧客ランク別の平均購入金額を算出する</li>
+                    </ul>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-title">問題の特定</div>
+                    <div class="step-desc">操作時にどのような問題が発生したか、その原因は何かを分析しましょう。</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-title">改善データでの再試行</div>
+                    <div class="step-desc">同じ操作を改善データで行い、どのような違いがあるか体感しましょう。</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-title">実務への応用</div>
+                    <div class="step-desc">実際の業務データをきれいにするために必要なステップを考えてみましょう。</div>
+                </div>
+            </div>
+            
+            <div class="tips-container">
+                <div class="tips-title">
+                    <span style="margin-right: 10px;">💡</span> きれいなデータを作るポイント
+                </div>
+                <ul class="tips-list">
+                    <li>一貫したデータ型を使用する（数値は数値型、テキストはテキスト型など）</li>
+                    <li>日付は標準形式（YYYY-MM-DD）で統一する</li>
+                    <li>単位や記号は別列に分けるか、数値から除外する</li>
+                    <li>選択肢を持つデータはドロップダウンリストなどで入力規則を設定する</li>
+                    <li>空白や特殊文字を適切に処理する</li>
+                    <li>欠損値は適切に処理（0、「未設定」など明示的な値を使用）</li>
+                    <li>複数の情報は別々の列に分けて管理する</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section>
+            <h2>⑤実践と応用</h2>
+            <p>きれいなデータの作成と管理は、データ分析の基礎であり、業務効率化の第一歩です。データクリーニングの技術を身につけ、日常業務に活かしましょう。</p>
+            
+            <div class="review-box">
+                <div class="review-title">
+                    <span style="margin-right: 10px;">🎯</span> 理解度チェック
+                </div>
+                <div class="quiz-question">
+                    Q. 次のうち、「きれいなデータ」の特徴として正しいものはどれでしょうか？
+                </div>
+                <ul class="quiz-options">
+                    <li>見た目が美しく整っている</li>
+                    <li>すべてのセルがカラフルに色分けされている</li>
+                    <li>データ型が統一され、形式が標準化されている</li>
+                    <li>できるだけ多くの情報を1つのセルにまとめている</li>
+                </ul>
+                
+                <div class="quiz-question" style="margin-top: 20px;">
+                    Q. 日付データを扱う際の最適な方法は？
+                </div>
+                <ul class="quiz-options">
+                    <li>様々な形式を混在させて使いやすくする</li>
+                    <li>文字列型として保存し、自由な形式で入力する</li>
+                    <li>標準形式（YYYY-MM-DD）で統一し、日付型として保存する</li>
+                    <li>セルに日本語で「〇月〇日」と記載する</li>
+                </ul>
+            </div>
+        </section>
+        
+        <div class="character">
+            🧹
+        </div>
+    </div>
+</body>
+</html>

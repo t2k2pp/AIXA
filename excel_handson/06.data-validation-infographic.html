@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ入力規則と検証の活用</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&family=Kosugi+Maru&display=swap');
+
+        :root {
+            --main-color: #4285F4;
+            --sub1-color: #34A853;
+            --sub2-color: #FBBC05;
+            --accent-color: #EA4335;
+            --back-color: #F8F9FA;
+            --text-color: #202124;
+            --gray-color: #5F6368;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--back-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--main-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="10" y="10" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="40" y="10" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="70" y="10" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="10" y="40" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="40" y="40" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="70" y="40" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="10" y="70" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="40" y="70" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/><rect x="70" y="70" width="20" height="20" fill="%23ffffff22" rx="5" ry="5"/></svg>');
+            opacity: 0.2;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: var(--sub1-color);
+            border-bottom: 2px solid var(--sub1-color);
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+
+        h3 {
+            font-size: 16px;
+            color: var(--sub2-color);
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .target-audience {
+            background-color: var(--sub1-color);
+            color: white;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .problem {
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        .solution {
+            border-left: 5px solid var(--sub1-color);
+            padding-left: 15px;
+        }
+
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .benefit-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-top: 3px solid var(--sub1-color);
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .benefit-title {
+            color: var(--sub1-color);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background-color: var(--main-color);
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        .data-table .problem-highlight {
+            background-color: rgba(234, 67, 53, 0.2);
+        }
+
+        .comparison {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .comparison-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .steps {
+            counter-reset: step-counter;
+            margin: 20px 0;
+        }
+
+        .step {
+            margin-bottom: 15px;
+            padding-left: 50px;
+            position: relative;
+        }
+
+        .step::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 35px;
+            height: 35px;
+            background-color: var(--main-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .note {
+            background-color: rgba(251, 188, 5, 0.2);
+            border-left: 3px solid var(--sub2-color);
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .example {
+            background-color: rgba(66, 133, 244, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .example-title {
+            color: var(--main-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .quiz {
+            background-color: rgba(52, 168, 83, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .quiz-title {
+            color: var(--sub1-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            background-color: var(--main-color);
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            border-radius: 0 0 10px 10px;
+            font-size: 14px;
+        }
+
+        .icon {
+            margin-right: 8px;
+            vertical-align: middle;
+            color: var(--sub2-color);
+        }
+
+        .dropdown-demo {
+            position: relative;
+            display: inline-block;
+            min-width: 200px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        
+        .dropdown-demo::after {
+            content: "▼";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-color);
+            font-size: 12px;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            left: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .dropdown-demo:hover .dropdown-menu {
+            display: block;
+        }
+        
+        .dropdown-menu li {
+            padding: 8px 12px;
+        }
+        
+        .dropdown-menu li:hover {
+            background-color: #f5f5f5;
+        }
+
+        .validation-example {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .validation-input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 15px;
+            width: 120px;
+        }
+        
+        .validation-error {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            position: relative;
+            max-width: 300px;
+        }
+        
+        .validation-error::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 10px 10px 0;
+            border-style: solid;
+            border-color: transparent var(--accent-color) transparent transparent;
+        }
+
+        .excel-button {
+            display: inline-block;
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 13px;
+            color: #333;
+            margin: 0 3px;
+        }
+
+        .excel-path {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 13px;
+            color: #333;
+            margin: 5px 0;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .benefits {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>データ入力規則と検証の活用</h1>
+            <div class="target-audience">ビジネスパーソンのためのデータリテラシー入門</div>
+        </header>
+
+        <div class="section">
+            <h2>①何が課題か</h2>
+            <div class="problem">
+                <p>データ入力時のミスや不統一は、後の分析や処理に大きな影響を与えます。特に以下のような問題がよく発生します：</p>
+                <ul>
+                    <li>同じ意味の項目が異なる表記で入力される（「男性/女性」と「M/F」の混在など）</li>
+                    <li>入力ミスによるデータ誤り（日付や数値の入力間違いなど）</li>
+                    <li>意図しない範囲外の値が入力される（負の数量や将来の日付など）</li>
+                    <li>必須項目が未入力のまま放置される</li>
+                    <li>相互に関連する項目の整合性が取れていない</li>
+                </ul>
+                <p>これらの問題は、データ入力時の制約や検証ルールを設定することで防ぐことができます。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>②改善することでどういう良いことがあるか</h2>
+            <p>データ入力規則と検証を活用することでもたらされる主なメリットです：</p>
+            
+            <div class="benefits">
+                <div class="benefit-card">
+                    <div class="benefit-title">データの一貫性と品質向上</div>
+                    <p>同じ項目に対して統一された入力が保証され、分析結果の信頼性が高まります。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-title">入力ミスの大幅減少</div>
+                    <p>範囲外の値や形式誤りを即時に検出し、誤ったデータの混入を防ぎます。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-title">データクリーニングの手間削減</div>
+                    <p>後からの修正作業が不要になり、本来の分析業務に集中できます。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-title">正確な分析と集計</div>
+                    <p>均一なデータ形式により、集計や分析の結果が正確になります。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-title">入力方法の指針</div>
+                    <p>ユーザーにどのような形式で入力すべきか明確なガイダンスを与えられます。</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-title">システム連携時のエラー減少</div>
+                    <p>標準化されたデータは他のシステムとの連携もスムーズです。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>③実際の問題データイメージ</h2>
+            <p>以下は、入力規則のないデータのよくある問題例です：</p>
+            
+            <div class="example">
+                <div class="example-title">問題のあるデータの例</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>商品カテゴリ</th>
+                            <th>受注日</th>
+                            <th>数量</th>
+                            <th>金額</th>
+                            <th>発送状況</th>
+                            <th>顧客評価</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="problem-highlight">パソコン</td>
+                            <td>2023/6/1</td>
+                            <td>2</td>
+                            <td>80000</td>
+                            <td class="problem-highlight">完了</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td class="problem-highlight">PC</td>
+                            <td>2023/6/2</td>
+                            <td>1</td>
+                            <td>60,000</td>
+                            <td class="problem-highlight">出荷済</td>
+                            <td class="problem-highlight">良い</td>
+                        </tr>
+                        <tr>
+                            <td class="problem-highlight">ノートPC</td>
+                            <td>2023/6/3</td>
+                            <td class="problem-highlight">0</td>
+                            <td>75000</td>
+                            <td class="problem-highlight">出荷完了</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td class="problem-highlight">デスクトップ</td>
+                            <td>2023/6/3</td>
+                            <td class="problem-highlight">-1</td>
+                            <td>82000</td>
+                            <td class="problem-highlight">出荷準備中</td>
+                            <td class="problem-highlight">とても良い</td>
+                        </tr>
+                        <tr>
+                            <td>タブレット</td>
+                            <td class="problem-highlight">2023/8/1</td>
+                            <td>3</td>
+                            <td>45000</td>
+                            <td>未出荷</td>
+                            <td class="problem-highlight">普通</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="note">
+                    <p><strong>このデータの問題点：</strong></p>
+                    <ul>
+                        <li>商品カテゴリの表記が統一されていない</li>
+                        <li>数量にゼロや負の値が入力されている</li>
+                        <li>発送状況の表記が統一されていない</li>
+                        <li>顧客評価が数値と文字列で混在している</li>
+                        <li>将来の日付（8月1日）が入力されている</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>④実際の改善データイメージ</h2>
+            <p>データ入力規則を設定し、統一されたデータを作成すると：</p>
+            
+            <div class="example">
+                <div class="example-title">改善されたデータの例</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>商品カテゴリ</th>
+                            <th>受注日</th>
+                            <th>数量</th>
+                            <th>金額</th>
+                            <th>発送状況</th>
+                            <th>顧客評価</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ノートPC</td>
+                            <td>2023-06-01</td>
+                            <td>2</td>
+                            <td>80000</td>
+                            <td>完了</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td>ノートPC</td>
+                            <td>2023-06-02</td>
+                            <td>1</td>
+                            <td>60000</td>
+                            <td>完了</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td>ノートPC</td>
+                            <td>2023-06-03</td>
+                            <td>1</td>
+                            <td>75000</td>
+                            <td>完了</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td>デスクトップPC</td>
+                            <td>2023-06-03</td>
+                            <td>1</td>
+                            <td>82000</td>
+                            <td>準備中</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td>タブレット</td>
+                            <td>2023-06-15</td>
+                            <td>3</td>
+                            <td>45000</td>
+                            <td>未出荷</td>
+                            <td>3</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="note">
+                    <p><strong>この改善されたデータの特徴：</strong></p>
+                    <ul>
+                        <li>ドロップダウンリストで統一された商品カテゴリ</li>
+                        <li>現在日付以前のみ許可された日付入力</li>
+                        <li>1以上の整数のみ許可された数量</li>
+                        <li>統一された発送状況のステータス</li>
+                        <li>1～5のスケールに統一された顧客評価</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>ハンズオン実習</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <h3>サンプルデータの問題点確認</h3>
+                    <p>サンプルデータを開き、入力規則のない状態での問題点を確認しましょう。データの一貫性、データ型、値の範囲に注目してください。</p>
+                </div>
+                
+                <div class="step">
+                    <h3>データ入力規則を設定する方法を学ぶ</h3>
+                    <p>Excelでデータ入力規則を設定するには、以下の手順で行います：</p>
+                    <ol>
+                        <li>規則を設定したいセル範囲を選択します</li>
+                        <li><span class="excel-path">[データ]タブ→[データの入力規則]</span>を選択</li>
+                        <li>「設定」タブで入力規則のタイプを選択します</li>
+                    </ol>
+                    
+                    <div class="comparison">
+                        <div class="comparison-column">
+                            <h4>リスト型（ドロップダウン）</h4>
+                            <p>事前に定義した選択肢からのみ選べるようにします：</p>
+                            <div class="dropdown-demo">
+                                選択してください
+                                <ul class="dropdown-menu">
+                                    <li>ノートPC</li>
+                                    <li>デスクトップPC</li>
+                                    <li>タブレット</li>
+                                    <li>スマートフォン</li>
+                                </ul>
+                            </div>
+                            <p>設定方法：「入力値の種類」で「リスト」を選択し、「元の値」に選択肢をカンマ区切りで入力します。</p>
+                            <p>例：<code>ノートPC,デスクトップPC,タブレット,スマートフォン</code></p>
+                        </div>
+                        
+                        <div class="comparison-column">
+                            <h4>整数型（数値制限）</h4>
+                            <p>数量などで使用する規則の例：</p>
+                            <div class="validation-example">
+                                <input type="text" class="validation-input" value="-1">
+                                <div class="validation-error">
+                                    エラー: 1以上の整数を入力してください。
+                                </div>
+                            </div>
+                            <p>設定方法：「入力値の種類」で「整数」を選択し、「以上」に最小値（例：1）を設定します。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison">
+                        <div class="comparison-column">
+                            <h4>日付型（範囲指定）</h4>
+                            <p>未来の日付を防ぐ設定：</p>
+                            <div class="validation-example">
+                                <input type="text" class="validation-input" value="2023/8/1">
+                                <div class="validation-error">
+                                    エラー: 現在日付以前の日付を入力してください。
+                                </div>
+                            </div>
+                            <p>設定方法：「入力値の種類」で「日付」を選択し、「以前」に「=TODAY()」を入力します。</p>
+                        </div>
+                        
+                        <div class="comparison-column">
+                            <h4>数値型（範囲指定）</h4>
+                            <p>評価点などで使用する規則の例：</p>
+                            <div class="validation-example">
+                                <input type="text" class="validation-input" value="6">
+                                <div class="validation-error">
+                                    エラー: 1～5の数値を入力してください。
+                                </div>
+                            </div>
+                            <p>設定方法：「入力値の種類」で「整数」を選択し、「次の値の間」に最小値と最大値（例：1と5）を設定します。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h3>入力時のエラーメッセージをカスタマイズ</h3>
+                    <p>データ入力規則ダイアログの「エラーメッセージ」タブで、ユーザーに表示されるエラーメッセージをカスタマイズできます。</p>
+                    <p>効果的なエラーメッセージは：</p>
+                    <ul>
+                        <li>明確で具体的な指示を含む</li>
+                        <li>正しい入力例を示す</li>
+                        <li>丁寧な言葉遣いでユーザーをサポートする</li>
+                    </ul>
+                    <div class="example">
+                        <div class="example-title">エラーメッセージの例</div>
+                        <p>タイトル：<strong>入力エラー</strong></p>
+                        <p>メッセージ：<strong>受注日は今日以前の日付を入力してください。未来の日付は受け付けられません。</strong></p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <h3>条件付き書式と組み合わせる</h3>
+                    <p>入力規則と条件付き書式を組み合わせることで、視覚的なフィードバックを強化できます。</p>
+                    <p>例えば：</p>
+                    <ul>
+                        <li>数量が特定の閾値を超えた場合に背景色を変える</li>
+                        <li>期限が近い注文に警告色を表示する</li>
+                        <li>特定の条件を満たす場合にアイコンで示す</li>
+                    </ul>
+                    <p>設定方法：<span class="excel-path">[ホーム]タブ→[条件付き書式]</span>から条件と書式を設定します。</p>
+                </div>
+                
+                <div class="step">
+                    <h3>入力規則を持つテンプレートの作成</h3>
+                    <p>データ入力の標準化を進めるために、入力規則を設定したテンプレートを作成しましょう。</p>
+                    <p>テンプレート作成のポイント：</p>
+                    <ul>
+                        <li>よく使う項目の入力規則をあらかじめ設定しておく</li>
+                        <li>説明シートを追加して入力方法を解説する</li>
+                        <li>サンプルデータを含めて使い方を示す</li>
+                        <li>テンプレートとして保存（.xltx形式）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="quiz">
+                <div class="quiz-title">考えてみよう！</div>
+                <p>あなたの業務データで入力規則を適用すべき箇所はどこですか？具体的にどのような規則が有効でしょうか？</p>
+                <ul>
+                    <li>選択肢が限られている項目（リスト型）</li>
+                    <li>数値の範囲に制限があるもの（整数型・数値型）</li>
+                    <li>日付に関する制約があるもの（日付型）</li>
+                    <li>特定の形式に従うべきもの（文字列の長さや形式）</li>
+                </ul>
+                <p>ぜひ実際のデータで考えてみてください。</p>
+            </div>
+        </div>
+        
+        <div class="note">
+            <p><strong>なるほど！ポイント</strong></p>
+            <p>データ入力規則は単なるエラー防止ツールではありません。これは「データ品質を入り口で保証する」ための重要な仕組みです。</p>
+            <p>データの品質は、後からの修正よりも「入力時点での正確性」を確保する方がはるかに効率的です。データ入力規則はその最初の防衛線なのです。</p>
+        </div>
+        
+        <div class="footer">
+            <p>ビジネスパーソンのためのデータリテラシー入門 | 課題6: データ入力規則と検証の活用</p>
+        </div>
+    </div>
+</body>
+</html>
