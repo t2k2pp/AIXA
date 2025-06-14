@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>アレイ図掛け算ゲーム</title>
     <style>
-        /* 基本設定 - モバイル最適化された教育用インターフェース */
+        /* 基本設定 - 真のレスポンシブ教育環境の構築 */
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
-            margin: 0;
-            padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             height: 100vh;
             overflow: hidden; /* スクロール完全禁止 */
@@ -27,7 +27,7 @@
             width: 100%;
         }
 
-        /* ゲームヘッダー - 重要情報を統合した効率的なレイアウト */
+        /* ゲームヘッダー - 重要情報を効率的に統合 */
         .game-header {
             background: linear-gradient(45deg, #3498db, #2980b9);
             color: white;
@@ -38,8 +38,9 @@
             gap: 15px;
             font-size: 14px;
             font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            flex-shrink: 0; /* ヘッダーサイズ固定 */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+            position: relative;
         }
 
         .score-display {
@@ -57,7 +58,7 @@
             text-align: center;
             width: 80px;
             color: #2C3E50;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
         .timer-display {
@@ -65,21 +66,59 @@
             font-size: 16px;
         }
 
-        /* メインゲームエリア - アレイ図を中心とした最適化レイアウト */
+        /* ヘルプボタン - 説明文の代替として右上に配置 */
+        .help-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .help-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* ヘルプメッセージ - 必要時のみ表示される学習支援 */
+        .help-message {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: #2C3E50;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-size: 12px;
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .help-message.show {
+            display: block;
+        }
+
+        /* メインゲームエリア - 縦向き・横向き対応の柔軟なレイアウト */
         .game-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding: 10px;
-        }
-
-        .instruction {
-            text-align: center;
-            font-size: 14px;
-            color: #2C3E50;
-            margin: 5px 0;
-            font-weight: bold;
+            padding: 8px;
         }
 
         /* アレイ図コンテナ - 学習の中心要素として最大化 */
@@ -88,10 +127,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 5px 0;
+            margin-bottom: 8px;
         }
 
-        /* 10×10アレイ図グリッド - 明確な5×5分割で数量感覚を育成 */
+        /* 10×10アレイ図グリッド - 数量感覚育成の核心 */
         .array-grid {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
@@ -102,12 +141,12 @@
             aspect-ratio: 1;
             position: relative;
             border: 3px solid #2C3E50;
-            /* レスポンシブサイズ調整 */
-            width: min(70vw, 70vh, 350px);
-            height: min(70vw, 70vh, 350px);
+            /* 画面サイズに応じた最適サイズ - 縦向き用 */
+            width: min(85vw, 60vh);
+            height: min(85vw, 60vh);
         }
 
-        /* 5×5分割線 - 効率的な数量認識のための重要な視覚的手がかり */
+        /* 5×5分割線 - 効率的な計算戦略を支援する視覚的手がかり */
         .array-grid::before {
             content: '';
             position: absolute;
@@ -166,7 +205,7 @@
             }
         }
 
-        /* キーパッドエリア - コンパクトで効率的な配置 */
+        /* キーパッドエリア - コンパクトで効率的な数字入力 */
         .keypad-container {
             padding: 8px;
             flex-shrink: 0;
@@ -191,7 +230,7 @@
             transition: all 0.2s ease;
             user-select: none;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            /* レスポンシブな高さ調整 */
+            /* 縦向きでの高さ設定 */
             height: min(12vw, 8vh, 48px);
             min-height: 36px;
         }
@@ -211,6 +250,94 @@
 
         .submit-btn {
             background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .feedback {
+            font-size: 14px;
+            padding: 6px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            animation: feedbackSlide 0.4s ease-out;
+        }
+
+        @keyframes feedbackSlide {
+            0% {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .feedback.correct {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .feedback.incorrect {
+            background: #e74c3c;
+            color: white;
+        }
+
+        /* 横向きレイアウト - 画面幅を活用した左右分割設計 */
+        @media (orientation: landscape) {
+            .game-content {
+                flex-direction: row;
+                gap: 15px;
+                padding: 10px;
+            }
+            
+            .array-container {
+                flex: 1;
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+            
+            .array-grid {
+                /* 横向きでの最適サイズ - 画面幅と高さのバランス */
+                width: min(50vw, 80vh);
+                height: min(50vw, 80vh);
+            }
+            
+            .keypad-container {
+                width: 200px;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                padding: 0;
+            }
+            
+            .number-panel {
+                width: 100%;
+                max-width: 180px;
+            }
+            
+            .number-btn {
+                height: min(8vw, 6vh, 42px);
+                min-height: 32px;
+                font-size: 14px;
+            }
+            
+            .game-header {
+                padding: 6px 15px;
+                font-size: 12px;
+            }
+            
+            .answer-input {
+                width: 70px;
+                font-size: 20px;
+                padding: 6px 10px;
+            }
+            
+            .help-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 14px;
+            }
         }
 
         /* スタート画面とメニューのスタイル */
@@ -314,36 +441,6 @@
             background: #f8f9fa;
         }
 
-        .feedback {
-            font-size: 14px;
-            padding: 8px;
-            margin: 8px 0;
-            border-radius: 8px;
-            font-weight: bold;
-            animation: feedbackSlide 0.4s ease-out;
-        }
-
-        @keyframes feedbackSlide {
-            0% {
-                transform: translateY(-10px);
-                opacity: 0;
-            }
-            100% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .feedback.correct {
-            background: #2ecc71;
-            color: white;
-        }
-
-        .feedback.incorrect {
-            background: #e74c3c;
-            color: white;
-        }
-
         .screen {
             display: none;
         }
@@ -368,49 +465,7 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
-        /* 横向き対応 - ランドスケープモードでの最適化 */
-        @media (orientation: landscape) and (max-height: 600px) {
-            .game-header {
-                padding: 6px 15px;
-                font-size: 12px;
-            }
-            
-            .answer-input {
-                padding: 6px 10px;
-                font-size: 20px;
-                width: 70px;
-            }
-            
-            .game-content {
-                padding: 8px;
-            }
-            
-            .array-grid {
-                width: min(50vw, 60vh, 280px);
-                height: min(50vw, 60vh, 280px);
-            }
-            
-            .array-cell {
-                font-size: 10px;
-            }
-            
-            .keypad-container {
-                padding: 6px;
-            }
-            
-            .number-btn {
-                height: min(10vw, 6vh, 36px);
-                min-height: 30px;
-                font-size: 14px;
-            }
-            
-            .instruction {
-                font-size: 12px;
-                margin: 3px 0;
-            }
-        }
-
-        /* 小さな画面での追加調整 */
+        /* 小画面でのさらなる最適化 */
         @media (max-width: 400px) {
             .game-header {
                 padding: 6px 10px;
@@ -424,8 +479,8 @@
             }
             
             .array-grid {
-                width: min(80vw, 80vh, 300px);
-                height: min(80vw, 80vh, 300px);
+                width: min(90vw, 65vh);
+                height: min(90vw, 65vh);
             }
             
             .number-panel {
@@ -435,6 +490,33 @@
             
             .number-btn {
                 font-size: 14px;
+            }
+        }
+
+        /* 高さが極端に小さい場合の調整 */
+        @media (max-height: 500px) {
+            .game-header {
+                padding: 4px 10px;
+            }
+            
+            .answer-input {
+                padding: 4px 8px;
+                font-size: 18px;
+            }
+            
+            .array-grid {
+                width: min(40vw, 70vh);
+                height: min(40vw, 70vh);
+            }
+            
+            .array-cell {
+                font-size: 10px;
+            }
+            
+            .number-btn {
+                height: min(6vw, 5vh, 32px);
+                min-height: 28px;
+                font-size: 12px;
             }
         }
     </style>
@@ -509,9 +591,9 @@
             </div>
         </div>
 
-        <!-- ゲーム画面 - スクロール無しの完全レスポンシブ設計 -->
+        <!-- ゲーム画面 - 真のレスポンシブ設計による最適な学習環境 -->
         <div id="game-screen" class="screen">
-            <!-- 統合ヘッダー - 重要情報を効率的に配置 -->
+            <!-- 統合ヘッダー - 重要情報とヘルプ機能を効率的に配置 -->
             <div class="game-header">
                 <div class="score-display">
                     スコア: <span id="current-score">0</span>
@@ -520,14 +602,19 @@
                 <div class="timer-display">
                     時間: <span id="timer">--</span>
                 </div>
+                
+                <!-- ヘルプボタン - 必要時のみ学習支援を提供 -->
+                <button class="help-btn" onclick="toggleHelp()">?</button>
+                <div class="help-message" id="help-message">
+                    <strong>遊び方：</strong><br>
+                    • 赤い線で分かれた5×5のまとまりを見つけよう<br>
+                    • 「25個 + 15個 = 40個」のように効率的に数えよう<br>
+                    • 1つずつ数えるより速く答えが出せるよ！
+                </div>
             </div>
 
             <div class="game-content">
-                <div class="instruction">
-                    5×5のまとまりを見つけて効率的に数えよう
-                </div>
-                
-                <!-- アレイ図を中心とした学習エリア -->
+                <!-- アレイ図を中心とした学習エリア - 最大サイズで表示 -->
                 <div class="array-container">
                     <div class="array-grid" id="array-grid">
                         <!-- 常に10×10のグリッドがここに生成されます -->
@@ -536,7 +623,7 @@
                 
                 <div id="feedback-area"></div>
                 
-                <!-- コンパクトなキーパッド -->
+                <!-- コンパクトなキーパッド - 横向きでは右側に配置 -->
                 <div class="keypad-container">
                     <div class="number-panel">
                         <button class="number-btn" onclick="inputNumber(1)">1</button>
@@ -605,7 +692,7 @@
             '大人2': { easy: 0, medium: 0, hard: 0, unlimited: 0 }
         };
 
-        // 難易度設定 - 1×1から10×10の完全範囲での段階的学習
+        // 難易度設定 - 段階的な認知負荷調整による効果的学習
         const difficultySettings = {
             easy: { 
                 timeLimit: 30, 
@@ -634,6 +721,35 @@
         };
 
         /**
+         * ヘルプ表示切り替え - 必要時のみ学習支援を提供
+         * 画面スペースを最大限活用しながら、適切な学習ガイダンスを実現
+         */
+        function toggleHelp() {
+            const helpMessage = document.getElementById('help-message');
+            helpMessage.classList.toggle('show');
+            
+            // 他の場所をクリックした時にヘルプを閉じる
+            if (helpMessage.classList.contains('show')) {
+                setTimeout(() => {
+                    document.addEventListener('click', closeHelpOnClickOutside);
+                }, 100);
+            }
+        }
+
+        /**
+         * ヘルプメッセージの外部クリック検出
+         */
+        function closeHelpOnClickOutside(event) {
+            const helpMessage = document.getElementById('help-message');
+            const helpBtn = document.querySelector('.help-btn');
+            
+            if (!helpMessage.contains(event.target) && !helpBtn.contains(event.target)) {
+                helpMessage.classList.remove('show');
+                document.removeEventListener('click', closeHelpOnClickOutside);
+            }
+        }
+
+        /**
          * 画面表示切り替え - 学習フローの適切な管理
          */
         function showScreen(screenId) {
@@ -654,8 +770,8 @@
         }
 
         /**
-         * ゲーム開始 - 集中的な学習環境の構築
-         * スクロール無しの設計により認知的中断を完全に排除
+         * ゲーム開始 - 真のレスポンシブ環境での集中的学習
+         * 縦向きでは上下配置、横向きでは左右配置の最適なレイアウト
          */
         function startGame(difficulty) {
             gameState.difficulty = difficulty;
@@ -681,13 +797,13 @@
         }
 
         /**
-         * 新しい問題生成 - 効率的な数学的思考を促進する設計
+         * 新しい問題生成 - 効率的な数学的思考を促進
          * 1×1から10×10の完全範囲でパターン認識を防ぐランダム出題
          */
         function generateNewQuestion() {
             if (!gameState.gameActive) return;
 
-            // 十進記数法の理解を深める1×1から10×10の完全範囲
+            // 十進記数法の深い理解を促す1×1から10×10の完全範囲
             const rows = Math.floor(Math.random() * 10) + 1;
             const cols = Math.floor(Math.random() * 10) + 1;
             
@@ -705,7 +821,7 @@
 
         /**
          * アレイ図グリッド生成 - 数量感覚育成の核心機能
-         * 明確な5×5分割により効率的な計算戦略を促進
+         * 5×5分割線により「まとまり」を活用した効率的計算戦略を促進
          */
         function generateArrayGrid(rows, cols) {
             const grid = document.getElementById('array-grid');
@@ -718,19 +834,19 @@
             
             switch (settings.emojiStrategy) {
                 case 'fixed':
-                    // やさしい：パターン認識を活用した効率的な数え方学習
+                    // やさしい：同一パターンでの効率的な数え方学習
                     const fixedEmoji = settings.baseEmojis[Math.floor(Math.random() * 4)];
                     emojis = Array(rows * cols).fill(fixedEmoji);
                     break;
                     
                 case 'changing':
-                    // ふつう：適度な変化による集中力維持
+                    // ふつう：問題ごとの変化による適度な挑戦レベル
                     const changingEmoji = settings.baseEmojis[gameState.questionsAnswered.length % settings.baseEmojis.length];
                     emojis = Array(rows * cols).fill(changingEmoji);
                     break;
                     
                 case 'random':
-                    // むずかしい・無制限：最高レベルの視覚的処理能力育成
+                    // むずかしい・無制限：高度な視覚的処理能力の育成
                     emojis = Array(rows * cols).fill(null).map(() => 
                         settings.baseEmojis[Math.floor(Math.random() * settings.baseEmojis.length)]
                     );
@@ -749,7 +865,7 @@
                 if (row < rows && col < cols) {
                     cell.classList.add('active');
                     cell.textContent = emojis[row * cols + col];
-                    // 段階的な視覚的注意誘導
+                    // 段階的な視覚的注意誘導のアニメーション
                     cell.style.animationDelay = `${(row * cols + col) * 0.03}s`;
                 }
                 
