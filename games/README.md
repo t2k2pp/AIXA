@@ -1,5 +1,11 @@
 # 生成AIで作成したゲーム
 
+### 以下は2025年6月に作成したものです。
+
+- [📝Zookeeperもどき](https://github.com/t2k2pp/AIXA/blob/main/games/arrays_puzzle_game.html) , [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/arrays_puzzle_game.html)...2025/06/14 Claude
+- [📝アレイズ九九](https://github.com/t2k2pp/AIXA/blob/main/games/array_game.html) , [🎮ゲームプレイ](https://t2k2pp.github.io/AIXA/games/array_game.html)...2025/06/14 Claude
+  
+
 ### 以下は2025年5月に作成したものです。
 
 #### ゲームをつくってもらおう！
