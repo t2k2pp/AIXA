@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アレイズ9×9パズルゲーム</title>
+    <style>
+        /* 基本的なページスタイル */
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 背景のアニメーション */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* メイン画面のコンテナ */
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        /* タイトルスタイル */
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 画面切り替え用のクラス */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* プレイヤー選択画面 */
+        .player-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-card.child1 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .player-card.child2 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .player-card.adult1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .player-card.adult2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+
+        /* 難易度選択 */
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.easy { background: #4ecdc4; color: white; }
+        .difficulty-btn.normal { background: #ffd93d; color: #333; }
+        .difficulty-btn.hard { background: #ff6b6b; color: white; }
+
+        .difficulty-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* ゲーム画面のスタイル */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .score-display {
+            background: linear-gradient(45deg, #43a047, #66bb6a);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+
+        .timer-display {
+            background: linear-gradient(45deg, #e53935, #ef5350);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+
+        /* ゲームボードのスタイル */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            background: #333;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px auto;
+            max-width: 450px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .cell.selected {
+            border: 3px solid #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 色別のセルスタイル */
+        .cell.color-0 { background: linear-gradient(45deg, #e91e63, #f06292); }
+        .cell.color-1 { background: linear-gradient(45deg, #2196f3, #64b5f6); }
+        .cell.color-2 { background: linear-gradient(45deg, #4caf50, #81c784); }
+        .cell.color-3 { background: linear-gradient(45deg, #ff9800, #ffb74d); }
+        .cell.color-4 { background: linear-gradient(45deg, #9c27b0, #ba68c8); }
+        .cell.color-5 { background: linear-gradient(45deg, #00bcd4, #4dd0e1); }
+
+        /* ボタンスタイル */
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ゲーム終了画面 */
+        .final-score {
+            font-size: 2em;
+            color: #4caf50;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .high-score-display {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* アニメーション効果 */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .game-board {
+                max-width: 350px;
+            }
+            
+            .cell {
+                font-size: 16px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- スタート画面 -->
+        <div id="start-screen" class="screen active">
+            <h1>🎮 アレイズ9×9</h1>
+            <p>同じ色のブロックを3つ以上並べて消そう！</p>
+            <button class="btn" onclick="showPlayerSelect()">ゲームスタート</button>
+            <div class="high-score-display">
+                <h3>🏆 ハイスコア 🏆</h3>
+                <div id="high-scores-display"></div>
+            </div>
+        </div>
+
+        <!-- プレイヤー選択画面 -->
+        <div id="player-select-screen" class="screen">
+            <h2>プレイヤーを選んでね！</h2>
+            <div class="player-grid">
+                <button class="player-card child1" onclick="selectPlayer('child1', 'ゆうき')">
+                    👦<br>ゆうき<br>(こども)
+                </button>
+                <button class="player-card child2" onclick="selectPlayer('child2', 'みゆ')">
+                    👧<br>みゆ<br>(こども)
+                </button>
+                <button class="player-card adult1" onclick="selectPlayer('adult1', 'おとうさん')">
+                    👨<br>おとうさん<br>(おとな)
+                </button>
+                <button class="player-card adult2" onclick="selectPlayer('adult2', 'おかあさん')">
+                    👩<br>おかあさん<br>(おとな)
+                </button>
+            </div>
+            <button class="btn" onclick="showStartScreen()">もどる</button>
+        </div>
+
+        <!-- 難易度選択画面 -->
+        <div id="difficulty-screen" class="screen">
+            <h2 id="difficulty-player-name">プレイヤー名</h2>
+            <p>難易度を選んでね！</p>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn easy" onclick="startGame('easy')">
+                    😊 かんたん<br>90秒
+                </button>
+                <button class="difficulty-btn normal" onclick="startGame('normal')">
+                    😐 ふつう<br>60秒
+                </button>
+                <button class="difficulty-btn hard" onclick="startGame('hard')">
+                    😤 むずかしい<br>30秒
+                </button>
+            </div>
+            <button class="btn" onclick="showPlayerSelect()">もどる</button>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <div class="game-info">
+                <div class="score-display">
+                    スコア: <span id="current-score">0</span>
+                </div>
+                <div id="current-player-display" class="score-display"></div>
+                <div class="timer-display">
+                    時間: <span id="timer">60</span>秒
+                </div>
+            </div>
+            <div id="game-board" class="game-board"></div>
+            <button class="btn" onclick="pauseGame()">ポーズ</button>
+        </div>
+
+        <!-- ゲーム終了画面 -->
+        <div id="game-over-screen" class="screen">
+            <h2>ゲーム終了！</h2>
+            <div class="final-score">
+                最終スコア: <span id="final-score">0</span>点
+            </div>
+            <div id="high-score-message"></div>
+            <div class="high-score-display">
+                <span id="player-high-score"></span>
+            </div>
+            <button class="btn" onclick="confirmScore()">スコアを確認</button>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態を管理する変数
+        let gameState = {
+            currentPlayer: null,
+            currentPlayerName: '',
+            difficulty: 'normal',
+            score: 0,
+            timeLeft: 60,
+            board: [],
+            selectedCell: null,
+            gameActive: false,
+            timer: null
+        };
+
+        // ハイスコアを管理する変数（メモリ内保存）
+        let highScores = {
+            child1: 0,
+            child2: 0,
+            adult1: 0,
+            adult2: 0
+        };
+
+        // プレイヤー名の定義
+        const playerNames = {
+            child1: 'ゆうき',
+            child2: 'みゆ',
+            adult1: 'おとうさん',
+            adult2: 'おかあさん'
+        };
+
+        // 色の種類（6色）
+        const colors = ['🟥', '🟦', '🟩', '🟨', '🟪', '🟫'];
+
+        /**
+         * ゲーム初期化時にハイスコア表示を更新
+         */
+        function updateHighScoreDisplay() {
+            const display = document.getElementById('high-scores-display');
+            let html = '';
+            Object.keys(playerNames).forEach(playerId => {
+                const name = playerNames[playerId];
+                const score = highScores[playerId];
+                html += `${name}: ${score}点<br>`;
+            });
+            display.innerHTML = html;
+        }
+
+        /**
+         * 画面切り替えの共通関数
+         */
+        function showScreen(screenId) {
+            // すべての画面を非表示にする
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            // 指定された画面を表示する
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        /**
+         * スタート画面を表示
+         */
+        function showStartScreen() {
+            updateHighScoreDisplay();
+            showScreen('start-screen');
+        }
+
+        /**
+         * プレイヤー選択画面を表示
+         */
+        function showPlayerSelect() {
+            showScreen('player-select-screen');
+        }
+
+        /**
+         * プレイヤーを選択して難易度選択画面へ
+         */
+        function selectPlayer(playerId, playerName) {
+            gameState.currentPlayer = playerId;
+            gameState.currentPlayerName = playerName;
+            
+            document.getElementById('difficulty-player-name').textContent = 
+                `${playerName}の難易度選択`;
+            
+            showScreen('difficulty-screen');
+        }
+
+        /**
+         * ゲームボードを初期化
+         */
+        function initializeBoard() {
+            gameState.board = [];
+            
+            // 9x9のボードを作成
+            for (let row = 0; row < 9; row++) {
+                gameState.board[row] = [];
+                for (let col = 0; col < 9; col++) {
+                    // ランダムな色を配置（初期状態で3つ以上並ばないようにする）
+                    let color;
+                    do {
+                        color = Math.floor(Math.random() * 6);
+                    } while (wouldCreateMatch(row, col, color));
+                    
+                    gameState.board[row][col] = color;
+                }
+            }
+        }
+
+        /**
+         * 指定位置に色を置いた場合、3つ以上並ぶかチェック
+         */
+        function wouldCreateMatch(row, col, color) {
+            // 水平方向のチェック
+            let horizontalCount = 1;
+            
+            // 左方向をチェック
+            for (let c = col - 1; c >= 0 && gameState.board[row] && gameState.board[row][c] === color; c--) {
+                horizontalCount++;
+            }
+            
+            // 右方向をチェック
+            for (let c = col + 1; c < 9 && gameState.board[row] && gameState.board[row][c] === color; c++) {
+                horizontalCount++;
+            }
+            
+            if (horizontalCount >= 3) return true;
+            
+            // 垂直方向のチェック
+            let verticalCount = 1;
+            
+            // 上方向をチェック
+            for (let r = row - 1; r >= 0 && gameState.board[r] && gameState.board[r][col] === color; r--) {
+                verticalCount++;
+            }
+            
+            // 下方向をチェック
+            for (let r = row + 1; r < 9 && gameState.board[r] && gameState.board[r][col] === color; r++) {
+                verticalCount++;
+            }
+            
+            return verticalCount >= 3;
+        }
+
+        /**
+         * ゲームボードをHTMLに描画
+         */
+        function renderBoard() {
+            const boardElement = document.getElementById('game-board');
+            boardElement.innerHTML = '';
+            
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell color-${gameState.board[row][col]}`;
+                    cell.textContent = colors[gameState.board[row][col]];
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => cellClicked(row, col));
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        /**
+         * セルがクリックされた時の処理
+         */
+        function cellClicked(row, col) {
+            if (!gameState.gameActive) return;
+            
+            const clickedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            if (gameState.selectedCell === null) {
+                // 最初のセル選択
+                gameState.selectedCell = {row, col};
+                clickedCell.classList.add('selected');
+            } else {
+                // 2番目のセル選択 - 交換を試みる
+                const selected = gameState.selectedCell;
+                
+                // 選択解除
+                document.querySelector('.selected')?.classList.remove('selected');
+                
+                // 隣接チェック
+                if (isAdjacent(selected.row, selected.col, row, col)) {
+                    // ブロックを交換
+                    swapBlocks(selected.row, selected.col, row, col);
+                    
+                    // マッチをチェックして処理
+                    if (checkAndRemoveMatches()) {
+                        // マッチがあった場合、落下処理を行う
+                        dropBlocks();
+                    } else {
+                        // マッチがなかった場合、交換を元に戻す
+                        swapBlocks(selected.row, selected.col, row, col);
+                    }
+                }
+                
+                gameState.selectedCell = null;
+            }
+        }
+
+        /**
+         * 2つのセルが隣接しているかチェック
+         */
+        function isAdjacent(row1, col1, row2, col2) {
+            const rowDiff = Math.abs(row1 - row2);
+            const colDiff = Math.abs(col1 - col2);
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+
+        /**
+         * 2つのブロックを交換
+         */
+        function swapBlocks(row1, col1, row2, col2) {
+            const temp = gameState.board[row1][col1];
+            gameState.board[row1][col1] = gameState.board[row2][col2];
+            gameState.board[row2][col2] = temp;
+            renderBoard();
+        }
+
+        /**
+         * マッチをチェックして削除
+         */
+        function checkAndRemoveMatches() {
+            const toRemove = [];
+            
+            // 水平方向のマッチをチェック
+            for (let row = 0; row < 9; row++) {
+                let count = 1;
+                let currentColor = gameState.board[row][0];
+                
+                for (let col = 1; col < 9; col++) {
+                    if (gameState.board[row][col] === currentColor) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let c = col - count; c < col; c++) {
+                                toRemove.push({row, col: c});
+                            }
+                        }
+                        count = 1;
+                        currentColor = gameState.board[row][col];
+                    }
+                }
+                
+                // 行の最後をチェック
+                if (count >= 3) {
+                    for (let c = 9 - count; c < 9; c++) {
+                        toRemove.push({row, col: c});
+                    }
+                }
+            }
+            
+            // 垂直方向のマッチをチェック
+            for (let col = 0; col < 9; col++) {
+                let count = 1;
+                let currentColor = gameState.board[0][col];
+                
+                for (let row = 1; row < 9; row++) {
+                    if (gameState.board[row][col] === currentColor) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let r = row - count; r < row; r++) {
+                                toRemove.push({row: r, col});
+                            }
+                        }
+                        count = 1;
+                        currentColor = gameState.board[row][col];
+                    }
+                }
+                
+                // 列の最後をチェック
+                if (count >= 3) {
+                    for (let r = 9 - count; r < 9; r++) {
+                        toRemove.push({row: r, col});
+                    }
+                }
+            }
+            
+            // 重複を除去
+            const uniqueToRemove = toRemove.filter((pos, index, arr) => 
+                arr.findIndex(p => p.row === pos.row && p.col === pos.col) === index
+            );
+            
+            if (uniqueToRemove.length > 0) {
+                // スコア計算（難易度による倍率適用）
+                const multiplier = gameState.difficulty === 'easy' ? 1 : 
+                                gameState.difficulty === 'normal' ? 2 : 3;
+                gameState.score += uniqueToRemove.length * 10 * multiplier;
+                
+                // ブロックを削除（-1でマーク）
+                uniqueToRemove.forEach(pos => {
+                    gameState.board[pos.row][pos.col] = -1;
+                });
+                
+                updateScore();
+                return true;
+            }
+            
+            return false;
+        }
+
+        /**
+         * ブロックを下に落とす
+         */
+        function dropBlocks() {
+            for (let col = 0; col < 9; col++) {
+                // 各列で削除されたブロックを下に詰める
+                let writeIndex = 8; // 下から詰めていく
+                
+                for (let row = 8; row >= 0; row--) {
+                    if (gameState.board[row][col] !== -1) {
+                        gameState.board[writeIndex][col] = gameState.board[row][col];
+                        if (writeIndex !== row) {
+                            gameState.board[row][col] = -1;
+                        }
+                        writeIndex--;
+                    }
+                }
+                
+                // 上の空いた部分に新しいブロックを配置
+                for (let row = 0; row <= writeIndex; row++) {
+                    gameState.board[row][col] = Math.floor(Math.random() * 6);
+                }
+            }
+            
+            renderBoard();
+            
+            // 新しいマッチができた場合は再度処理
+            setTimeout(() => {
+                if (checkAndRemoveMatches()) {
+                    dropBlocks();
+                }
+            }, 300);
+        }
+
+        /**
+         * スコア表示を更新
+         */
+        function updateScore() {
+            document.getElementById('current-score').textContent = gameState.score;
+        }
+
+        /**
+         * タイマー表示を更新
+         */
+        function updateTimer() {
+            document.getElementById('timer').textContent = gameState.timeLeft;
+            
+            if (gameState.timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        /**
+         * ゲームを開始
+         */
+        function startGame(difficulty) {
+            gameState.difficulty = difficulty;
+            gameState.score = 0;
+            gameState.selectedCell = null;
+            gameState.gameActive = true;
+            
+            // 難易度に応じて制限時間を設定
+            switch (difficulty) {
+                case 'easy':
+                    gameState.timeLeft = 90;
+                    break;
+                case 'normal':
+                    gameState.timeLeft = 60;
+                    break;
+                case 'hard':
+                    gameState.timeLeft = 30;
+                    break;
+            }
+            
+            // プレイヤー名を表示
+            document.getElementById('current-player-display').textContent = 
+                gameState.currentPlayerName;
+            
+            // ボードを初期化して描画
+            initializeBoard();
+            renderBoard();
+            updateScore();
+            updateTimer();
+            
+            // タイマーを開始
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimer();
+            }, 1000);
+            
+            showScreen('game-screen');
+        }
+
+        /**
+         * ゲームを一時停止
+         */
+        function pauseGame() {
+            if (gameState.gameActive) {
+                gameState.gameActive = false;
+                clearInterval(gameState.timer);
+                alert('ゲームを一時停止しました。OKを押すと再開します。');
+                gameState.gameActive = true;
+                gameState.timer = setInterval(() => {
+                    gameState.timeLeft--;
+                    updateTimer();
+                }, 1000);
+            }
+        }
+
+        /**
+         * ゲーム終了
+         */
+        function endGame() {
+            gameState.gameActive = false;
+            clearInterval(gameState.timer);
+            
+            // ハイスコアをチェック
+            const currentHighScore = highScores[gameState.currentPlayer];
+            let isNewHighScore = false;
+            
+            if (gameState.score > currentHighScore) {
+                highScores[gameState.currentPlayer] = gameState.score;
+                isNewHighScore = true;
+            }
+            
+            // 結果画面に情報を設定
+            document.getElementById('final-score').textContent = gameState.score;
+            
+            const highScoreMessage = document.getElementById('high-score-message');
+            if (isNewHighScore) {
+                highScoreMessage.innerHTML = '<h3 style="color: #ff6b6b;">🎉 新記録達成！ 🎉</h3>';
+                highScoreMessage.classList.add('bounce');
+            } else {
+                highScoreMessage.innerHTML = '';
+                highScoreMessage.classList.remove('bounce');
+            }
+            
+            document.getElementById('player-high-score').textContent = 
+                `${gameState.currentPlayerName}のハイスコア: ${highScores[gameState.currentPlayer]}点`;
+            
+            showScreen('game-over-screen');
+        }
+
+        /**
+         * スコア確認後にスタート画面に戻る
+         */
+        function confirmScore() {
+            showStartScreen();
+        }
+
+        // ページ読み込み時にハイスコア表示を初期化
+        window.addEventListener('load', () => {
+            updateHighScoreDisplay();
+        });
+    </script>
+</body>
+</html>
