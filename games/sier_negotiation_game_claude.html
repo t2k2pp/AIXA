@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIer PM 交渉シミュレーション</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-screen {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* シナリオ選択画面 */
+        .scenario-selection {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .scenario-selection h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .scenario-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px auto;
+            max-width: 600px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .scenario-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .scenario-card p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        /* ゲーム画面 */
+        .game-content {
+            display: none;
+        }
+
+        .client-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .client-avatar {
+            width: 120px;
+            height: 120px;
+            background: #2196f3;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .client-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1976d2;
+        }
+
+        .speech-bubble {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid white;
+        }
+
+        /* 評価指標セクション */
+        .metrics-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .metric-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            border-radius: 10px;
+            transition: all 0.8s ease;
+            position: relative;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* 選択肢セクション */
+        .choices-section {
+            padding: 30px;
+        }
+
+        .turn-info {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .choice-button {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .choice-button:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+        }
+
+        /* 結果画面 */
+        .result-screen {
+            display: none;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .result-success {
+            color: #27ae60;
+        }
+
+        .result-failure {
+            color: #e74c3c;
+        }
+
+        .final-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .final-score-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .feedback-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feedback-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .feedback-section p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .restart-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* アニメーション効果 */
+        .metric-change {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            font-weight: bold;
+            font-size: 1rem;
+            opacity: 0;
+            animation: scoreChange 2s ease-out;
+        }
+
+        .metric-change.positive {
+            color: #27ae60;
+        }
+
+        .metric-change.negative {
+            color: #e74c3c;
+        }
+
+        @keyframes scoreChange {
+            0% {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50%) translateX(20px);
+            }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .game-header h1 {
+                font-size: 2rem;
+            }
+
+            .choices-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .speech-bubble {
+                padding: 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1>SIer PM 交渉シミュレーション</h1>
+            <p>プロジェクトマネージャーとして、クライアントとの交渉を成功に導こう</p>
+        </div>
+
+        <div class="game-screen">
+            <!-- シナリオ選択画面 -->
+            <div id="scenario-selection" class="scenario-selection">
+                <h2>交渉シナリオを選択してください</h2>
+                <div class="scenario-card" onclick="startGame('banking')">
+                    <h3>🏦 金融業 - システム開発仕様変更交渉</h3>
+                    <p>〇〇銀行のシステム部長との交渉。プロジェクト途中でのクライアント都合による急な仕様変更への対応が必要です。追加開発のスコープと予算、納期への影響について合意形成を行います。</p>
+                </div>
+            </div>
+
+            <!-- ゲーム画面 -->
+            <div id="game-content" class="game-content">
+                <!-- クライアントセクション -->
+                <div class="client-section">
+                    <div id="client-avatar" class="client-avatar">👨‍💼</div>
+                    <div id="client-name" class="client-name">田中システム部長（〇〇銀行）</div>
+                    <div class="speech-bubble">
+                        <div id="client-speech">お疲れ様です。急な話で申し訳ないのですが、実は経営陣から追加の要望が出てきまして...</div>
+                    </div>
+                </div>
+
+                <!-- 評価指標セクション -->
+                <div class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-name">信頼度</div>
+                            <div class="metric-bar">
+                                <div id="trust-fill" class="metric-fill" style="width: 70%"></div>
+                            </div>
+                            <div id="trust-value" class="metric-value">70</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-name">予算</div>
+                            <div class="metric-bar">
+                                <div id="budget-fill" class="metric-fill" style="width: 60%"></div>
+                            </div>
+                            <div id="budget-value" class="metric-value">60</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-name">納期</div>
+                            <div class="metric-bar">
+                                <div id="schedule-fill" class="metric-fill" style="width: 65%"></div>
+                            </div>
+                            <div id="schedule-value" class="metric-value">65</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-name">品質</div>
+                            <div class="metric-bar">
+                                <div id="quality-fill" class="metric-fill" style="width: 75%"></div>
+                            </div>
+                            <div id="quality-value" class="metric-value">75</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 選択肢セクション -->
+                <div class="choices-section">
+                    <div class="turn-info">
+                        <span id="turn-counter">ターン 1 / 8</span>
+                    </div>
+                    <div id="choices-grid" class="choices-grid">
+                        <!-- 選択肢はJavaScriptで動的に生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果画面 -->
+            <div id="result-screen" class="result-screen">
+                <h2 id="result-title" class="result-title">交渉結果</h2>
+                
+                <div class="final-scores">
+                    <div class="final-score-item">
+                        <div class="metric-name">信頼度</div>
+                        <div id="final-trust" class="metric-value">--</div>
+                    </div>
+                    <div class="final-score-item">
+                        <div class="metric-name">予算</div>
+                        <div id="final-budget" class="metric-value">--</div>
+                    </div>
+                    <div class="final-score-item">
+                        <div class="metric-name">納期</div>
+                        <div id="final-schedule" class="metric-value">--</div>
+                    </div>
+                    <div class="final-score-item">
+                        <div class="metric-name">品質</div>
+                        <div id="final-quality" class="metric-value">--</div>
+                    </div>
+                </div>
+
+                <div class="feedback-section">
+                    <h3>📊 交渉結果の分析</h3>
+                    <div id="detailed-feedback">
+                        <!-- フィードバック内容はJavaScriptで動的に生成 -->
+                    </div>
+                </div>
+
+                <button class="restart-button" onclick="restartGame()">もう一度プレイする</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ゲーム状態管理用のオブジェクト
+        const gameState = {
+            currentTurn: 1,
+            maxTurns: 8,
+            metrics: {
+                trust: 70,     // 信頼度
+                budget: 60,    // 予算
+                schedule: 65,  // 納期
+                quality: 75    // 品質
+            },
+            playerChoices: []  // プレイヤーの選択履歴
+        };
+
+        // 金融業シナリオのデータ構造
+        const bankingScenario = {
+            title: "金融業 - システム開発仕様変更交渉",
+            client: {
+                name: "田中システム部長（〇〇銀行）",
+                avatar: "👨‍💼",
+                personality: "cost_conscious_but_cooperative" // コスト意識は高いが協力的
+            },
+            // 各ターンの対話データ
+            turns: [
+                {
+                    clientSpeech: "お疲れ様です。急な話で申し訳ないのですが、実は経営陣から追加の要望が出てきまして...新しいレポート機能を追加したいとのことです。",
+                    choices: [
+                        {
+                            text: "詳細な要件を確認させてください。まずはどのようなレポート機能でしょうか？",
+                            effects: { trust: +8, budget: 0, schedule: +5, quality: +10 },
+                            nextResponse: "ありがとうございます。月次の取引サマリーと顧客別の分析レポートです。既存のデータを活用できると思うのですが..."
+                        },
+                        {
+                            text: "承知いたしました。追加開発になりますので、まずは概算の費用と期間をお伝えしますね。",
+                            effects: { trust: +5, budget: +12, schedule: +3, quality: +5 },
+                            nextResponse: "そうですね、やはり追加費用は発生しますよね。できるだけ抑えたいのですが、どの程度になりそうでしょうか？"
+                        },
+                        {
+                            text: "申し訳ございませんが、現在のスケジュールでは対応が困難です。納期の延長が必要になります。",
+                            effects: { trust: -5, budget: +5, schedule: -15, quality: +8 },
+                            nextResponse: "そうですか...納期は非常に重要なので、何とか調整できる方法はないでしょうか？"
+                        },
+                        {
+                            text: "追加機能の内容にもよりますが、現在の予算内で対応可能な範囲で検討いたします。",
+                            effects: { trust: +3, budget: -10, schedule: +2, quality: -5 },
+                            nextResponse: "それは助かります。ただ、機能面では妥協したくない部分もあるので、詳しく相談させてください。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "具体的には、月次レポートに加えて、リアルタイムダッシュボード機能も欲しいんです。役員会議で使用する予定で...",
+                    choices: [
+                        {
+                            text: "リアルタイムダッシュボードは技術的な課題があります。段階的な実装をご提案します。",
+                            effects: { trust: +10, budget: +8, schedule: +12, quality: +15 },
+                            nextResponse: "段階的ですか。確かに一度に全てを求めるのは無理があるかもしれませんね。"
+                        },
+                        {
+                            text: "承知いたしました。ただし、相応の追加投資が必要になることをご理解ください。",
+                            effects: { trust: +5, budget: +15, schedule: -5, quality: +8 },
+                            nextResponse: "やはり費用がかかりますよね。経営陣を説得するために、ROIを示していただけますか？"
+                        },
+                        {
+                            text: "現在のシステム基盤では性能に問題が生じる可能性があります。基盤強化も検討が必要です。",
+                            effects: { trust: +12, budget: +10, schedule: -8, quality: +20 },
+                            nextResponse: "そうですね、将来を見据えた提案をいただけるのはありがたいです。"
+                        },
+                        {
+                            text: "リアルタイムダッシュボードでしたら、外部サービスの利用も検討できます。",
+                            effects: { trust: +3, budget: +5, schedule: +8, quality: -10 },
+                            nextResponse: "外部サービスですか。セキュリティ面での検討も必要ですね。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "予算の件ですが、今期はもうあまり余裕がないんです。来期に回すことも考えていますが、可能でしょうか？",
+                    choices: [
+                        {
+                            text: "フェーズ分けをして、重要度の高い機能から段階的に開発しましょう。",
+                            effects: { trust: +15, budget: +12, schedule: +10, quality: +12 },
+                            nextResponse: "それは良いアイデアですね。どの機能を優先すべきでしょうか？"
+                        },
+                        {
+                            text: "今期分と来期分に分けて予算計画を立て直しましょう。長期的な視点で進めます。",
+                            effects: { trust: +12, budget: +18, schedule: +5, quality: +8 },
+                            nextResponse: "長期計画で考えていただけると、経営陣への説明もしやすくなります。"
+                        },
+                        {
+                            text: "予算制約があるなら、機能の簡素化で対応することも可能です。",
+                            effects: { trust: +5, budget: +8, schedule: +15, quality: -12 },
+                            nextResponse: "機能の簡素化ですか...どの程度まで削減できるでしょうか？"
+                        },
+                        {
+                            text: "既存システムの活用を最大化して、開発コストを抑える方法を検討します。",
+                            effects: { trust: +10, budget: +15, schedule: +8, quality: +5 },
+                            nextResponse: "既存システムをうまく活用していただけるなら、それが一番効率的ですね。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "スケジュールの件なんですが、3月末の決算処理には間に合わせたいのです。何か良い方法はありませんか？",
+                    choices: [
+                        {
+                            text: "決算処理に必要な最小限の機能に絞って、3月末リリースを目指します。",
+                            effects: { trust: +10, budget: +5, schedule: +20, quality: +8 },
+                            nextResponse: "それでお願いします。最小限でも動く形にしていただければ。"
+                        },
+                        {
+                            text: "リソースを追加投入して、何とか3月末に間に合わせる方法を検討します。",
+                            effects: { trust: +8, budget: -12, schedule: +15, quality: -5 },
+                            nextResponse: "追加投入していただけますか。費用の面で問題ないでしょうか？"
+                        },
+                        {
+                            text: "品質を確保するために、4月中旬の完成をご提案します。急ぎすぎるとリスクが高まります。",
+                            effects: { trust: +12, budget: +8, schedule: -10, quality: +18 },
+                            nextResponse: "品質重視のご提案、理解できます。ただ、経営陣への説明が..."
+                        },
+                        {
+                            text: "暫定版を3月末にリリースし、完全版を4月末に提供する2段階方式はいかがでしょうか？",
+                            effects: { trust: +15, budget: +3, schedule: +12, quality: +10 },
+                            nextResponse: "2段階方式ですね。それなら決算には間に合いますし、品質も確保できそうです。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "品質面での懸念があります。新機能が既存システムに影響を与えることはありませんか？",
+                    choices: [
+                        {
+                            text: "詳細な影響調査を実施し、リスクを事前に特定します。品質保証が最優先です。",
+                            effects: { trust: +15, budget: +5, schedule: -8, quality: +20 },
+                            nextResponse: "品質保証を重視していただけるのは心強いです。どのような調査になりますか？"
+                        },
+                        {
+                            text: "既存システムとは独立したモジュール設計で開発し、影響を最小限に抑えます。",
+                            effects: { trust: +12, budget: +8, schedule: +5, quality: +15 },
+                            nextResponse: "独立したモジュールなら安心ですね。後々の保守性も良さそうです。"
+                        },
+                        {
+                            text: "段階的なテスト環境での検証を行い、本番への影響をゼロにします。",
+                            effects: { trust: +10, budget: +3, schedule: +8, quality: +18 },
+                            nextResponse: "段階的テストは重要ですね。どの程度の期間が必要でしょうか？"
+                        },
+                        {
+                            text: "リスクはありますが、納期を守るために並行開発で進めることもできます。",
+                            effects: { trust: -8, budget: +10, schedule: +15, quality: -15 },
+                            nextResponse: "並行開発ですか...リスクが心配ですが、納期は重要なので悩ましいところです。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "ここまでの議論を踏まえて、具体的な提案書を作成していただけますか？項目と概算を含めて。",
+                    choices: [
+                        {
+                            text: "詳細な提案書を1週間以内に作成します。ROIの試算も含めて包括的に検討します。",
+                            effects: { trust: +12, budget: +12, schedule: +8, quality: +12 },
+                            nextResponse: "包括的な提案書をお待ちしています。ROIが明確になれば、経営陣への説明もしやすくなります。"
+                        },
+                        {
+                            text: "明日までに概要版をお渡しし、その後詳細版を作成する段階的な進め方はいかがでしょうか？",
+                            effects: { trust: +15, budget: +8, schedule: +12, quality: +8 },
+                            nextResponse: "段階的な進め方は助かります。まずは概要を確認させてください。"
+                        },
+                        {
+                            text: "複数のオプションを用意して、予算に応じて選択できる提案書を作成します。",
+                            effects: { trust: +10, budget: +15, schedule: +5, quality: +10 },
+                            nextResponse: "選択肢があると、経営陣との調整もしやすくなります。よろしくお願いします。"
+                        },
+                        {
+                            text: "今日の議論内容を整理して、簡潔な提案書を作成します。",
+                            effects: { trust: +8, budget: +5, schedule: +10, quality: +5 },
+                            nextResponse: "簡潔にまとめていただけると助かります。ポイントを整理してお願いします。"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "最後に、プロジェクト全体のリスク管理についても相談したいのですが...",
+                    choices: [
+                        {
+                            text: "リスク管理表を作成し、定期的なレビュー会議でモニタリングしましょう。",
+                            effects: { trust: +15, budget: +5, schedule: +8, quality: +15 },
+                            nextResponse: "定期的なレビューがあれば安心です。どの程度の頻度で行いますか？"
+                        },
+                        {
+                            text: "想定リスクと対策を文書化し、緊急時の連絡体制も整備します。",
+                            effects: { trust: +12, budget: +8, schedule: +5, quality: +12 },
+                            nextResponse: "緊急時の体制整備は重要ですね。24時間対応も可能でしょうか？"
+                        },
+                        {
+                            text: "リスクを最小化するために、保守的なアプローチで進めることをお勧めします。",
+                            effects: { trust: +10, budget: +3, schedule: -5, quality: +18 },
+                            nextResponse: "保守的なアプローチは安全ですが、スピード感も重要なので、バランスを取りたいですね。"
+                        },
+                        {
+                            text: "プロジェクト保険の加入や、ベンダー保証の拡充も検討しましょう。",
+                            effects: { trust: +8, budget: -5, schedule: +3, quality: +8 },
+                            nextResponse: "保険という観点は考えていませんでした。どのような保証内容になりますか？"
+                        }
+                    ]
+                },
+                {
+                    clientSpeech: "今日はありがとうございました。非常に建設的な議論ができました。最終的な合意に向けて、次のステップを確認させてください。",
+                    choices: [
+                        {
+                            text: "提案書の作成、経営陣への説明、契約書の調整を順次進めていきましょう。",
+                            effects: { trust: +12, budget: +10, schedule: +8, quality: +10 },
+                            nextResponse: "順序立てて進めていただけると安心です。今後ともよろしくお願いします。"
+                        },
+                        {
+                            text: "まずは社内での検討時間を設けていただき、来週改めて詳細を詰めましょう。",
+                            effects: { trust: +10, budget: +5, schedule: +5, quality: +8 },
+                            nextResponse: "そうですね。社内調整も必要ですし、来週の会議を楽しみにしています。"
+                        },
+                        {
+                            text: "今日の合意事項を議事録にまとめ、関係者全員で共有しましょう。",
+                            effects: { trust: +15, budget: +8, schedule: +10, quality: +12 },
+                            nextResponse: "議事録の共有は重要ですね。認識の齟齬を防ぐためにも、ぜひお願いします。"
+                        },
+                        {
+                            text: "プロジェクト成功に向けて、継続的なコミュニケーションを重視していきます。",
+                            effects: { trust: +18, budget: +5, schedule: +5, quality: +8 },
+                            nextResponse: "コミュニケーションを重視していただけるのは心強いです。今後ともよろしくお願いします。"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // ゲーム開始関数
+        function startGame(scenarioType) {
+            // シナリオ選択画面を非表示
+            document.getElementById('scenario-selection').style.display = 'none';
+            // ゲーム画面を表示
+            document.getElementById('game-content').style.display = 'block';
+            
+            // ゲーム状態を初期化
+            resetGameState();
+            
+            // 最初のターンを表示
+            displayTurn();
+        }
+
+        // ゲーム状態のリセット
+        function resetGameState() {
+            gameState.currentTurn = 1;
+            gameState.metrics = {
+                trust: 70,
+                budget: 60,
+                schedule: 65,
+                quality: 75
+            };
+            gameState.playerChoices = [];
+            updateMetricsDisplay();
+        }
+
+        // 現在のターンを表示
+        function displayTurn() {
+            const currentTurnData = bankingScenario.turns[gameState.currentTurn - 1];
+            
+            // クライアントの発言を更新
+            document.getElementById('client-speech').textContent = currentTurnData.clientSpeech;
+            
+            // ターン情報を更新
+            document.getElementById('turn-counter').textContent = `ターン ${gameState.currentTurn} / ${gameState.maxTurns}`;
+            
+            // 選択肢を生成
+            displayChoices(currentTurnData.choices);
+            
+            // クライアントの表情を更新（感情に応じて）
+            updateClientMood();
+        }
+
+        // 選択肢を表示
+        function displayChoices(choices) {
+            const choicesGrid = document.getElementById('choices-grid');
+            choicesGrid.innerHTML = '';
+            
+            choices.forEach((choice, index) => {
+                const choiceButton = document.createElement('div');
+                choiceButton.className = 'choice-button';
+                choiceButton.textContent = choice.text;
+                choiceButton.onclick = () => selectChoice(index);
+                choicesGrid.appendChild(choiceButton);
+            });
+        }
+
+        // 選択肢を選択
+        function selectChoice(choiceIndex) {
+            const currentTurnData = bankingScenario.turns[gameState.currentTurn - 1];
+            const selectedChoice = currentTurnData.choices[choiceIndex];
+            
+            // 選択を記録
+            gameState.playerChoices.push({
+                turn: gameState.currentTurn,
+                choice: selectedChoice.text,
+                effects: selectedChoice.effects
+            });
+            
+            // メトリクスを更新
+            updateMetrics(selectedChoice.effects);
+            
+            // クライアントの反応を表示
+            setTimeout(() => {
+                document.getElementById('client-speech').textContent = selectedChoice.nextResponse;
+                updateClientMood();
+                
+                // 次のターンへ
+                setTimeout(() => {
+                    gameState.currentTurn++;
+                    if (gameState.currentTurn <= gameState.maxTurns) {
+                        displayTurn();
+                    } else {
+                        showResults();
+                    }
+                }, 2000);
+            }, 1000);
+        }
+
+        // メトリクスを更新
+        function updateMetrics(effects) {
+            Object.keys(effects).forEach(metric => {
+                const change = effects[metric];
+                gameState.metrics[metric] = Math.max(0, Math.min(100, gameState.metrics[metric] + change));
+                
+                // 変化のアニメーション表示
+                showMetricChange(metric, change);
+            });
+            
+            // 表示を更新
+            updateMetricsDisplay();
+        }
+
+        // メトリクス表示を更新
+        function updateMetricsDisplay() {
+            const metrics = ['trust', 'budget', 'schedule', 'quality'];
+            
+            metrics.forEach(metric => {
+                const value = gameState.metrics[metric];
+                const fillElement = document.getElementById(`${metric}-fill`);
+                const valueElement = document.getElementById(`${metric}-value`);
+                
+                fillElement.style.width = `${value}%`;
+                valueElement.textContent = value;
+                
+                // 色の変更（スコアに応じて）
+                if (value >= 80) {
+                    fillElement.style.background = 'linear-gradient(45deg, #4caf50, #8bc34a)';
+                } else if (value >= 60) {
+                    fillElement.style.background = 'linear-gradient(45deg, #ff9800, #ffc107)';
+                } else {
+                    fillElement.style.background = 'linear-gradient(45deg, #f44336, #e57373)';
+                }
+            });
+        }
+
+        // メトリクス変化のアニメーション
+        function showMetricChange(metric, change) {
+            const metricItem = document.querySelector(`#${metric}-fill`).closest('.metric-item');
+            const changeElement = document.createElement('div');
+            changeElement.className = `metric-change ${change > 0 ? 'positive' : 'negative'}`;
+            changeElement.textContent = `${change > 0 ? '+' : ''}${change}`;
+            
+            metricItem.style.position = 'relative';
+            metricItem.appendChild(changeElement);
+            
+            // 2秒後に要素を削除
+            setTimeout(() => {
+                if (changeElement.parentNode) {
+                    changeElement.parentNode.removeChild(changeElement);
+                }
+            }, 2000);
+        }
+
+        // クライアントの表情を更新
+        function updateClientMood() {
+            const avatar = document.getElementById('client-avatar');
+            const averageScore = (gameState.metrics.trust + gameState.metrics.budget + 
+                                gameState.metrics.schedule + gameState.metrics.quality) / 4;
+            
+            if (averageScore >= 80) {
+                avatar.textContent = '😊';
+                avatar.style.background = '#4caf50';
+            } else if (averageScore >= 60) {
+                avatar.textContent = '🤔';
+                avatar.style.background = '#ff9800';
+            } else if (averageScore >= 40) {
+                avatar.textContent = '😐';
+                avatar.style.background = '#9e9e9e';
+            } else {
+                avatar.textContent = '😟';
+                avatar.style.background = '#f44336';
+            }
+        }
+
+        // 結果画面を表示
+        function showResults() {
+            // ゲーム画面を非表示
+            document.getElementById('game-content').style.display = 'none';
+            // 結果画面を表示
+            document.getElementById('result-screen').style.display = 'block';
+            
+            // 最終スコアを表示
+            document.getElementById('final-trust').textContent = gameState.metrics.trust;
+            document.getElementById('final-budget').textContent = gameState.metrics.budget;
+            document.getElementById('final-schedule').textContent = gameState.metrics.schedule;
+            document.getElementById('final-quality').textContent = gameState.metrics.quality;
+            
+            // 総合評価を計算
+            const totalScore = gameState.metrics.trust + gameState.metrics.budget + 
+                             gameState.metrics.schedule + gameState.metrics.quality;
+            const averageScore = totalScore / 4;
+            
+            // 結果タイトルを設定
+            const resultTitle = document.getElementById('result-title');
+            if (averageScore >= 80) {
+                resultTitle.textContent = '🎉 交渉大成功！';
+                resultTitle.className = 'result-title result-success';
+            } else if (averageScore >= 65) {
+                resultTitle.textContent = '✅ 交渉成功';
+                resultTitle.className = 'result-title result-success';
+            } else if (averageScore >= 50) {
+                resultTitle.textContent = '⚠️ 交渉継続中';
+                resultTitle.className = 'result-title';
+            } else {
+                resultTitle.textContent = '❌ 交渉失敗';
+                resultTitle.className = 'result-title result-failure';
+            }
+            
+            // 詳細フィードバックを生成
+            generateDetailedFeedback(averageScore);
+        }
+
+        // 詳細フィードバックを生成
+        function generateDetailedFeedback(averageScore) {
+            const feedbackDiv = document.getElementById('detailed-feedback');
+            let feedback = '';
+            
+            // 総合評価
+            if (averageScore >= 80) {
+                feedback += '<p><strong>素晴らしい交渉でした！</strong>クライアントとの信頼関係を構築しながら、プロジェクトの成功に向けて的確な提案と合意形成ができました。</p>';
+            } else if (averageScore >= 65) {
+                feedback += '<p><strong>交渉成功です！</strong>バランスの取れた提案で、クライアントの要望に応えることができました。</p>';
+            } else if (averageScore >= 50) {
+                feedback += '<p><strong>まずまずの結果です。</strong>いくつかの課題は残りましたが、継続的な議論で解決できそうです。</p>';
+            } else {
+                feedback += '<p><strong>交渉は困難な状況です。</strong>クライアントとの認識に差があり、再度の調整が必要です。</p>';
+            }
+            
+            // 各指標の分析
+            feedback += '<h4>📋 各指標の分析</h4>';
+            
+            // 信頼度の分析
+            if (gameState.metrics.trust >= 80) {
+                feedback += '<p>🤝 <strong>信頼度：</strong>クライアントとの強固な信頼関係を構築できました。透明性の高いコミュニケーションが評価されています。</p>';
+            } else if (gameState.metrics.trust >= 60) {
+                feedback += '<p>🤝 <strong>信頼度：</strong>一定の信頼は得られていますが、より詳細な説明や提案が求められる場面もありました。</p>';
+            } else {
+                feedback += '<p>🤝 <strong>信頼度：</strong>クライアントの信頼を十分に得られませんでした。より丁寧な説明と誠実な対応が必要です。</p>';
+            }
+            
+            // 予算の分析
+            if (gameState.metrics.budget >= 80) {
+                feedback += '<p>💰 <strong>予算：</strong>プロジェクトの収益性を確保しながら、クライアントにも納得いただける提案ができました。</p>';
+            } else if (gameState.metrics.budget >= 60) {
+                feedback += '<p>💰 <strong>予算：</strong>予算バランスは取れていますが、より効率的な提案の余地があります。</p>';
+            } else {
+                feedback += '<p>💰 <strong>予算：</strong>コスト面での調整が不十分です。価値提案の見直しが必要です。</p>';
+            }
+            
+            // 納期の分析
+            if (gameState.metrics.schedule >= 80) {
+                feedback += '<p>⏰ <strong>納期：</strong>現実的なスケジュール管理ができており、期限内完成の可能性が高いです。</p>';
+            } else if (gameState.metrics.schedule >= 60) {
+                feedback += '<p>⏰ <strong>納期：</strong>スケジュールは概ね管理できていますが、リスク管理の強化が望まれます。</p>';
+            } else {
+                feedback += '<p>⏰ <strong>納期：</strong>納期遵守に課題があります。スコープ調整や資源配分の見直しが必要です。</p>';
+            }
+            
+            // 品質の分析
+            if (gameState.metrics.quality >= 80) {
+                feedback += '<p>🎯 <strong>品質：</strong>高品質な成果物の提供に向けて、適切な品質管理体制が構築できています。</p>';
+            } else if (gameState.metrics.quality >= 60) {
+                feedback += '<p>🎯 <strong>品質：</strong>品質面での基本的な配慮はできていますが、より詳細な品質保証策が求められます。</p>';
+            } else {
+                feedback += '<p>🎯 <strong>品質：</strong>品質管理に不安があります。テスト計画や品質基準の明確化が必要です。</p>';
+            }
+            
+            // PMとしてのアドバイス
+            feedback += '<h4>💡 PMとしての改善ポイント</h4>';
+            
+            // 最も低いスコアの指標に対するアドバイス
+            const lowestMetric = Object.keys(gameState.metrics).reduce((a, b) => 
+                gameState.metrics[a] < gameState.metrics[b] ? a : b
+            );
+            
+            switch(lowestMetric) {
+                case 'trust':
+                    feedback += '<p>・ <strong>信頼関係の構築：</strong>より頻繁なコミュニケーションと透明性の高い情報共有を心がけましょう。</p>';
+                    break;
+                case 'budget':
+                    feedback += '<p>・ <strong>予算管理：</strong>ROIの明確化と段階的な価値提供の提案を検討しましょう。</p>';
+                    break;
+                case 'schedule':
+                    feedback += '<p>・ <strong>スケジュール管理：</strong>リスクバッファの設定と早期警告システムの構築が重要です。</p>';
+                    break;
+                case 'quality':
+                    feedback += '<p>・ <strong>品質管理：</strong>品質基準の明確化と継続的な品質監視体制の構築を推進しましょう。</p>';
+                    break;
+            }
+            
+            // 選択の振り返り
+            feedback += '<h4>🔍 選択の振り返り</h4>';
+            const strongChoices = gameState.playerChoices.filter(choice => {
+                const totalEffect = Object.values(choice.effects).reduce((sum, val) => sum + val, 0);
+                return totalEffect > 15;
+            });
+            
+            if (strongChoices.length > 0) {
+                feedback += '<p><strong>効果的だった選択：</strong></p><ul>';
+                strongChoices.forEach(choice => {
+                    feedback += `<li>ターン${choice.turn}: ${choice.choice.substring(0, 50)}...</li>`;
+                });
+                feedback += '</ul>';
+            }
+            
+            feedback += '<p>継続的な学習と経験を積むことで、さらに優れたプロジェクトマネージャーになれるでしょう。</p>';
+            
+            feedbackDiv.innerHTML = feedback;
+        }
+
+        // ゲームを再開
+        function restartGame() {
+            // 結果画面を非表示
+            document.getElementById('result-screen').style.display = 'none';
+            // シナリオ選択画面を表示
+            document.getElementById('scenario-selection').style.display = 'block';
+            
+            // アバターをリセット
+            const avatar = document.getElementById('client-avatar');
+            avatar.textContent = '👨‍💼';
+            avatar.style.background = '#2196f3';
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初期メトリクス表示を更新
+            updateMetricsDisplay();
+        });
+    </script>
+</body>
+</html>
