@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIer PM交渉シミュレーションゲーム</title>
+    <style>
+        :root {
+          /* Colors */
+          --color-background: rgba(252, 252, 249, 1);
+          --color-surface: rgba(255, 255, 253, 1);
+          --color-text: rgba(19, 52, 59, 1);
+          --color-text-secondary: rgba(98, 108, 113, 1);
+          --color-primary: rgba(33, 128, 141, 1);
+          --color-primary-hover: rgba(29, 116, 128, 1);
+          --color-primary-active: rgba(26, 104, 115, 1);
+          --color-secondary: rgba(94, 82, 64, 0.12);
+          --color-secondary-hover: rgba(94, 82, 64, 0.2);
+          --color-secondary-active: rgba(94, 82, 64, 0.25);
+          --color-border: rgba(94, 82, 64, 0.2);
+          --color-btn-primary-text: rgba(252, 252, 249, 1);
+          --color-card-border: rgba(94, 82, 64, 0.12);
+          --color-card-border-inner: rgba(94, 82, 64, 0.12);
+          --color-error: rgba(192, 21, 47, 1);
+          --color-success: rgba(33, 128, 141, 1);
+          --color-warning: rgba(168, 75, 47, 1);
+          --color-info: rgba(98, 108, 113, 1);
+          --color-focus-ring: rgba(33, 128, 141, 0.4);
+          --color-select-caret: rgba(19, 52, 59, 0.8);
+
+          /* Common style patterns */
+          --focus-ring: 0 0 0 3px var(--color-focus-ring);
+          --focus-outline: 2px solid var(--color-primary);
+          --status-bg-opacity: 0.15;
+          --status-border-opacity: 0.25;
+          --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+          /* RGB versions for opacity control */
+          --color-success-rgb: 33, 128, 141;
+          --color-error-rgb: 192, 21, 47;
+          --color-warning-rgb: 168, 75, 47;
+          --color-info-rgb: 98, 108, 113;
+
+          /* Typography */
+          --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+            BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+            Monaco, Consolas, monospace;
+          --font-size-xs: 11px;
+          --font-size-sm: 12px;
+          --font-size-base: 14px;
+          --font-size-md: 14px;
+          --font-size-lg: 16px;
+          --font-size-xl: 18px;
+          --font-size-2xl: 20px;
+          --font-size-3xl: 24px;
+          --font-size-4xl: 30px;
+          --font-weight-normal: 400;
+          --font-weight-medium: 500;
+          --font-weight-semibold: 550;
+          --font-weight-bold: 600;
+          --line-height-tight: 1.2;
+          --line-height-normal: 1.5;
+          --letter-spacing-tight: -0.01em;
+
+          /* Spacing */
+          --space-0: 0;
+          --space-1: 1px;
+          --space-2: 2px;
+          --space-4: 4px;
+          --space-6: 6px;
+          --space-8: 8px;
+          --space-10: 10px;
+          --space-12: 12px;
+          --space-16: 16px;
+          --space-20: 20px;
+          --space-24: 24px;
+          --space-32: 32px;
+
+          /* Border Radius */
+          --radius-sm: 6px;
+          --radius-base: 8px;
+          --radius-md: 10px;
+          --radius-lg: 12px;
+          --radius-full: 9999px;
+
+          /* Shadows */
+          --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+          --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+          --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+            0 2px 4px -1px rgba(0, 0, 0, 0.02);
+          --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+            0 4px 6px -2px rgba(0, 0, 0, 0.02);
+          --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+          /* Animation */
+          --duration-fast: 150ms;
+          --duration-normal: 250ms;
+          --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+          /* Layout */
+          --container-sm: 640px;
+          --container-md: 768px;
+          --container-lg: 1024px;
+          --container-xl: 1280px;
+        }
+
+        /* Dark mode colors */
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --color-background: rgba(31, 33, 33, 1);
+            --color-surface: rgba(38, 40, 40, 1);
+            --color-text: rgba(245, 245, 245, 1);
+            --color-text-secondary: rgba(167, 169, 169, 0.7);
+            --color-primary: rgba(50, 184, 198, 1);
+            --color-primary-hover: rgba(45, 166, 178, 1);
+            --color-primary-active: rgba(41, 150, 161, 1);
+            --color-secondary: rgba(119, 124, 124, 0.15);
+            --color-secondary-hover: rgba(119, 124, 124, 0.25);
+            --color-secondary-active: rgba(119, 124, 124, 0.3);
+            --color-border: rgba(119, 124, 124, 0.3);
+            --color-error: rgba(255, 84, 89, 1);
+            --color-success: rgba(50, 184, 198, 1);
+            --color-warning: rgba(230, 129, 97, 1);
+            --color-info: rgba(167, 169, 169, 1);
+            --color-focus-ring: rgba(50, 184, 198, 0.4);
+            --color-btn-primary-text: rgba(19, 52, 59, 1);
+            --color-card-border: rgba(119, 124, 124, 0.2);
+            --color-card-border-inner: rgba(119, 124, 124, 0.15);
+            --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+            --button-border-secondary: rgba(119, 124, 124, 0.2);
+            --color-border-secondary: rgba(119, 124, 124, 0.2);
+            --color-select-caret: rgba(245, 245, 245, 0.8);
+
+            /* Common style patterns - updated for dark mode */
+            --focus-ring: 0 0 0 3px var(--color-focus-ring);
+            --focus-outline: 2px solid var(--color-primary);
+            --status-bg-opacity: 0.15;
+            --status-border-opacity: 0.25;
+            --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+            /* RGB versions for dark mode */
+            --color-success-rgb: 50, 184, 198;
+            --color-error-rgb: 255, 84, 89;
+            --color-warning-rgb: 230, 129, 97;
+            --color-info-rgb: 167, 169, 169;
+          }
+        }
+
+        /* Data attribute for manual theme switching */
+        [data-color-scheme="dark"] {
+          --color-background: rgba(31, 33, 33, 1);
+          --color-surface: rgba(38, 40, 40, 1);
+          --color-text: rgba(245, 245, 245, 1);
+          --color-text-secondary: rgba(167, 169, 169, 0.7);
+          --color-primary: rgba(50, 184, 198, 1);
+          --color-primary-hover: rgba(45, 166, 178, 1);
+          --color-primary-active: rgba(41, 150, 161, 1);
+          --color-secondary: rgba(119, 124, 124, 0.15);
+          --color-secondary-hover: rgba(119, 124, 124, 0.25);
+          --color-secondary-active: rgba(119, 124, 124, 0.3);
+          --color-border: rgba(119, 124, 124, 0.3);
+          --color-error: rgba(255, 84, 89, 1);
+          --color-success: rgba(50, 184, 198, 1);
+          --color-warning: rgba(230, 129, 97, 1);
+          --color-info: rgba(167, 169, 169, 1);
+          --color-focus-ring: rgba(50, 184, 198, 0.4);
+          --color-btn-primary-text: rgba(19, 52, 59, 1);
+          --color-card-border: rgba(119, 124, 124, 0.2);
+          --color-card-border-inner: rgba(119, 124, 124, 0.15);
+          --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+          --color-border-secondary: rgba(119, 124, 124, 0.2);
+          --color-select-caret: rgba(245, 245, 245, 0.8);
+
+          /* Common style patterns - updated for dark mode */
+          --focus-ring: 0 0 0 3px var(--color-focus-ring);
+          --focus-outline: 2px solid var(--color-primary);
+          --status-bg-opacity: 0.15;
+          --status-border-opacity: 0.25;
+          --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+          /* RGB versions for dark mode */
+          --color-success-rgb: 50, 184, 198;
+          --color-error-rgb: 255, 84, 89;
+          --color-warning-rgb: 230, 129, 97;
+          --color-info-rgb: 167, 169, 169;
+        }
+
+        [data-color-scheme="light"] {
+          --color-background: rgba(252, 252, 249, 1);
+          --color-surface: rgba(255, 255, 253, 1);
+          --color-text: rgba(19, 52, 59, 1);
+          --color-text-secondary: rgba(98, 108, 113, 1);
+          --color-primary: rgba(33, 128, 141, 1);
+          --color-primary-hover: rgba(29, 116, 128, 1);
+          --color-primary-active: rgba(26, 104, 115, 1);
+          --color-secondary: rgba(94, 82, 64, 0.12);
+          --color-secondary-hover: rgba(94, 82, 64, 0.2);
+          --color-secondary-active: rgba(94, 82, 64, 0.25);
+          --color-border: rgba(94, 82, 64, 0.2);
+          --color-btn-primary-text: rgba(252, 252, 249, 1);
+          --color-card-border: rgba(94, 82, 64, 0.12);
+          --color-card-border-inner: rgba(94, 82, 64, 0.12);
+          --color-error: rgba(192, 21, 47, 1);
+          --color-success: rgba(33, 128, 141, 1);
+          --color-warning: rgba(168, 75, 47, 1);
+          --color-info: rgba(98, 108, 113, 1);
+          --color-focus-ring: rgba(33, 128, 141, 0.4);
+
+          /* RGB versions for light mode */
+          --color-success-rgb: 33, 128, 141;
+          --color-error-rgb: 192, 21, 47;
+          --color-warning-rgb: 168, 75, 47;
+          --color-info-rgb: 98, 108, 113;
+        }
+
+        /* Base styles */
+        html {
+          font-size: var(--font-size-base);
+          font-family: var(--font-family-base);
+          line-height: var(--line-height-normal);
+          color: var(--color-text);
+          background-color: var(--color-background);
+          -webkit-font-smoothing: antialiased;
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+        }
+
+        *,
+        *::before,
+        *::after {
+          box-sizing: inherit;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          margin: 0;
+          font-weight: var(--font-weight-semibold);
+          line-height: var(--line-height-tight);
+          color: var(--color-text);
+          letter-spacing: var(--letter-spacing-tight);
+        }
+
+        h1 {
+          font-size: var(--font-size-4xl);
+        }
+        h2 {
+          font-size: var(--font-size-3xl);
+        }
+        h3 {
+          font-size: var(--font-size-2xl);
+        }
+        h4 {
+          font-size: var(--font-size-xl);
+        }
+        h5 {
+          font-size: var(--font-size-lg);
+        }
+        h6 {
+          font-size: var(--font-size-md);
+        }
+
+        p {
+          margin: 0 0 var(--space-16) 0;
+        }
+
+        a {
+          color: var(--color-primary);
+          text-decoration: none;
+          transition: color var(--duration-fast) var(--ease-standard);
+        }
+
+        a:hover {
+          color: var(--color-primary-hover);
+        }
+
+        code,
+        pre {
+          font-family: var(--font-family-mono);
+          font-size: calc(var(--font-size-base) * 0.95);
+          background-color: var(--color-secondary);
+          border-radius: var(--radius-sm);
+        }
+
+        code {
+          padding: var(--space-1) var(--space-4);
+        }
+
+        pre {
+          padding: var(--space-16);
+          margin: var(--space-16) 0;
+          overflow: auto;
+          border: 1px solid var(--color-border);
+        }
+
+        pre code {
+          background: none;
+          padding: 0;
+        }
+
+        /* Buttons */
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-8) var(--space-16);
+          border-radius: var(--radius-base);
+          font-size: var(--font-size-base);
+          font-weight: 500;
+          line-height: 1.5;
+          cursor: pointer;
+          transition: all var(--duration-normal) var(--ease-standard);
+          border: none;
+          text-decoration: none;
+          position: relative;
+        }
+
+        .btn:focus-visible {
+          outline: none;
+          box-shadow: var(--focus-ring);
+        }
+
+        .btn--primary {
+          background: var(--color-primary);
+          color: var(--color-btn-primary-text);
+        }
+
+        .btn--primary:hover {
+          background: var(--color-primary-hover);
+        }
+
+        .btn--primary:active {
+          background: var(--color-primary-active);
+        }
+
+        .btn--secondary {
+          background: var(--color-secondary);
+          color: var(--color-text);
+        }
+
+        .btn--secondary:hover {
+          background: var(--color-secondary-hover);
+        }
+
+        .btn--secondary:active {
+          background: var(--color-secondary-active);
+        }
+
+        .btn--outline {
+          background: transparent;
+          border: 1px solid var(--color-border);
+          color: var(--color-text);
+        }
+
+        .btn--outline:hover {
+          background: var(--color-secondary);
+        }
+
+        .btn--sm {
+          padding: var(--space-4) var(--space-12);
+          font-size: var(--font-size-sm);
+          border-radius: var(--radius-sm);
+        }
+
+        .btn--lg {
+          padding: var(--space-10) var(--space-20);
+          font-size: var(--font-size-lg);
+          border-radius: var(--radius-md);
+        }
+
+        .btn--full-width {
+          width: 100%;
+        }
+
+        .btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        /* Form elements */
+        .form-control {
+          display: block;
+          width: 100%;
+          padding: var(--space-8) var(--space-12);
+          font-size: var(--font-size-md);
+          line-height: 1.5;
+          color: var(--color-text);
+          background-color: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-base);
+          transition: border-color var(--duration-fast) var(--ease-standard),
+            box-shadow var(--duration-fast) var(--ease-standard);
+        }
+
+        textarea.form-control {
+          font-family: var(--font-family-base);
+          font-size: var(--font-size-base);
+        }
+
+        select.form-control {
+          padding: var(--space-8) var(--space-12);
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-image: var(--select-caret-light);
+          background-repeat: no-repeat;
+          background-position: right var(--space-12) center;
+          background-size: 16px;
+          padding-right: var(--space-32);
+        }
+
+        /* Add a dark mode specific caret */
+        @media (prefers-color-scheme: dark) {
+          select.form-control {
+            background-image: var(--select-caret-dark);
+          }
+        }
+
+        /* Also handle data-color-scheme */
+        [data-color-scheme="dark"] select.form-control {
+          background-image: var(--select-caret-dark);
+        }
+
+        [data-color-scheme="light"] select.form-control {
+          background-image: var(--select-caret-light);
+        }
+
+        .form-control:focus {
+          border-color: var(--color-primary);
+          outline: var(--focus-outline);
+        }
+
+        .form-label {
+          display: block;
+          margin-bottom: var(--space-8);
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-sm);
+        }
+
+        .form-group {
+          margin-bottom: var(--space-16);
+        }
+
+        /* Card component */
+        .card {
+          background-color: var(--color-surface);
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--color-card-border);
+          box-shadow: var(--shadow-sm);
+          overflow: hidden;
+          transition: box-shadow var(--duration-normal) var(--ease-standard);
+        }
+
+        .card:hover {
+          box-shadow: var(--shadow-md);
+        }
+
+        .card__body {
+          padding: var(--space-16);
+        }
+
+        .card__header,
+        .card__footer {
+          padding: var(--space-16);
+          border-bottom: 1px solid var(--color-card-border-inner);
+        }
+
+        /* Status indicators - simplified with CSS variables */
+        .status {
+          display: inline-flex;
+          align-items: center;
+          padding: var(--space-6) var(--space-12);
+          border-radius: var(--radius-full);
+          font-weight: var(--font-weight-medium);
+          font-size: var(--font-size-sm);
+        }
+
+        .status--success {
+          background-color: rgba(
+            var(--color-success-rgb, 33, 128, 141),
+            var(--status-bg-opacity)
+          );
+          color: var(--color-success);
+          border: 1px solid
+            rgba(var(--color-success-rgb, 33, 128, 141), var(--status-border-opacity));
+        }
+
+        .status--error {
+          background-color: rgba(
+            var(--color-error-rgb, 192, 21, 47),
+            var(--status-bg-opacity)
+          );
+          color: var(--color-error);
+          border: 1px solid
+            rgba(var(--color-error-rgb, 192, 21, 47), var(--status-border-opacity));
+        }
+
+        .status--warning {
+          background-color: rgba(
+            var(--color-warning-rgb, 168, 75, 47),
+            var(--status-bg-opacity)
+          );
+          color: var(--color-warning);
+          border: 1px solid
+            rgba(var(--color-warning-rgb, 168, 75, 47), var(--status-border-opacity));
+        }
+
+        .status--info {
+          background-color: rgba(
+            var(--color-info-rgb, 98, 108, 113),
+            var(--status-bg-opacity)
+          );
+          color: var(--color-info);
+          border: 1px solid
+            rgba(var(--color-info-rgb, 98, 108, 113), var(--status-border-opacity));
+        }
+
+        /* Container layout */
+        .container {
+          width: 100%;
+          margin-right: auto;
+          margin-left: auto;
+          padding-right: var(--space-16);
+          padding-left: var(--space-16);
+        }
+
+        @media (min-width: 640px) {
+          .container {
+            max-width: var(--container-sm);
+          }
+        }
+        @media (min-width: 768px) {
+          .container {
+            max-width: var(--container-md);
+          }
+        }
+        @media (min-width: 1024px) {
+          .container {
+            max-width: var(--container-lg);
+          }
+        }
+        @media (min-width: 1280px) {
+          .container {
+            max-width: var(--container-xl);
+          }
+        }
+
+        /* Utility classes */
+        .flex {
+          display: flex;
+        }
+        .flex-col {
+          flex-direction: column;
+        }
+        .items-center {
+          align-items: center;
+        }
+        .justify-center {
+          justify-content: center;
+        }
+        .justify-between {
+          justify-content: space-between;
+        }
+        .gap-4 {
+          gap: var(--space-4);
+        }
+        .gap-8 {
+          gap: var(--space-8);
+        }
+        .gap-16 {
+          gap: var(--space-16);
+        }
+
+        .m-0 {
+          margin: 0;
+        }
+        .mt-8 {
+          margin-top: var(--space-8);
+        }
+        .mb-8 {
+          margin-bottom: var(--space-8);
+        }
+        .mx-8 {
+          margin-left: var(--space-8);
+          margin-right: var(--space-8);
+        }
+        .my-8 {
+          margin-top: var(--space-8);
+          margin-bottom: var(--space-8);
+        }
+
+        .p-0 {
+          padding: 0;
+        }
+        .py-8 {
+          padding-top: var(--space-8);
+          padding-bottom: var(--space-8);
+        }
+        .px-8 {
+          padding-left: var(--space-8);
+          padding-right: var(--space-8);
+        }
+        .py-16 {
+          padding-top: var(--space-16);
+          padding-bottom: var(--space-16);
+        }
+        .px-16 {
+          padding-left: var(--space-16);
+          padding-right: var(--space-16);
+        }
+
+        .block {
+          display: block;
+        }
+        .hidden {
+          display: none;
+        }
+
+        /* Accessibility */
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border-width: 0;
+        }
+
+        :focus-visible {
+          outline: var(--focus-outline);
+          outline-offset: 2px;
+        }
+
+        /* Dark mode specifics */
+        [data-color-scheme="dark"] .btn--outline {
+          border: 1px solid var(--color-border-secondary);
+        }
+
+        @font-face {
+          font-family: 'FKGroteskNeue';
+          src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+            format('woff2');
+        }
+
+        /* Additional styles for SIer PM交渉シミュレーション */
+
+        .screen {
+          padding: var(--space-24) 0;
+        }
+
+        .hidden {
+          display: none !important;
+        }
+
+        /* Start screen */
+        .initial-stats .stats-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--space-16);
+          margin-top: var(--space-8);
+        }
+        .stat-item {
+          flex: 1 1 120px;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-base);
+          padding: var(--space-12);
+          background: var(--color-surface);
+          text-align: center;
+        }
+
+        /* Game screen layout */
+        .client-area {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-16);
+          margin-bottom: var(--space-24);
+        }
+        .client-character {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .client-avatar {
+          font-size: 64px; /* Emoji size */
+          line-height: 1;
+        }
+        .client-name {
+          margin-top: var(--space-8);
+          font-weight: var(--font-weight-medium);
+        }
+        .speech-bubble {
+          position: relative;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-lg);
+          padding: var(--space-16);
+          max-width: 600px;
+        }
+        .speech-bubble p {
+          margin: 0;
+          font-size: var(--font-size-lg);
+        }
+
+        /* Arrow for speech bubble */
+        .speech-bubble::after {
+          content: "";
+          position: absolute;
+          bottom: -12px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 12px 12px 0 12px;
+          border-style: solid;
+          border-color: var(--color-border) transparent transparent transparent;
+        }
+
+        /* Metrics */
+        .metrics-area {
+          margin-bottom: var(--space-24);
+        }
+        .metrics-grid {
+          display: grid;
+          gap: var(--space-16);
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+        .metric-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: var(--space-4);
+        }
+        .progress-bar {
+          width: 100%;
+          height: 14px;
+          background: var(--color-secondary);
+          border-radius: var(--radius-full);
+          overflow: hidden;
+        }
+        .progress-fill {
+          height: 100%;
+          background: var(--color-primary);
+          width: 0%;
+          transition: width var(--duration-normal) var(--ease-standard);
+        }
+        /* Positive / negative feedback colors */
+        .progress-fill.positive {
+          background: rgba(var(--color-success-rgb), 0.8);
+        }
+        .progress-fill.negative {
+          background: rgba(var(--color-error-rgb), 0.8);
+        }
+
+        /* Choices */
+        .choices-area {
+          margin-bottom: var(--space-24);
+        }
+        .choices-grid {
+          display: grid;
+          gap: var(--space-16);
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 640px) {
+          .choices-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+        .choice-btn {
+          width: 100%;
+        }
+
+        /* Turn info */
+        .turn-info {
+          text-align: center;
+          margin-top: var(--space-8);
+          font-size: var(--font-size-sm);
+          color: var(--color-text-secondary);
+        }
+
+        /* Result screen */
+        .result-status {
+          text-align: center;
+          margin-bottom: var(--space-16);
+          font-size: var(--font-size-2xl);
+          font-weight: var(--font-weight-bold);
+        }
+        .feedback-section {
+          margin-top: var(--space-24);
+          border-top: 1px solid var(--color-border);
+          padding-top: var(--space-16);
+        }
+        .result-actions {
+          margin-top: var(--space-24);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ゲーム開始画面 -->
+        <div id="start-screen" class="screen">
+            <div class="card">
+                <div class="card__body">
+                    <h1>SIer PM交渉シミュレーション</h1>
+                    <h2>金融業 - 仕様変更対応シナリオ</h2>
+                    <div class="scenario-info">
+                        <h3>シナリオ背景</h3>
+                        <p><strong>業種：</strong>金融業</p>
+                        <p><strong>クライアント：</strong>○○銀行・システム部長</p>
+                        <p><strong>状況：</strong>システム開発プロジェクト進行中、クライアント都合による急な仕様変更が発生</p>
+                        <p><strong>交渉ゴール：</strong>追加開発のスコープと追加予算、納期への影響について合意形成</p>
+                        <p><strong>クライアント特性：</strong>コスト意識は高いが、プロジェクトの成功には協力的</p>
+                    </div>
+                    <div class="initial-stats">
+                        <h4>初期評価指標</h4>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">信頼度</span>
+                                <span class="stat-value">70点</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">予算</span>
+                                <span class="stat-value">60点</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">納期</span>
+                                <span class="stat-value">50点</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">品質</span>
+                                <span class="stat-value">75点</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--lg btn--full-width" id="start-game">交渉開始</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲームプレイ画面 -->
+        <div id="game-screen" class="screen hidden">
+            <!-- クライアントエリア -->
+            <div class="client-area">
+                <div class="client-character">
+                    <div class="client-avatar" id="client-avatar">👔</div>
+                    <div class="client-name">○○銀行 システム部長</div>
+                </div>
+                <div class="speech-bubble" id="speech-bubble">
+                    <p id="client-message"></p>
+                </div>
+            </div>
+
+            <!-- 評価指標エリア -->
+            <div class="metrics-area">
+                <h3>評価指標</h3>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-header">
+                            <span class="metric-label">信頼度</span>
+                            <span class="metric-value" id="trust-value">70</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="trust-bar" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-header">
+                            <span class="metric-label">予算</span>
+                            <span class="metric-value" id="budget-value">60</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="budget-bar" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-header">
+                            <span class="metric-label">納期</span>
+                            <span class="metric-value" id="schedule-value">50</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="schedule-bar" style="width: 50%"></div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-header">
+                            <span class="metric-label">品質</span>
+                            <span class="metric-value" id="quality-value">75</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="quality-bar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 選択肢エリア -->
+            <div class="choices-area">
+                <h3>あなたの回答を選択してください</h3>
+                <div class="choices-grid" id="choices-container">
+                    <!-- 選択肢は動的に生成 -->
+                </div>
+            </div>
+
+            <!-- ターン情報 -->
+            <div class="turn-info">
+                <span>ターン <span id="current-turn">1</span> / <span id="total-turns">8</span></span>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="result-screen" class="screen hidden">
+            <div class="card">
+                <div class="card__body">
+                    <h1>交渉結果</h1>
+                    <div class="result-status" id="result-status">
+                        <!-- 成功/失敗ステータス -->
+                    </div>
+                    <div class="final-metrics">
+                        <h3>最終評価指標</h3>
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <span class="metric-label">信頼度</span>
+                                    <span class="metric-value" id="final-trust">70</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="final-trust-bar"></div>
+                                </div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <span class="metric-label">予算</span>
+                                    <span class="metric-value" id="final-budget">60</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="final-budget-bar"></div>
+                                </div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <span class="metric-label">納期</span>
+                                    <span class="metric-value" id="final-schedule">50</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="final-schedule-bar"></div>
+                                </div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-header">
+                                    <span class="metric-label">品質</span>
+                                    <span class="metric-value" id="final-quality">75</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="final-quality-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feedback-section">
+                        <h3>総評</h3>
+                        <div id="feedback-content">
+                            <!-- フィードバック内容 -->
+                        </div>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn btn--primary btn--full-width" id="play-again">もう一度プレイ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SIer PM交渉シミュレーションゲーム - JavaScript
+
+        // ゲーム状態管理
+        let gameState = {
+            currentTurn: 0,
+            totalTurns: 8,
+            metrics: {
+                trust: 70,      // 信頼度
+                budget: 60,     // 予算
+                schedule: 50,   // 納期
+                quality: 75     // 品質
+            },
+            choiceHistory: []
+        };
+
+        // シナリオデータ - 金融業の仕様変更対応
+        const scenarioData = [
+            {
+                turn: 1,
+                clientMessage: "新しい法規制への対応で、認証機能を追加したいのですが...予算への影響はどの程度でしょうか？",
+                choices: [
+                    {
+                        text: "承知いたしました。すぐに対応させていただきます。",
+                        effects: { trust: 5, budget: -10, schedule: -15, quality: 0 },
+                        response: "ありがとうございます！迅速な対応をお願いします。"
+                    },
+                    {
+                        text: "追加機能ですので、別途お見積もりが必要になります。",
+                        effects: { trust: -5, budget: 10, schedule: 5, quality: 0 },
+                        response: "そうですか...費用はできるだけ抑えたいのですが。"
+                    },
+                    {
+                        text: "影響範囲を詳しく確認して、最適な方法を提案いたします。",
+                        effects: { trust: 10, budget: -5, schedule: 0, quality: 5 },
+                        response: "さすがですね。詳細な提案をお待ちしています。"
+                    },
+                    {
+                        text: "現在のスコープ内で対応可能な範囲を検討します。",
+                        effects: { trust: 3, budget: 3, schedule: 3, quality: -3 },
+                        response: "なるほど、どこまで対応できるか教えてください。"
+                    }
+                ]
+            },
+            {
+                turn: 2,
+                clientMessage: "認証機能の実装には、既存のユーザー管理システムとの連携が必要ですね。セキュリティ面での課題はありますか？",
+                choices: [
+                    {
+                        text: "既存システムとの互換性を保ちながら実装します。",
+                        effects: { trust: 8, budget: -8, schedule: -10, quality: 10 },
+                        response: "安心しました。セキュリティは最重要ですから。"
+                    },
+                    {
+                        text: "セキュリティ監査も含めて別途費用が発生します。",
+                        effects: { trust: -3, budget: 15, schedule: 0, quality: 8 },
+                        response: "監査費用...予算が厳しくなってきますね。"
+                    },
+                    {
+                        text: "段階的な実装で、リスクを最小化しながら進めましょう。",
+                        effects: { trust: 12, budget: 0, schedule: -5, quality: 5 },
+                        response: "段階的な実装、良いアプローチですね。"
+                    },
+                    {
+                        text: "基本的なセキュリティ対策で十分対応可能です。",
+                        effects: { trust: -5, budget: 5, schedule: 8, quality: -8 },
+                        response: "基本的な対策で本当に大丈夫でしょうか？"
+                    }
+                ]
+            },
+            {
+                turn: 3,
+                clientMessage: "開発期間の延長が避けられないようですが、来月のシステム監査に間に合わせる必要があります。何か代案はありますか？",
+                choices: [
+                    {
+                        text: "チーム体制を強化して、必ず間に合わせます。",
+                        effects: { trust: 5, budget: -15, schedule: 10, quality: -5 },
+                        response: "頼もしいです。でも無理は禁物ですよ。"
+                    },
+                    {
+                        text: "最小限の機能で監査を通し、残りを後期に実装します。",
+                        effects: { trust: 10, budget: 8, schedule: 15, quality: -3 },
+                        response: "それは現実的な案ですね。検討してみます。"
+                    },
+                    {
+                        text: "監査の延期を監査法人に相談してみてはいかがでしょうか。",
+                        effects: { trust: -8, budget: 0, schedule: -10, quality: 0 },
+                        response: "延期は難しいかもしれません...。"
+                    },
+                    {
+                        text: "外部パートナーとの連携で開発を加速します。",
+                        effects: { trust: 7, budget: -10, schedule: 8, quality: 3 },
+                        response: "信頼できるパートナーであれば安心ですね。"
+                    }
+                ]
+            },
+            {
+                turn: 4,
+                clientMessage: "役員会への報告が控えているのですが、プロジェクトの進捗と追加費用について、どう説明すれば良いでしょうか？",
+                choices: [
+                    {
+                        text: "詳細な資料を作成して、役員会でご説明いたします。",
+                        effects: { trust: 15, budget: -5, schedule: -3, quality: 8 },
+                        response: "それは心強いです。一緒に説明していただけると助かります。"
+                    },
+                    {
+                        text: "法規制対応の必要性を強調して説明してください。",
+                        effects: { trust: 5, budget: 3, schedule: 0, quality: 0 },
+                        response: "確かに法規制は避けられませんからね。"
+                    },
+                    {
+                        text: "ROIとリスク軽減効果を数値で示した資料を準備します。",
+                        effects: { trust: 12, budget: 5, schedule: 0, quality: 5 },
+                        response: "数値で示していただけると説得力がありますね。"
+                    },
+                    {
+                        text: "追加費用は最小限に抑えられることを強調します。",
+                        effects: { trust: -2, budget: 10, schedule: 5, quality: -5 },
+                        response: "本当に最小限で収まるでしょうか？"
+                    }
+                ]
+            },
+            {
+                turn: 5,
+                clientMessage: "テスト環境での動作確認中に、パフォーマンスの問題が発覚しました。本番環境での影響が心配です。",
+                choices: [
+                    {
+                        text: "追加のパフォーマンステストを実施して対策します。",
+                        effects: { trust: 10, budget: -12, schedule: -8, quality: 15 },
+                        response: "安心しました。徹底的にテストしてください。"
+                    },
+                    {
+                        text: "ハードウェアの増強で解決できます。",
+                        effects: { trust: 3, budget: -8, schedule: 3, quality: 8 },
+                        response: "ハードウェア費用も検討が必要ですね。"
+                    },
+                    {
+                        text: "アルゴリズムの最適化で対応可能です。",
+                        effects: { trust: 8, budget: 2, schedule: -5, quality: 12 },
+                        response: "技術的な解決策、期待しています。"
+                    },
+                    {
+                        text: "運用でカバーできる範囲だと判断します。",
+                        effects: { trust: -10, budget: 8, schedule: 5, quality: -10 },
+                        response: "運用でカバーというのは少し不安ですが...。"
+                    }
+                ]
+            },
+            {
+                turn: 6,
+                clientMessage: "他部署からも同様のシステム導入希望が出ています。今回の開発を横展開できるでしょうか？",
+                choices: [
+                    {
+                        text: "設計を汎用化して、横展開しやすくします。",
+                        effects: { trust: 12, budget: -5, schedule: -5, quality: 10 },
+                        response: "将来を見据えた設計、素晴らしいですね。"
+                    },
+                    {
+                        text: "別プロジェクトとして新たに提案させていただきます。",
+                        effects: { trust: 5, budget: 15, schedule: 0, quality: 0 },
+                        response: "新しいビジネス機会ですね。検討します。"
+                    },
+                    {
+                        text: "テンプレート化して、導入コストを下げましょう。",
+                        effects: { trust: 15, budget: 8, schedule: 5, quality: 5 },
+                        response: "コスト効率的な提案、ありがとうございます。"
+                    },
+                    {
+                        text: "まず今回のプロジェクトを成功させることに集中しましょう。",
+                        effects: { trust: 8, budget: 0, schedule: 3, quality: 8 },
+                        response: "確かに、まずは確実に成功させたいですね。"
+                    }
+                ]
+            },
+            {
+                turn: 7,
+                clientMessage: "最終的な予算と納期を確定させたいのですが、現時点での見通しを教えてください。",
+                choices: [
+                    {
+                        text: "詳細な工数見積もりを再算出して報告します。",
+                        effects: { trust: 10, budget: 0, schedule: -3, quality: 5 },
+                        response: "正確な見積もりをお願いします。"
+                    },
+                    {
+                        text: "当初予算の110%、納期は2週間延長でお願いします。",
+                        effects: { trust: 5, budget: -10, schedule: -10, quality: 8 },
+                        response: "予算も納期も厳しいですが、品質重視で。"
+                    },
+                    {
+                        text: "機能を絞り込んで、当初計画通りに収めます。",
+                        effects: { trust: 3, budget: 8, schedule: 10, quality: -8 },
+                        response: "機能削減は避けたいのですが..."
+                    },
+                    {
+                        text: "段階リリースで、重要機能を優先実装します。",
+                        effects: { trust: 12, budget: 5, schedule: 5, quality: 3 },
+                        response: "段階リリース、現実的で良いアプローチですね。"
+                    }
+                ]
+            },
+            {
+                turn: 8,
+                clientMessage: "プロジェクト全体を振り返って、今後の長期的なパートナーシップについても話し合いたいと思います。",
+                choices: [
+                    {
+                        text: "今回の経験を活かし、さらに良いサービスを提供します。",
+                        effects: { trust: 15, budget: 5, schedule: 0, quality: 8 },
+                        response: "頼もしいパートナーとして期待しています。"
+                    },
+                    {
+                        text: "定期的な保守・運用サービスも提案させていただきます。",
+                        effects: { trust: 8, budget: 12, schedule: 0, quality: 5 },
+                        response: "継続的なサポート、ぜひお願いします。"
+                    },
+                    {
+                        text: "技術トレンドを共有する定例会を設けませんか。",
+                        effects: { trust: 12, budget: 3, schedule: 0, quality: 10 },
+                        response: "情報共有、とても価値がありそうですね。"
+                    },
+                    {
+                        text: "お客様の事業成長に貢献できるよう努めます。",
+                        effects: { trust: 10, budget: 0, schedule: 0, quality: 5 },
+                        response: "心強い言葉をありがとうございます。"
+                    }
+                ]
+            }
+        ];
+
+        // DOM要素の取得
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startGameBtn = document.getElementById('start-game');
+        const playAgainBtn = document.getElementById('play-again');
+
+        // ゲーム初期化
+        function initGame() {
+            gameState.currentTurn = 0;
+            gameState.metrics = { trust: 70, budget: 60, schedule: 50, quality: 75 };
+            gameState.choiceHistory = [];
+            updateUI();
+        }
+
+        // ゲーム開始
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            initGame();
+            showCurrentTurn();
+        }
+
+        // 現在のターン表示
+        function showCurrentTurn() {
+            const turnData = scenarioData[gameState.currentTurn];
+            
+            // クライアントメッセージ表示
+            document.getElementById('client-message').textContent = turnData.clientMessage;
+            
+            // 選択肢表示
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+            
+            turnData.choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn btn--outline choice-btn';
+                button.textContent = choice.text;
+                button.addEventListener('click', () => makeChoice(index));
+                choicesContainer.appendChild(button);
+            });
+            
+            // ターン番号更新
+            document.getElementById('current-turn').textContent = gameState.currentTurn + 1;
+            document.getElementById('total-turns').textContent = gameState.totalTurns;
+        }
+
+        // 選択肢を選ぶ
+        function makeChoice(choiceIndex) {
+            const turnData = scenarioData[gameState.currentTurn];
+            const selectedChoice = turnData.choices[choiceIndex];
+            
+            // 選択履歴に記録
+            gameState.choiceHistory.push({
+                turn: gameState.currentTurn + 1,
+                choice: selectedChoice.text,
+                effects: selectedChoice.effects
+            });
+            
+            // メトリクス更新
+            updateMetrics(selectedChoice.effects);
+            
+            // クライアントの反応表示
+            document.getElementById('client-message').textContent = selectedChoice.response;
+            
+            // 選択肢を無効化
+            const choiceButtons = document.querySelectorAll('.choice-btn');
+            choiceButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            });
+            
+            // 次のターンへ進む準備
+            setTimeout(() => {
+                gameState.currentTurn++;
+                if (gameState.currentTurn >= gameState.totalTurns) {
+                    showResult();
+                } else {
+                    showCurrentTurn();
+                }
+            }, 2000);
+        }
+
+        // メトリクス更新
+        function updateMetrics(effects) {
+            Object.keys(effects).forEach(metric => {
+                if (effects[metric] !== 0) {
+                    gameState.metrics[metric] = Math.max(0, Math.min(100, gameState.metrics[metric] + effects[metric]));
+                    
+                    // アニメーション効果
+                    const valueElement = document.getElementById(`${metric === 'trust' ? 'trust' : 
+                        metric === 'budget' ? 'budget' : 
+                        metric === 'schedule' ? 'schedule' : 'quality'}-value`);
+                    const barElement = document.getElementById(`${metric === 'trust' ? 'trust' : 
+                        metric === 'budget' ? 'budget' : 
+                        metric === 'schedule' ? 'schedule' : 'quality'}-bar`);
+                    
+                    // 数値更新
+                    valueElement.textContent = gameState.metrics[metric];
+                    
+                    // プログレスバー更新
+                    barElement.style.width = `${gameState.metrics[metric]}%`;
+                    
+                    // 色変更（ポジティブ/ネガティブ）
+                    if (effects[metric] > 0) {
+                        barElement.classList.add('positive');
+                        setTimeout(() => barElement.classList.remove('positive'), 1000);
+                    } else if (effects[metric] < 0) {
+                        barElement.classList.add('negative');
+                        setTimeout(() => barElement.classList.remove('negative'), 1000);
+                    }
+                }
+            });
+        }
+
+        // UI更新
+        function updateUI() {
+            Object.keys(gameState.metrics).forEach(metric => {
+                const valueElement = document.getElementById(`${metric === 'trust' ? 'trust' : 
+                    metric === 'budget' ? 'budget' : 
+                    metric === 'schedule' ? 'schedule' : 'quality'}-value`);
+                const barElement = document.getElementById(`${metric === 'trust' ? 'trust' : 
+                    metric === 'budget' ? 'budget' : 
+                    metric === 'schedule' ? 'schedule' : 'quality'}-bar`);
+                
+                valueElement.textContent = gameState.metrics[metric];
+                barElement.style.width = `${gameState.metrics[metric]}%`;
+            });
+        }
+
+        // 結果表示
+        function showResult() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            // 最終スコア表示
+            Object.keys(gameState.metrics).forEach(metric => {
+                const valueElement = document.getElementById(`final-${metric === 'trust' ? 'trust' : 
+                    metric === 'budget' ? 'budget' : 
+                    metric === 'schedule' ? 'schedule' : 'quality'}`);
+                const barElement = document.getElementById(`final-${metric === 'trust' ? 'trust' : 
+                    metric === 'budget' ? 'budget' : 
+                    metric === 'schedule' ? 'schedule' : 'quality'}-bar`);
+                
+                valueElement.textContent = gameState.metrics[metric];
+                barElement.style.width = `${gameState.metrics[metric]}%`;
+            });
+            
+            // 総合評価判定
+            const totalScore = Object.values(gameState.metrics).reduce((sum, score) => sum + score, 0);
+            const averageScore = totalScore / 4;
+            
+            const resultStatusElement = document.getElementById('result-status');
+            const feedbackElement = document.getElementById('feedback-content');
+            
+            let statusText, statusClass, feedback;
+            
+            if (averageScore >= 80) {
+                statusText = '🎉 交渉大成功！';
+                statusClass = 'status--success';
+                feedback = '素晴らしい交渉スキルです！クライアントとの信頼関係を築きながら、プロジェクトの品質と収益性を両立できました。特に技術的な提案力と段階的なアプローチが功を奏しました。';
+            } else if (averageScore >= 65) {
+                statusText = '✅ 交渉成功';
+                statusClass = 'status--success';
+                feedback = '良い交渉でした。大きな問題もなく合意形成できました。今後はより戦略的なアプローチで、さらなる価値提案ができるよう期待しています。';
+            } else if (averageScore >= 50) {
+                statusText = '⚠️ 部分的成功';
+                statusClass = 'status--warning';
+                feedback = '一部の課題は解決できましたが、改善の余地があります。クライアントのニーズをより深く理解し、Win-Winの提案を心がけましょう。';
+            } else {
+                statusText = '❌ 交渉失敗';
+                statusClass = 'status--error';
+                feedback = '交渉が難航しました。次回は事前準備をより充実させ、クライアントの立場に立った提案を心がけてください。';
+            }
+            
+            resultStatusElement.textContent = statusText;
+            resultStatusElement.className = `result-status ${statusClass}`;
+            
+            // 詳細フィードバック
+            let detailedFeedback = `<p>${feedback}</p><h4>詳細分析</h4><ul>`;
+            
+            if (gameState.metrics.trust >= 75) {
+                detailedFeedback += '<li>✅ <strong>信頼度:</strong> クライアントとの良好な関係を築けました</li>';
+            } else if (gameState.metrics.trust >= 50) {
+                detailedFeedback += '<li>⚠️ <strong>信頼度:</strong> 信頼関係の構築に課題があります</li>';
+            } else {
+                detailedFeedback += '<li>❌ <strong>信頼度:</strong> クライアントとの関係改善が必要です</li>';
+            }
+            
+            if (gameState.metrics.budget >= 70) {
+                detailedFeedback += '<li>✅ <strong>予算:</strong> 収益性を確保できました</li>';
+            } else if (gameState.metrics.budget >= 50) {
+                detailedFeedback += '<li>⚠️ <strong>予算:</strong> 予算管理に注意が必要です</li>';
+            } else {
+                detailedFeedback += '<li>❌ <strong>予算:</strong> 収益性に大きな課題があります</li>';
+            }
+            
+            if (gameState.metrics.schedule >= 70) {
+                detailedFeedback += '<li>✅ <strong>納期:</strong> スケジュール管理が適切でした</li>';
+            } else if (gameState.metrics.schedule >= 50) {
+                detailedFeedback += '<li>⚠️ <strong>納期:</strong> スケジュール調整が必要です</li>';
+            } else {
+                detailedFeedback += '<li>❌ <strong>納期:</strong> 納期遵守に大きな問題があります</li>';
+            }
+            
+            if (gameState.metrics.quality >= 75) {
+                detailedFeedback += '<li>✅ <strong>品質:</strong> 高品質な成果物を提供できます</li>';
+            } else if (gameState.metrics.quality >= 50) {
+                detailedFeedback += '<li>⚠️ <strong>品質:</strong> 品質向上の余地があります</li>';
+            } else {
+                detailedFeedback += '<li>❌ <strong>品質:</strong> 品質確保に課題があります</li>';
+            }
+            
+            detailedFeedback += '</ul>';
+            feedbackElement.innerHTML = detailedFeedback;
+        }
+
+        // イベントリスナー設定
+        startGameBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', () => {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        });
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初期状態は開始画面
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
