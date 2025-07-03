@@ -1,3 +1,12 @@
+# 生成AIで作成したシミュレータ
+
+- [ChatGPT](https://t2k2pp.github.io/AIXA/games/sier_negotiation_game_chatgpt.html)
+- [Gemini](https://t2k2pp.github.io/AIXA/games/sier_negotiation_game_gemini.html)
+- [Claude](https://t2k2pp.github.io/AIXA/games/sier_negotiation_game_claude.html)
+- [Perplexity](https://t2k2pp.github.io/AIXA/games/sier_negotiation_game_perplexity.html)
+
+
+
 # 生成AIで作成したゲーム
 
 ### 以下は2025年6月に作成したものです。
