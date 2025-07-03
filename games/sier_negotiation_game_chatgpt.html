@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIer交渉体験シミュレーション</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container {
+    max-width: 800px;
+    width: 100%;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 20px;
+    border-radius: 8px;
+  }
+  .client {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .client img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-right: 20px;
+  }
+  .speech {
+    background: #e9eef5;
+    padding: 15px;
+    border-radius: 10px;
+  }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+  }
+  .stat {
+    width: 23%;
+  }
+  .bar {
+    height: 10px;
+    background: #ddd;
+    border-radius: 5px;
+    margin-top: 5px;
+    position: relative;
+  }
+  .fill {
+    height: 10px;
+    background: #4caf50;
+    border-radius: 5px;
+    width: 100%;
+    transition: width 0.5s;
+  }
+  .choices button {
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background: #007BFF;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .choices button:hover {
+    background: #0056b3;
+  }
+  .result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e9eef5;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>金融業：仕様変更への対応</h2>
+  <div class="client">
+    <img id="clientImage" src="https://via.placeholder.com/100" alt="システム部長">
+    <div class="speech" id="clientSpeech">「先週お伝えした通り、〇〇機能の追加が急務になりました。どう進めましょうか？」</div>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      信頼度
+      <div class="bar"><div class="fill" id="trustBar"></div></div>
+    </div>
+    <div class="stat">
+      予算
+      <div class="bar"><div class="fill" id="budgetBar"></div></div>
+    </div>
+    <div class="stat">
+      納期
+      <div class="bar"><div class="fill" id="scheduleBar"></div></div>
+    </div>
+    <div class="stat">
+      品質
+      <div class="bar"><div class="fill" id="qualityBar"></div></div>
+    </div>
+  </div>
+  <div class="choices" id="choices"></div>
+  <div class="result" id="result"></div>
+</div>
+<script>
+// 初期スコア
+let stats = {
+  trust: 70,
+  budget: 70,
+  schedule: 70,
+  quality: 70
+};
+
+// シナリオターン
+const scenario = [
+  {
+    speech: "「今回の仕様変更は、コスト面でどの程度影響が出ますか？」",
+    options: [
+      { text: "追加予算が必要ですが、詳細を精査してご提案します。", delta: { trust: +5, budget: +5, schedule: 0, quality: +3 } },
+      { text: "何とか現行予算内で対応します。", delta: { trust: +2, budget: -10, schedule: -5, quality: -5 } },
+      { text: "即座に対応可能ですが、納期に影響します。", delta: { trust: +3, budget: 0, schedule: -10, quality: 0 } },
+      { text: "詳細が不明なので対応は難しいです。", delta: { trust: -10, budget: 0, schedule: 0, quality: 0 } }
+    ]
+  },
+  {
+    speech: "「スケジュールの遅延リスクをどう考えていますか？」",
+    options: [
+      { text: "遅延を最小化する追加要員を提案します。", delta: { trust: +5, budget: -5, schedule: +5, quality: +3 } },
+      { text: "現行体制で進めるため遅延リスクは高いです。", delta: { trust: -5, budget: 0, schedule: -10, quality: -5 } },
+      { text: "仕様を絞って遅延回避します。", delta: { trust: +3, budget: 0, schedule: +5, quality: -3 } },
+      { text: "詳細を再確認し、改めて報告します。", delta: { trust: +2, budget: 0, schedule: 0, quality: 0 } }
+    ]
+  },
+  {
+    speech: "「品質への影響は？」",
+    options: [
+      { text: "品質は維持可能ですが追加期間が必要です。", delta: { trust: +5, budget: 0, schedule: -5, quality: +5 } },
+      { text: "一部妥協が必要ですがスケジュール優先可能です。", delta: { trust: -2, budget: 0, schedule: +5, quality: -10 } },
+      { text: "現状維持を最優先します。", delta: { trust: +3, budget: -5, schedule: -5, quality: +3 } },
+      { text: "まだ判断できません。", delta: { trust: -5, budget: 0, schedule: 0, quality: 0 } }
+    ]
+  }
+];
+
+let turn = 0;
+
+function updateBars() {
+  document.getElementById('trustBar').style.width = stats.trust + '%';
+  document.getElementById('budgetBar').style.width = stats.budget + '%';
+  document.getElementById('scheduleBar').style.width = stats.schedule + '%';
+  document.getElementById('qualityBar').style.width = stats.quality + '%';
+}
+
+function nextTurn() {
+  if(turn >= scenario.length) {
+    showResult();
+    return;
+  }
+  document.getElementById('clientSpeech').textContent = scenario[turn].speech;
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
+  scenario[turn].options.forEach((opt, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = opt.text;
+    btn.onclick = () => {
+      stats.trust = Math.min(100, Math.max(0, stats.trust + opt.delta.trust));
+      stats.budget = Math.min(100, Math.max(0, stats.budget + opt.delta.budget));
+      stats.schedule = Math.min(100, Math.max(0, stats.schedule + opt.delta.schedule));
+      stats.quality = Math.min(100, Math.max(0, stats.quality + opt.delta.quality));
+      updateBars();
+      turn++;
+      nextTurn();
+    };
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function showResult() {
+  const avg = (stats.trust + stats.budget + stats.schedule + stats.quality) / 4;
+  let message = '';
+  if(avg >= 75) message = '交渉成功！プロジェクトは順調に進行します。';
+  else if(avg >= 50) message = '一定の合意を得ましたが、改善の余地があります。';
+  else message = '交渉失敗。関係の見直しが必要です。';
+  document.getElementById('result').textContent = message;
+  document.getElementById('choices').innerHTML = '';
+}
+
+updateBars();
+nextTurn();
+</script>
+</body>
+</html>
